@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO restaurant_managers (restaurant_id, user_id, role, can_manage_menu)\n        VALUES (?, ?, ?, ?)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "6e95ed52cb8d298c9e589a7ec5c48bfda502a8cb76694030ae5bb4a71ca15123"
+}
