@@ -111,7 +111,33 @@ pub struct Order {
     pub items: String, // JSON string
     pub total_amount: f64,
     pub status: String,
+    pub customer_name: Option<String>,
     pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct OrderRow {
+    pub id: String,
+    pub table_id: String,
+    pub items: String,
+    pub total_amount: f64,
+    pub status: String,
+    pub customer_name: Option<String>,
+    pub created_at: NaiveDateTime,
+}
+
+impl From<OrderRow> for Order {
+    fn from(row: OrderRow) -> Self {
+        Self {
+            id: row.id,
+            table_id: row.table_id,
+            items: row.items,
+            total_amount: row.total_amount,
+            status: row.status,
+            customer_name: row.customer_name,
+            created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -161,8 +187,16 @@ pub struct CreateMenuItemRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateOrderRequest {
-    pub table_id: String,
-    pub items: Vec<OrderItem>,
+    pub table_code: String,
+    pub items: Vec<CreateOrderItem>,
+    pub customer_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateOrderItem {
+    pub menu_item_id: String,
+    pub quantity: i32,
+    pub special_requests: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -427,6 +461,36 @@ pub struct RefreshCodeResponse {
     pub table_id: String,
     pub new_unique_code: String,
     pub qr_url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrderResponse {
+    pub id: String,
+    pub table_id: String,
+    pub table_name: String,
+    pub restaurant_name: String,
+    pub items: Vec<OrderItemResponse>,
+    pub total_amount: f64,
+    pub status: String,
+    pub customer_name: Option<String>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrderItemResponse {
+    pub menu_item_id: String,
+    pub menu_item_name: String,
+    pub quantity: i32,
+    pub price: f64,
+    pub special_requests: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateOrderResponse {
+    pub order_id: String,
+    pub total_amount: f64,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, FromRow)]

@@ -3,12 +3,16 @@ name = "backend"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "setup_db"
+path = "src/setup_db.rs"
+
 [dependencies]
 actix-web = "4.4"
 tokio = { version = "1.0", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "chrono", "uuid", "migrate"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "chrono", "uuid", "migrate", "macros"] }
 jsonwebtoken = "9.2"
 argon2 = "0.5"
 actix-web-httpauth = "0.8"
