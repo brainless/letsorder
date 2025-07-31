@@ -3,12 +3,14 @@ use actix_web::{dev::ServiceRequest, Error, HttpMessage};
 use actix_web_httpauth::extractors::bearer::{BearerAuth, Config};
 use actix_web_httpauth::extractors::AuthenticationError;
 use argon2::{
-    password_hash::{PasswordHash, PasswordHasher as ArgonPasswordHasher, PasswordVerifier, SaltString},
+    password_hash::{
+        PasswordHash, PasswordHasher as ArgonPasswordHasher, PasswordVerifier, SaltString,
+    },
     Argon2,
 };
-use rand_core::OsRng;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use rand_core::OsRng;
 
 pub struct PasswordHasher;
 
@@ -16,7 +18,8 @@ impl PasswordHasher {
     pub fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
         let salt = SaltString::generate(&mut OsRng);
         let argon2 = Argon2::default();
-        let password_hash = ArgonPasswordHasher::hash_password(&argon2, password.as_bytes(), &salt)?;
+        let password_hash =
+            ArgonPasswordHasher::hash_password(&argon2, password.as_bytes(), &salt)?;
         Ok(password_hash.to_string())
     }
 

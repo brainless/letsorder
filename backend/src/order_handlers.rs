@@ -1,10 +1,10 @@
 use crate::models::{
-    CreateOrderRequest, CreateOrderResponse, OrderItem, OrderItemResponse, OrderResponse,
-    MenuItem, MenuItemRow, Table, TableRow, Restaurant, RestaurantRow, Claims
+    Claims, CreateOrderRequest, CreateOrderResponse, MenuItem, MenuItemRow, OrderItem,
+    OrderItemResponse, OrderResponse, Restaurant, RestaurantRow, Table, TableRow,
 };
 use actix_web::{web, HttpResponse, Result};
 use chrono::Utc;
-use sqlx::{Pool, Sqlite, Row};
+use sqlx::{Pool, Row, Sqlite};
 use uuid::Uuid;
 
 pub async fn create_order(
@@ -13,7 +13,7 @@ pub async fn create_order(
 ) -> Result<HttpResponse> {
     // Find table by unique code
     let table_row = sqlx::query_as::<_, TableRow>(
-        "SELECT id, restaurant_id, name, unique_code, created_at FROM tables WHERE unique_code = ?"
+        "SELECT id, restaurant_id, name, unique_code, created_at FROM tables WHERE unique_code = ?",
     )
     .bind(&req.table_code)
     .fetch_optional(pool.get_ref())
@@ -143,7 +143,7 @@ pub async fn get_order(
          FROM orders o
          JOIN tables t ON o.table_id = t.id
          JOIN restaurants r ON t.restaurant_id = r.id
-         WHERE o.id = ?"
+         WHERE o.id = ?",
     )
     .bind(&order_id)
     .fetch_optional(pool.get_ref())
@@ -216,7 +216,8 @@ pub async fn get_order(
                 status: row.try_get("status").unwrap_or_default(),
                 customer_name: row.try_get("customer_name").ok(),
                 created_at: {
-                    let created_at: chrono::NaiveDateTime = row.try_get("created_at").unwrap_or_default();
+                    let created_at: chrono::NaiveDateTime =
+                        row.try_get("created_at").unwrap_or_default();
                     chrono::DateTime::from_naive_utc_and_offset(created_at, Utc)
                 },
             };
@@ -244,7 +245,7 @@ pub async fn list_restaurant_orders(
 
     // Check if user is a manager of this restaurant
     let manager_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?"
+        "SELECT COUNT(*) FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
     )
     .bind(&restaurant_id)
     .bind(&claims.sub)
@@ -265,7 +266,7 @@ pub async fn list_restaurant_orders(
          FROM orders o
          JOIN tables t ON o.table_id = t.id
          WHERE t.restaurant_id = ?
-         ORDER BY o.created_at DESC"
+         ORDER BY o.created_at DESC",
     )
     .bind(&restaurant_id)
     .fetch_all(pool.get_ref())
@@ -274,7 +275,7 @@ pub async fn list_restaurant_orders(
     match orders {
         Ok(orders) => {
             let mut order_responses = Vec::new();
-            
+
             // Get restaurant name once
             let restaurant = sqlx::query_as::<_, RestaurantRow>(
                 "SELECT id, name, address, establishment_year, google_maps_link, created_at FROM restaurants WHERE id = ?"
@@ -287,7 +288,7 @@ pub async fn list_restaurant_orders(
                 Ok(Some(restaurant_row)) => Restaurant::from(restaurant_row).name,
                 _ => "Unknown Restaurant".to_string(),
             };
-            
+
             for row in orders {
                 // Parse order items
                 let items: String = row.try_get("items").unwrap_or_default();
@@ -351,7 +352,8 @@ pub async fn list_restaurant_orders(
                     status: row.try_get("status").unwrap_or_default(),
                     customer_name: row.try_get("customer_name").ok(),
                     created_at: {
-                        let created_at: chrono::NaiveDateTime = row.try_get("created_at").unwrap_or_default();
+                        let created_at: chrono::NaiveDateTime =
+                            row.try_get("created_at").unwrap_or_default();
                         chrono::DateTime::from_naive_utc_and_offset(created_at, Utc)
                     },
                 });
@@ -377,7 +379,7 @@ pub async fn list_today_orders(
 
     // Check if user is a manager of this restaurant
     let manager_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?"
+        "SELECT COUNT(*) FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
     )
     .bind(&restaurant_id)
     .bind(&claims.sub)
@@ -398,7 +400,7 @@ pub async fn list_today_orders(
          FROM orders o
          JOIN tables t ON o.table_id = t.id
          WHERE t.restaurant_id = ? AND date(o.created_at) = date('now')
-         ORDER BY o.created_at DESC"
+         ORDER BY o.created_at DESC",
     )
     .bind(&restaurant_id)
     .fetch_all(pool.get_ref())
@@ -407,7 +409,7 @@ pub async fn list_today_orders(
     match orders {
         Ok(orders) => {
             let mut order_responses = Vec::new();
-            
+
             // Get restaurant name once
             let restaurant = sqlx::query_as::<_, RestaurantRow>(
                 "SELECT id, name, address, establishment_year, google_maps_link, created_at FROM restaurants WHERE id = ?"
@@ -420,7 +422,7 @@ pub async fn list_today_orders(
                 Ok(Some(restaurant_row)) => Restaurant::from(restaurant_row).name,
                 _ => "Unknown Restaurant".to_string(),
             };
-            
+
             for row in orders {
                 // Parse order items
                 let items: String = row.try_get("items").unwrap_or_default();
@@ -484,7 +486,8 @@ pub async fn list_today_orders(
                     status: row.try_get("status").unwrap_or_default(),
                     customer_name: row.try_get("customer_name").ok(),
                     created_at: {
-                        let created_at: chrono::NaiveDateTime = row.try_get("created_at").unwrap_or_default();
+                        let created_at: chrono::NaiveDateTime =
+                            row.try_get("created_at").unwrap_or_default();
                         chrono::DateTime::from_naive_utc_and_offset(created_at, Utc)
                     },
                 });
@@ -510,7 +513,7 @@ pub async fn list_table_orders(
 
     // Check if user is a manager of this restaurant
     let manager_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?"
+        "SELECT COUNT(*) FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
     )
     .bind(&restaurant_id)
     .bind(&claims.sub)
@@ -525,14 +528,13 @@ pub async fn list_table_orders(
     }
 
     // Verify table belongs to restaurant
-    let table_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM tables WHERE id = ? AND restaurant_id = ?"
-    )
-    .bind(&table_id)
-    .bind(&restaurant_id)
-    .fetch_one(pool.get_ref())
-    .await
-    .unwrap_or(0);
+    let table_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM tables WHERE id = ? AND restaurant_id = ?")
+            .bind(&table_id)
+            .bind(&restaurant_id)
+            .fetch_one(pool.get_ref())
+            .await
+            .unwrap_or(0);
 
     if table_count == 0 {
         return Ok(HttpResponse::NotFound().json(serde_json::json!({
@@ -547,7 +549,7 @@ pub async fn list_table_orders(
          FROM orders o
          JOIN tables t ON o.table_id = t.id
          WHERE o.table_id = ?
-         ORDER BY o.created_at DESC"
+         ORDER BY o.created_at DESC",
     )
     .bind(&table_id)
     .fetch_all(pool.get_ref())
@@ -556,7 +558,7 @@ pub async fn list_table_orders(
     match orders {
         Ok(orders) => {
             let mut order_responses = Vec::new();
-            
+
             // Get restaurant name once
             let restaurant = sqlx::query_as::<_, RestaurantRow>(
                 "SELECT id, name, address, establishment_year, google_maps_link, created_at FROM restaurants WHERE id = ?"
@@ -569,7 +571,7 @@ pub async fn list_table_orders(
                 Ok(Some(restaurant_row)) => Restaurant::from(restaurant_row).name,
                 _ => "Unknown Restaurant".to_string(),
             };
-            
+
             for row in orders {
                 // Parse order items
                 let items: String = row.try_get("items").unwrap_or_default();
@@ -633,7 +635,8 @@ pub async fn list_table_orders(
                     status: row.try_get("status").unwrap_or_default(),
                     customer_name: row.try_get("customer_name").ok(),
                     created_at: {
-                        let created_at: chrono::NaiveDateTime = row.try_get("created_at").unwrap_or_default();
+                        let created_at: chrono::NaiveDateTime =
+                            row.try_get("created_at").unwrap_or_default();
                         chrono::DateTime::from_naive_utc_and_offset(created_at, Utc)
                     },
                 });

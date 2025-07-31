@@ -1,8 +1,8 @@
 use crate::auth::{JwtManager, PasswordHasher};
 use crate::models::{
     AuthResponse, Claims, CreateRestaurantRequest, InviteManagerRequest, InviteResponse,
-    JoinRestaurantRequest, LoginRequest, ManagerInfo, ManagerInvite, ManagerInviteRow, RegisterRequest,
-    Restaurant, RestaurantRow, UpdateManagerPermissionsRequest,
+    JoinRestaurantRequest, LoginRequest, ManagerInfo, ManagerInvite, ManagerInviteRow,
+    RegisterRequest, Restaurant, RestaurantRow, UpdateManagerPermissionsRequest,
     UpdateRestaurantRequest, User, UserResponse, UserRow,
 };
 use actix_web::{web, HttpResponse, Result};
@@ -17,7 +17,7 @@ pub async fn register(
 ) -> Result<HttpResponse> {
     // Check if user already exists
     let existing_user = sqlx::query_as::<_, UserRow>(
-        "SELECT id, email, phone, password_hash, created_at FROM users WHERE email = ?"
+        "SELECT id, email, phone, password_hash, created_at FROM users WHERE email = ?",
     )
     .bind(&req.email)
     .fetch_optional(pool.get_ref())
@@ -65,7 +65,7 @@ pub async fn register(
         Ok(_) => {
             // Fetch the created user
             let user_row = sqlx::query_as::<_, UserRow>(
-                "SELECT id, email, phone, password_hash, created_at FROM users WHERE id = ?"
+                "SELECT id, email, phone, password_hash, created_at FROM users WHERE id = ?",
             )
             .bind(&user_id)
             .fetch_one(pool.get_ref())
@@ -115,7 +115,7 @@ pub async fn login(
 ) -> Result<HttpResponse> {
     // Find user by email
     let user_row = sqlx::query_as::<_, UserRow>(
-        "SELECT id, email, phone, password_hash, created_at FROM users WHERE email = ?"
+        "SELECT id, email, phone, password_hash, created_at FROM users WHERE email = ?",
     )
     .bind(&req.email)
     .fetch_optional(pool.get_ref())
@@ -183,7 +183,7 @@ pub async fn create_restaurant(
     req: web::Json<CreateRestaurantRequest>,
 ) -> Result<HttpResponse> {
     let restaurant_id = Uuid::new_v4().to_string();
-    
+
     // Start a transaction
     let mut tx = match pool.begin().await {
         Ok(tx) => tx,
@@ -277,7 +277,7 @@ pub async fn get_restaurant(
     .await;
 
     match manager_check {
-        Ok(Some(_)) => {}, // User is a manager
+        Ok(Some(_)) => {} // User is a manager
         Ok(None) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Access denied"
@@ -334,7 +334,7 @@ pub async fn update_restaurant(
     .await;
 
     match super_admin_check {
-        Ok(Some(_)) => {}, // User is super admin
+        Ok(Some(_)) => {} // User is super admin
         Ok(None) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Only super admin can update restaurant details"
@@ -382,7 +382,7 @@ pub async fn update_restaurant(
 
     // Execute update with proper parameter binding
     let mut query_builder = sqlx::query(&query);
-    
+
     if let Some(ref name) = req.name {
         query_builder = query_builder.bind(name);
     }
@@ -395,7 +395,7 @@ pub async fn update_restaurant(
     if let Some(ref maps_link) = req.google_maps_link {
         query_builder = query_builder.bind(maps_link);
     }
-    
+
     query_builder = query_builder.bind(&restaurant_id);
 
     let result = query_builder.execute(pool.get_ref()).await;
@@ -455,7 +455,7 @@ pub async fn delete_restaurant(
     .await;
 
     match super_admin_check {
-        Ok(Some(_)) => {}, // User is super admin
+        Ok(Some(_)) => {} // User is super admin
         Ok(None) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Only super admin can delete restaurant"
@@ -511,7 +511,7 @@ pub async fn invite_manager(
     .await;
 
     match super_admin_check {
-        Ok(Some(_)) => {}, // User is super admin
+        Ok(Some(_)) => {} // User is super admin
         Ok(None) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Only super admin can invite managers"
@@ -658,7 +658,7 @@ pub async fn join_restaurant(
 
     // Check if user already exists
     let existing_user = sqlx::query_as::<_, UserRow>(
-        "SELECT id, email, phone, password_hash, created_at FROM users WHERE email = ?"
+        "SELECT id, email, phone, password_hash, created_at FROM users WHERE email = ?",
     )
     .bind(&req.email)
     .fetch_optional(&mut *tx)
@@ -770,7 +770,7 @@ pub async fn join_restaurant(
 
     // Fetch user and generate token
     let user_row = sqlx::query_as::<_, UserRow>(
-        "SELECT id, email, phone, password_hash, created_at FROM users WHERE id = ?"
+        "SELECT id, email, phone, password_hash, created_at FROM users WHERE id = ?",
     )
     .bind(&user_id)
     .fetch_one(pool.get_ref())
@@ -821,7 +821,7 @@ pub async fn list_managers(
     .await;
 
     match manager_check {
-        Ok(Some(_)) => {}, // User is a manager
+        Ok(Some(_)) => {} // User is a manager
         Ok(None) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Access denied"
@@ -888,7 +888,7 @@ pub async fn remove_manager(
     .await;
 
     match super_admin_check {
-        Ok(Some(_)) => {}, // User is super admin
+        Ok(Some(_)) => {} // User is super admin
         Ok(None) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Only super admin can remove managers"
@@ -955,7 +955,7 @@ pub async fn update_manager_permissions(
     .await;
 
     match super_admin_check {
-        Ok(Some(_)) => {}, // User is super admin
+        Ok(Some(_)) => {} // User is super admin
         Ok(None) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Only super admin can update manager permissions"
