@@ -5,3 +5,8 @@
 target/
 Cargo.lock
 *.pdb
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
