@@ -26,3 +26,7 @@ uuid = { version = "1.0", features = ["v4", "serde"] }
 qrcode = "0.14"
 image = "0.24"
 base64 = "0.21"
+
+[dev-dependencies]
+tokio-test = "0.4"
+serial_test = "3.0"

@@ -1,0 +1,176 @@
+use actix_web::test;
+use backend::{create_app, models::{AuthResponse, LoginRequest}};
+use serial_test::serial;
+
+mod common;
+use common::*;
+
+async fn create_test_app_service() -> impl actix_web::dev::Service<
+    actix_web::dev::ServiceRequest,
+    Response = actix_web::dev::ServiceResponse,
+    Error = actix_web::Error,
+> {
+    let test_app = create_test_app().await;
+    let app = create_app(test_app.pool.clone(), test_app.jwt_manager.clone());
+    test::init_service(app).await
+}
+
+#[tokio::test]
+#[serial]
+async fn test_user_registration() {
+    let app = create_test_app_service().await;
+
+    let test_user = test_user_admin();
+    let register_request = test_user.to_register_request();
+
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
+        .insert_header(json_content_type())
+        .set_json(&register_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_success());
+
+    let auth_response: AuthResponse = test::read_body_json(resp).await;
+    assert_eq!(auth_response.user.email, test_user.email);
+    assert!(!auth_response.token.is_empty());
+}
+
+#[tokio::test]
+#[serial]
+async fn test_user_registration_duplicate_email() {
+    let app = create_test_app_service().await;
+
+    let test_user = test_user_admin();
+    let register_request = test_user.to_register_request();
+
+    // First registration should succeed
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
+        .insert_header(json_content_type())
+        .set_json(&register_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_success());
+
+    // Second registration with same email should fail
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
+        .insert_header(json_content_type())
+        .set_json(&register_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_client_error());
+}
+
+#[tokio::test]
+#[serial]
+async fn test_user_login() {
+    let app = create_test_app_service().await;
+
+    let test_user = test_user_admin();
+    
+    // First register the user
+    let register_request = test_user.to_register_request();
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
+        .insert_header(json_content_type())
+        .set_json(&register_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_success());
+
+    // Now try to login
+    let login_request = test_user.to_login_request();
+    let req = test::TestRequest::post()
+        .uri("/auth/login")
+        .insert_header(json_content_type())
+        .set_json(&login_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_success());
+
+    let auth_response: AuthResponse = test::read_body_json(resp).await;
+    assert_eq!(auth_response.user.email, test_user.email);
+    assert!(!auth_response.token.is_empty());
+}
+
+#[tokio::test]
+#[serial]
+async fn test_user_login_invalid_credentials() {
+    let app = create_test_app_service().await;
+
+    let test_user = test_user_admin();
+    
+    // First register the user
+    let register_request = test_user.to_register_request();
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
+        .insert_header(json_content_type())
+        .set_json(&register_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_success());
+
+    // Try to login with wrong password
+    let login_request = LoginRequest {
+        email: test_user.email,
+        password: "wrong_password".to_string(),
+    };
+    
+    let req = test::TestRequest::post()
+        .uri("/auth/login")
+        .insert_header(json_content_type())
+        .set_json(&login_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_client_error());
+}
+
+#[tokio::test]
+#[serial]
+async fn test_protected_endpoint_without_token() {
+    let app = create_test_app_service().await;
+
+    let req = test::TestRequest::get()
+        .uri("/api/test")
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), 401); // Unauthorized
+}
+
+#[tokio::test]
+#[serial]
+async fn test_protected_endpoint_with_valid_token() {
+    let app = create_test_app_service().await;
+
+    let test_user = test_user_admin();
+    
+    // Register and login to get a token
+    let register_request = test_user.to_register_request();
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
+        .insert_header(json_content_type())
+        .set_json(&register_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    let auth_response: AuthResponse = test::read_body_json(resp).await;
+
+    // Use the token to access protected endpoint
+    let req = test::TestRequest::get()
+        .uri("/api/test")
+        .insert_header(auth_header(&auth_response.token))
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_success());
+}
