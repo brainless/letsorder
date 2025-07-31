@@ -1,2 +1,7 @@
 .env
 .crush
+
+# Rust
+target/
+Cargo.lock
+*.pdb
