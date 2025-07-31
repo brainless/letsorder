@@ -1,0 +1,171 @@
+use actix_web::test;
+use backend::{create_app, models::AuthResponse};
+use serial_test::serial;
+
+mod common;
+use common::*;
+
+async fn create_test_app_service() -> impl actix_web::dev::Service<
+    actix_web::dev::ServiceRequest,
+    Response = actix_web::dev::ServiceResponse,
+    Error = actix_web::Error,
+> {
+    let test_app = create_test_app().await;
+    let app = create_app(test_app.pool.clone(), test_app.jwt_manager.clone());
+    test::init_service(app).await
+}
+
+async fn register_and_login_user(
+    app: &impl actix_web::dev::Service<
+        actix_web::dev::ServiceRequest,
+        Response = actix_web::dev::ServiceResponse,
+        Error = actix_web::Error,
+    >,
+) -> String {
+    let test_user = test_user_admin();
+    let register_request = test_user.to_register_request();
+
+    let req = test::TestRequest::post()
+        .uri("/auth/register")
+        .insert_header(json_content_type())
+        .set_json(&register_request)
+        .to_request();
+
+    let resp = test::call_service(app, req).await;
+    let auth_response: AuthResponse = test::read_body_json(resp).await;
+    auth_response.token
+}
+
+#[tokio::test]
+#[serial]
+async fn test_create_restaurant() {
+    let app = create_test_app_service().await;
+
+    let token = register_and_login_user(&app).await;
+    let restaurant = test_restaurant();
+    let create_request = restaurant.to_create_request();
+
+    let req = test::TestRequest::post()
+        .uri("/api/restaurants")
+        .insert_header(auth_header(&token))
+        .insert_header(json_content_type())
+        .set_json(&create_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_success());
+
+    let response_body: serde_json::Value = test::read_body_json(resp).await;
+    assert!(response_body["restaurant_id"].is_string());
+    assert_eq!(response_body["message"], "Restaurant created successfully");
+}
+
+#[tokio::test]
+#[serial]
+async fn test_create_restaurant_without_auth() {
+    let app = create_test_app_service().await;
+
+    let restaurant = test_restaurant();
+    let create_request = restaurant.to_create_request();
+
+    let req = test::TestRequest::post()
+        .uri("/api/restaurants")
+        .insert_header(json_content_type())
+        .set_json(&create_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), 401); // Unauthorized
+}
+
+#[tokio::test]
+#[serial]
+async fn test_get_restaurant() {
+    let app = create_test_app_service().await;
+
+    let token = register_and_login_user(&app).await;
+    let restaurant = test_restaurant();
+    let create_request = restaurant.to_create_request();
+
+    // First create a restaurant
+    let req = test::TestRequest::post()
+        .uri("/api/restaurants")
+        .insert_header(auth_header(&token))
+        .insert_header(json_content_type())
+        .set_json(&create_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    let create_response: serde_json::Value = test::read_body_json(resp).await;
+    let restaurant_id = create_response["restaurant_id"].as_str().unwrap();
+
+    // Now get the restaurant
+    let req = test::TestRequest::get()
+        .uri(&format!("/api/restaurants/{}", restaurant_id))
+        .insert_header(auth_header(&token))
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_success());
+
+    let response_body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(response_body["restaurant"]["name"], restaurant.name);
+}
+
+#[tokio::test]
+#[serial]
+async fn test_create_table() {
+    let app = create_test_app_service().await;
+
+    let token = register_and_login_user(&app).await;
+    let restaurant = test_restaurant();
+    let create_request = restaurant.to_create_request();
+
+    // First create a restaurant
+    let req = test::TestRequest::post()
+        .uri("/api/restaurants")
+        .insert_header(auth_header(&token))
+        .insert_header(json_content_type())
+        .set_json(&create_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    let create_response: serde_json::Value = test::read_body_json(resp).await;
+    let restaurant_id = create_response["restaurant_id"].as_str().unwrap();
+
+    // Now create a table
+    let table = test_table();
+    let table_request = table.to_create_request(restaurant_id);
+
+    let req = test::TestRequest::post()
+        .uri(&format!("/api/restaurants/{}/tables", restaurant_id))
+        .insert_header(auth_header(&token))
+        .insert_header(json_content_type())
+        .set_json(&table_request)
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_success());
+
+    let response_body: serde_json::Value = test::read_body_json(resp).await;
+    assert!(response_body["table_id"].is_string());
+    assert!(response_body["unique_code"].is_string());
+    assert_eq!(response_body["message"], "Table created successfully");
+}
+
+#[tokio::test]
+#[serial]
+async fn test_health_endpoint() {
+    let app = create_test_app_service().await;
+
+    let req = test::TestRequest::get()
+        .uri("/health")
+        .to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert!(resp.status().is_success());
+
+    let response_body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(response_body["status"], "OK");
+    assert!(response_body["timestamp"].is_string());
+}
