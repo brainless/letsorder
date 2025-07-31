@@ -1,8 +1,12 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Result};
+use actix_web_httpauth::middleware::HttpAuthentication;
+use auth::JwtManager;
 use log::info;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
 
+pub mod auth;
+pub mod handlers;
 pub mod models;
 pub mod seed;
 
@@ -11,6 +15,7 @@ pub struct Settings {
     pub server: ServerSettings,
     pub database: DatabaseSettings,
     pub litestream: Option<LitestreamSettings>,
+    pub jwt: JwtSettings,
 }
 
 #[derive(Debug, Deserialize)]
@@ -29,6 +34,12 @@ pub struct DatabaseSettings {
 pub struct LitestreamSettings {
     pub replica_url: String,
     pub sync_interval: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct JwtSettings {
+    pub secret: String,
+    pub expiration_hours: u64,
 }
 
 impl Settings {
@@ -54,6 +65,10 @@ impl Default for Settings {
                 max_connections: Some(10),
             },
             litestream: None,
+            jwt: JwtSettings {
+                secret: "default-secret-change-in-production".to_string(),
+                expiration_hours: 24,
+            },
         }
     }
 }
@@ -98,6 +113,7 @@ pub async fn health() -> Result<HttpResponse> {
 
 pub fn create_app(
     pool: Pool<Sqlite>,
+    jwt_manager: JwtManager,
 ) -> App<
     impl actix_web::dev::ServiceFactory<
         actix_web::dev::ServiceRequest,
@@ -107,9 +123,22 @@ pub fn create_app(
         InitError = (),
     >,
 > {
+    let auth_middleware = HttpAuthentication::bearer(auth::jwt_validator);
+
     App::new()
         .app_data(web::Data::new(pool))
+        .app_data(web::Data::new(jwt_manager))
         .route("/health", web::get().to(health))
+        .service(
+            web::scope("/auth")
+                .route("/register", web::post().to(handlers::register))
+                .route("/login", web::post().to(handlers::login)),
+        )
+        .service(
+            web::scope("/api")
+                .wrap(auth_middleware)
+                .route("/test", web::get().to(handlers::protected_test)),
+        )
 }
 
 pub async fn run_server() -> std::io::Result<()> {
@@ -132,10 +161,13 @@ pub async fn run_server() -> std::io::Result<()> {
         log::warn!("Failed to seed database: {}", e);
     }
 
+    // Initialize JWT manager
+    let jwt_manager = JwtManager::new(settings.jwt.secret.clone(), settings.jwt.expiration_hours);
+
     let bind_address = format!("{}:{}", settings.server.host, settings.server.port);
     info!("Starting server at http://{bind_address}");
 
-    HttpServer::new(move || create_app(pool.clone()))
+    HttpServer::new(move || create_app(pool.clone(), jwt_manager.clone()))
         .bind(&bind_address)?
         .run()
         .await
