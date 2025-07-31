@@ -10,6 +10,7 @@ pub mod handlers;
 pub mod menu_handlers;
 pub mod models;
 pub mod order_handlers;
+pub mod qr_handlers;
 pub mod seed;
 pub mod table_handlers;
 
@@ -144,37 +145,108 @@ pub fn create_app(
                 // Restaurant CRUD routes
                 .route("/restaurants", web::post().to(handlers::create_restaurant))
                 .route("/restaurants/{id}", web::get().to(handlers::get_restaurant))
-                .route("/restaurants/{id}", web::put().to(handlers::update_restaurant))
-                .route("/restaurants/{id}", web::delete().to(handlers::delete_restaurant))
+                .route(
+                    "/restaurants/{id}",
+                    web::put().to(handlers::update_restaurant),
+                )
+                .route(
+                    "/restaurants/{id}",
+                    web::delete().to(handlers::delete_restaurant),
+                )
                 // Manager management routes
-                .route("/restaurants/{id}/managers/invite", web::post().to(handlers::invite_manager))
-                .route("/restaurants/{id}/managers", web::get().to(handlers::list_managers))
-                .route("/restaurants/{id}/managers/{user_id}", web::delete().to(handlers::remove_manager))
-                .route("/restaurants/{id}/managers/{user_id}", web::put().to(handlers::update_manager_permissions))
+                .route(
+                    "/restaurants/{id}/managers/invite",
+                    web::post().to(handlers::invite_manager),
+                )
+                .route(
+                    "/restaurants/{id}/managers",
+                    web::get().to(handlers::list_managers),
+                )
+                .route(
+                    "/restaurants/{id}/managers/{user_id}",
+                    web::delete().to(handlers::remove_manager),
+                )
+                .route(
+                    "/restaurants/{id}/managers/{user_id}",
+                    web::put().to(handlers::update_manager_permissions),
+                )
                 // Menu section routes
-                .route("/restaurants/{id}/menu/sections", web::post().to(menu_handlers::create_menu_section))
-                .route("/restaurants/{id}/menu/sections", web::get().to(menu_handlers::list_menu_sections))
+                .route(
+                    "/restaurants/{id}/menu/sections",
+                    web::post().to(menu_handlers::create_menu_section),
+                )
+                .route(
+                    "/restaurants/{id}/menu/sections",
+                    web::get().to(menu_handlers::list_menu_sections),
+                )
                 // Table management routes
-                .route("/restaurants/{id}/tables", web::post().to(table_handlers::create_table))
-                .route("/restaurants/{id}/tables", web::get().to(table_handlers::list_tables))
-                .route("/restaurants/{id}/tables/{table_id}", web::put().to(table_handlers::update_table))
-                .route("/restaurants/{id}/tables/{table_id}", web::delete().to(table_handlers::delete_table))
-                .route("/restaurants/{id}/tables/{table_id}/refresh-code", web::post().to(table_handlers::refresh_table_code))
+                .route(
+                    "/restaurants/{id}/tables",
+                    web::post().to(table_handlers::create_table),
+                )
+                .route(
+                    "/restaurants/{id}/tables",
+                    web::get().to(table_handlers::list_tables),
+                )
+                .route(
+                    "/restaurants/{id}/tables/{table_id}",
+                    web::put().to(table_handlers::update_table),
+                )
+                .route(
+                    "/restaurants/{id}/tables/{table_id}",
+                    web::delete().to(table_handlers::delete_table),
+                )
+                .route(
+                    "/restaurants/{id}/tables/{table_id}/refresh-code",
+                    web::post().to(table_handlers::refresh_table_code),
+                )
                 // QR code routes
-                .route("/restaurants/{id}/tables/{table_id}/qr-url", web::get().to(table_handlers::get_table_qr_url))
-                .route("/restaurants/{id}/qr-codes/bulk", web::post().to(table_handlers::bulk_qr_codes))
+                .route(
+                    "/restaurants/{id}/tables/{table_id}/qr-url",
+                    web::get().to(table_handlers::get_table_qr_url),
+                )
+                .route(
+                    "/restaurants/{id}/qr-codes/generate",
+                    web::post().to(qr_handlers::generate_single_qr_code),
+                )
+                .route(
+                    "/restaurants/{id}/qr-codes/bulk",
+                    web::post().to(qr_handlers::generate_bulk_qr_codes),
+                )
+                .route(
+                    "/restaurants/{id}/qr-codes/print-sheet",
+                    web::get().to(qr_handlers::generate_print_sheet),
+                )
                 // Order management routes (authenticated)
-                .route("/restaurants/{id}/orders", web::get().to(order_handlers::list_restaurant_orders))
-                .route("/restaurants/{id}/orders/today", web::get().to(order_handlers::list_today_orders))
-                .route("/restaurants/{id}/tables/{table_id}/orders", web::get().to(order_handlers::list_table_orders)),
+                .route(
+                    "/restaurants/{id}/orders",
+                    web::get().to(order_handlers::list_restaurant_orders),
+                )
+                .route(
+                    "/restaurants/{id}/orders/today",
+                    web::get().to(order_handlers::list_today_orders),
+                )
+                .route(
+                    "/restaurants/{id}/tables/{table_id}/orders",
+                    web::get().to(order_handlers::list_table_orders),
+                ),
         )
         // Public routes for joining restaurant
-        .route("/restaurants/{id}/managers/join/{token}", web::post().to(handlers::join_restaurant))
+        .route(
+            "/restaurants/{id}/managers/join/{token}",
+            web::post().to(handlers::join_restaurant),
+        )
         // Public menu access
-        .route("/menu/{restaurant_code}/{table_code}", web::get().to(menu_handlers::get_public_menu))
+        .route(
+            "/menu/{restaurant_code}/{table_code}",
+            web::get().to(menu_handlers::get_public_menu),
+        )
         // Public order routes (no auth required)
         .route("/orders", web::post().to(order_handlers::create_order))
-        .route("/orders/{order_id}", web::get().to(order_handlers::get_order))
+        .route(
+            "/orders/{order_id}",
+            web::get().to(order_handlers::get_order),
+        )
 }
 
 pub async fn run_server() -> std::io::Result<()> {
