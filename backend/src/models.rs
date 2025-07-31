@@ -399,3 +399,53 @@ impl From<MenuItemRow> for MenuItem {
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateTableRequest {
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QrCodeResponse {
+    pub qr_url: String,
+    pub table_name: String,
+    pub unique_code: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BulkQrCodeRequest {
+    pub table_ids: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BulkQrCodeResponse {
+    pub qr_codes: Vec<QrCodeResponse>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RefreshCodeResponse {
+    pub table_id: String,
+    pub new_unique_code: String,
+    pub qr_url: String,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct TableRow {
+    pub id: String,
+    pub restaurant_id: String,
+    pub name: String,
+    pub unique_code: String,
+    pub created_at: NaiveDateTime,
+}
+
+impl From<TableRow> for Table {
+    fn from(row: TableRow) -> Self {
+        Self {
+            id: row.id,
+            restaurant_id: row.restaurant_id,
+            name: row.name,
+            unique_code: row.unique_code,
+            created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
+        }
+    }
+}

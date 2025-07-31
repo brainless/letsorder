@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO manager_invites (restaurant_id, email, can_manage_menu, token, expires_at) VALUES (?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "e2afb340cc1de84e6f17d50037e05159fd37f4324cfa2ec54ad891be6ea8aca7"
+}

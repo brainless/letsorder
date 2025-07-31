@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM tables WHERE id = ? AND restaurant_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "5417feb6f2167569704d7c78c7e001003a82712a8365294dbfafeb686637dad7"
+}
