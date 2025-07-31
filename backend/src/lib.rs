@@ -7,6 +7,7 @@ use sqlx::{Pool, Sqlite};
 
 pub mod auth;
 pub mod handlers;
+pub mod menu_handlers;
 pub mod models;
 pub mod seed;
 
@@ -147,10 +148,15 @@ pub fn create_app(
                 .route("/restaurants/{id}/managers/invite", web::post().to(handlers::invite_manager))
                 .route("/restaurants/{id}/managers", web::get().to(handlers::list_managers))
                 .route("/restaurants/{id}/managers/{user_id}", web::delete().to(handlers::remove_manager))
-                .route("/restaurants/{id}/managers/{user_id}", web::put().to(handlers::update_manager_permissions)),
+                .route("/restaurants/{id}/managers/{user_id}", web::put().to(handlers::update_manager_permissions))
+                // Menu section routes
+                .route("/restaurants/{id}/menu/sections", web::post().to(menu_handlers::create_menu_section))
+                .route("/restaurants/{id}/menu/sections", web::get().to(menu_handlers::list_menu_sections)),
         )
         // Public routes for joining restaurant
         .route("/restaurants/{id}/managers/join/{token}", web::post().to(handlers::join_restaurant))
+        // Public menu access
+        .route("/menu/{restaurant_code}/{table_code}", web::get().to(menu_handlers::get_public_menu))
 }
 
 pub async fn run_server() -> std::io::Result<()> {
