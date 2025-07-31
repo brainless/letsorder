@@ -9,6 +9,7 @@ pub mod auth;
 pub mod handlers;
 pub mod menu_handlers;
 pub mod models;
+pub mod order_handlers;
 pub mod seed;
 pub mod table_handlers;
 
@@ -161,12 +162,19 @@ pub fn create_app(
                 .route("/restaurants/{id}/tables/{table_id}/refresh-code", web::post().to(table_handlers::refresh_table_code))
                 // QR code routes
                 .route("/restaurants/{id}/tables/{table_id}/qr-url", web::get().to(table_handlers::get_table_qr_url))
-                .route("/restaurants/{id}/qr-codes/bulk", web::post().to(table_handlers::bulk_qr_codes)),
+                .route("/restaurants/{id}/qr-codes/bulk", web::post().to(table_handlers::bulk_qr_codes))
+                // Order management routes (authenticated)
+                .route("/restaurants/{id}/orders", web::get().to(order_handlers::list_restaurant_orders))
+                .route("/restaurants/{id}/orders/today", web::get().to(order_handlers::list_today_orders))
+                .route("/restaurants/{id}/tables/{table_id}/orders", web::get().to(order_handlers::list_table_orders)),
         )
         // Public routes for joining restaurant
         .route("/restaurants/{id}/managers/join/{token}", web::post().to(handlers::join_restaurant))
         // Public menu access
         .route("/menu/{restaurant_code}/{table_code}", web::get().to(menu_handlers::get_public_menu))
+        // Public order routes (no auth required)
+        .route("/orders", web::post().to(order_handlers::create_order))
+        .route("/orders/{order_id}", web::get().to(order_handlers::get_order))
 }
 
 pub async fn run_server() -> std::io::Result<()> {
