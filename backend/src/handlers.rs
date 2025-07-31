@@ -2,7 +2,7 @@ use crate::auth::{JwtManager, PasswordHasher};
 use crate::models::{
     AuthResponse, Claims, CreateRestaurantRequest, InviteManagerRequest, InviteResponse,
     JoinRestaurantRequest, LoginRequest, ManagerInfo, ManagerInvite, ManagerInviteRow, RegisterRequest,
-    Restaurant, RestaurantRow, RestaurantManager, RestaurantWithManagers, UpdateManagerPermissionsRequest,
+    Restaurant, RestaurantRow, UpdateManagerPermissionsRequest,
     UpdateRestaurantRequest, User, UserResponse, UserRow,
 };
 use actix_web::{web, HttpResponse, Result};
@@ -269,7 +269,7 @@ pub async fn get_restaurant(
 
     // Check if user is a manager of this restaurant
     let manager_check = sqlx::query!(
-        "SELECT 1 FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
+        "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
         restaurant_id,
         claims.sub
     )
@@ -326,7 +326,7 @@ pub async fn update_restaurant(
 
     // Check if user is super admin of this restaurant
     let super_admin_check = sqlx::query!(
-        "SELECT 1 FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND role = 'super_admin'",
+        "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND role = 'super_admin'",
         restaurant_id,
         claims.sub
     )
@@ -350,7 +350,7 @@ pub async fn update_restaurant(
 
     // Build dynamic update query
     let mut query_parts = Vec::new();
-    let mut params: Vec<&dyn sqlx::Encode<sqlx::Sqlite> + Send + Sync> = Vec::new();
+    let mut params: Vec<&(dyn sqlx::Encode<sqlx::Sqlite> + Send + Sync)> = Vec::new();
 
     if let Some(ref name) = req.name {
         query_parts.push("name = ?");
@@ -447,7 +447,7 @@ pub async fn delete_restaurant(
 
     // Check if user is super admin of this restaurant
     let super_admin_check = sqlx::query!(
-        "SELECT 1 FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND role = 'super_admin'",
+        "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND role = 'super_admin'",
         restaurant_id,
         claims.sub
     )
@@ -503,7 +503,7 @@ pub async fn invite_manager(
 
     // Check if user is super admin of this restaurant
     let super_admin_check = sqlx::query!(
-        "SELECT 1 FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND role = 'super_admin'",
+        "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND role = 'super_admin'",
         restaurant_id,
         claims.sub
     )
@@ -527,7 +527,7 @@ pub async fn invite_manager(
 
     // Check if user is already a manager
     let existing_manager = sqlx::query!(
-        "SELECT 1 FROM restaurant_managers rm JOIN users u ON rm.user_id = u.id WHERE rm.restaurant_id = ? AND u.email = ?",
+        "SELECT COUNT(*) as count FROM restaurant_managers rm JOIN users u ON rm.user_id = u.id WHERE rm.restaurant_id = ? AND u.email = ?",
         restaurant_id,
         req.email
     )
@@ -551,7 +551,7 @@ pub async fn invite_manager(
 
     // Check for existing invite
     let existing_invite = sqlx::query!(
-        "SELECT 1 FROM manager_invites WHERE restaurant_id = ? AND email = ? AND expires_at > datetime('now')",
+        "SELECT COUNT(*) as count FROM manager_invites WHERE restaurant_id = ? AND email = ? AND expires_at > datetime('now')",
         restaurant_id,
         req.email
     )
@@ -625,7 +625,6 @@ pub async fn join_restaurant(
 
     let invite = match invite_row {
         Ok(Some(invite_row)) => ManagerInvite::from(invite_row),
-        Ok(Some(invite)) => invite,
         Ok(None) => {
             return Ok(HttpResponse::BadRequest().json(serde_json::json!({
                 "error": "Invalid or expired invite token"
@@ -669,7 +668,7 @@ pub async fn join_restaurant(
         Ok(Some(user)) => {
             // User exists, verify they're not already a manager
             let existing_manager = sqlx::query!(
-                "SELECT 1 FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
+                "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
                 restaurant_id,
                 user.id
             )
@@ -814,7 +813,7 @@ pub async fn list_managers(
 
     // Check if user is a manager of this restaurant
     let manager_check = sqlx::query!(
-        "SELECT 1 FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
+        "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
         restaurant_id,
         claims.sub
     )
@@ -853,7 +852,7 @@ pub async fn list_managers(
             let manager_infos: Vec<ManagerInfo> = managers
                 .into_iter()
                 .map(|row| ManagerInfo {
-                    user_id: row.user_id,
+                    user_id: row.user_id.unwrap_or_default(),
                     email: row.email,
                     phone: row.phone,
                     role: row.role,
@@ -881,7 +880,7 @@ pub async fn remove_manager(
 
     // Check if requesting user is super admin of this restaurant
     let super_admin_check = sqlx::query!(
-        "SELECT 1 FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND role = 'super_admin'",
+        "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND role = 'super_admin'",
         restaurant_id,
         claims.sub
     )
@@ -948,7 +947,7 @@ pub async fn update_manager_permissions(
 
     // Check if requesting user is super admin of this restaurant
     let super_admin_check = sqlx::query!(
-        "SELECT 1 FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND role = 'super_admin'",
+        "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND role = 'super_admin'",
         restaurant_id,
         claims.sub
     )
