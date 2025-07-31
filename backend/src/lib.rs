@@ -7,6 +7,7 @@ use sqlx::{Pool, Sqlite};
 
 pub mod auth;
 pub mod handlers;
+pub mod menu_handlers;
 pub mod models;
 pub mod seed;
 
@@ -149,23 +150,13 @@ pub fn create_app(
                 .route("/restaurants/{id}/managers/{user_id}", web::delete().to(handlers::remove_manager))
                 .route("/restaurants/{id}/managers/{user_id}", web::put().to(handlers::update_manager_permissions))
                 // Menu section routes
-                .route("/restaurants/{id}/menu/sections", web::post().to(handlers::create_menu_section))
-                .route("/restaurants/{id}/menu/sections", web::get().to(handlers::list_menu_sections))
-                .route("/restaurants/{id}/menu/sections/{section_id}", web::put().to(handlers::update_menu_section))
-                .route("/restaurants/{id}/menu/sections/{section_id}", web::delete().to(handlers::delete_menu_section))
-                .route("/restaurants/{id}/menu/sections/reorder", web::put().to(handlers::reorder_menu_sections))
-                // Menu item routes
-                .route("/restaurants/{id}/menu/sections/{section_id}/items", web::post().to(handlers::create_menu_item))
-                .route("/restaurants/{id}/menu/sections/{section_id}/items", web::get().to(handlers::list_menu_items))
-                .route("/restaurants/{id}/menu/items/{item_id}", web::put().to(handlers::update_menu_item))
-                .route("/restaurants/{id}/menu/items/{item_id}", web::delete().to(handlers::delete_menu_item))
-                .route("/restaurants/{id}/menu/items/{item_id}/availability", web::put().to(handlers::toggle_item_availability))
-                .route("/restaurants/{id}/menu/sections/{section_id}/items/reorder", web::put().to(handlers::reorder_menu_items)),
+                .route("/restaurants/{id}/menu/sections", web::post().to(menu_handlers::create_menu_section))
+                .route("/restaurants/{id}/menu/sections", web::get().to(menu_handlers::list_menu_sections)),
         )
         // Public routes for joining restaurant
         .route("/restaurants/{id}/managers/join/{token}", web::post().to(handlers::join_restaurant))
         // Public menu access
-        .route("/menu/{restaurant_code}/{table_code}", web::get().to(handlers::get_public_menu))
+        .route("/menu/{restaurant_code}/{table_code}", web::get().to(menu_handlers::get_public_menu))
 }
 
 pub async fn run_server() -> std::io::Result<()> {
