@@ -283,3 +283,119 @@ pub struct ManagerInfo {
     pub can_manage_menu: bool,
     pub created_at: DateTime<Utc>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateMenuSectionRequest {
+    pub name: Option<String>,
+    pub display_order: Option<i32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateMenuItemRequest {
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub price: Option<f64>,
+    pub display_order: Option<i32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReorderSectionsRequest {
+    pub section_orders: Vec<SectionOrder>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SectionOrder {
+    pub section_id: String,
+    pub display_order: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReorderItemsRequest {
+    pub item_orders: Vec<ItemOrder>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ItemOrder {
+    pub item_id: String,
+    pub display_order: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToggleAvailabilityRequest {
+    pub available: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicMenu {
+    pub restaurant: PublicRestaurantInfo,
+    pub sections: Vec<PublicMenuSection>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicRestaurantInfo {
+    pub name: String,
+    pub address: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicMenuSection {
+    pub id: String,
+    pub name: String,
+    pub items: Vec<PublicMenuItem>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicMenuItem {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub price: f64,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct MenuSectionRow {
+    pub id: String,
+    pub restaurant_id: String,
+    pub name: String,
+    pub display_order: i64,
+    pub created_at: NaiveDateTime,
+}
+
+impl From<MenuSectionRow> for MenuSection {
+    fn from(row: MenuSectionRow) -> Self {
+        Self {
+            id: row.id,
+            restaurant_id: row.restaurant_id,
+            name: row.name,
+            display_order: row.display_order as i32,
+            created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
+        }
+    }
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct MenuItemRow {
+    pub id: String,
+    pub section_id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub price: f64,
+    pub available: bool,
+    pub display_order: i64,
+    pub created_at: NaiveDateTime,
+}
+
+impl From<MenuItemRow> for MenuItem {
+    fn from(row: MenuItemRow) -> Self {
+        Self {
+            id: row.id,
+            section_id: row.section_id,
+            name: row.name,
+            description: row.description,
+            price: row.price,
+            available: row.available,
+            display_order: row.display_order as i32,
+            created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
+        }
+    }
+}
