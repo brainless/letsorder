@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT r.id as restaurant_id, r.name as restaurant_name, r.address, t.id as table_id \n         FROM restaurants r \n         JOIN tables t ON r.id = t.restaurant_id \n         WHERE r.id = ? AND t.unique_code = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "restaurant_id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "restaurant_name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "address",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "table_id",
+        "ordinal": 3,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      true,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "7eab6d5ec9b96689d39cb2a53c521f0f73a11b72520bb4b4ad5c3c080b4125fa"
+}

@@ -10,6 +10,7 @@ pub mod handlers;
 pub mod menu_handlers;
 pub mod models;
 pub mod seed;
+pub mod table_handlers;
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
@@ -151,7 +152,16 @@ pub fn create_app(
                 .route("/restaurants/{id}/managers/{user_id}", web::put().to(handlers::update_manager_permissions))
                 // Menu section routes
                 .route("/restaurants/{id}/menu/sections", web::post().to(menu_handlers::create_menu_section))
-                .route("/restaurants/{id}/menu/sections", web::get().to(menu_handlers::list_menu_sections)),
+                .route("/restaurants/{id}/menu/sections", web::get().to(menu_handlers::list_menu_sections))
+                // Table management routes
+                .route("/restaurants/{id}/tables", web::post().to(table_handlers::create_table))
+                .route("/restaurants/{id}/tables", web::get().to(table_handlers::list_tables))
+                .route("/restaurants/{id}/tables/{table_id}", web::put().to(table_handlers::update_table))
+                .route("/restaurants/{id}/tables/{table_id}", web::delete().to(table_handlers::delete_table))
+                .route("/restaurants/{id}/tables/{table_id}/refresh-code", web::post().to(table_handlers::refresh_table_code))
+                // QR code routes
+                .route("/restaurants/{id}/tables/{table_id}/qr-url", web::get().to(table_handlers::get_table_qr_url))
+                .route("/restaurants/{id}/qr-codes/bulk", web::post().to(table_handlers::bulk_qr_codes)),
         )
         // Public routes for joining restaurant
         .route("/restaurants/{id}/managers/join/{token}", web::post().to(handlers::join_restaurant))
