@@ -137,8 +137,20 @@ pub fn create_app(
         .service(
             web::scope("/api")
                 .wrap(auth_middleware)
-                .route("/test", web::get().to(handlers::protected_test)),
+                .route("/test", web::get().to(handlers::protected_test))
+                // Restaurant CRUD routes
+                .route("/restaurants", web::post().to(handlers::create_restaurant))
+                .route("/restaurants/{id}", web::get().to(handlers::get_restaurant))
+                .route("/restaurants/{id}", web::put().to(handlers::update_restaurant))
+                .route("/restaurants/{id}", web::delete().to(handlers::delete_restaurant))
+                // Manager management routes
+                .route("/restaurants/{id}/managers/invite", web::post().to(handlers::invite_manager))
+                .route("/restaurants/{id}/managers", web::get().to(handlers::list_managers))
+                .route("/restaurants/{id}/managers/{user_id}", web::delete().to(handlers::remove_manager))
+                .route("/restaurants/{id}/managers/{user_id}", web::put().to(handlers::update_manager_permissions)),
         )
+        // Public routes for joining restaurant
+        .route("/restaurants/{id}/managers/join/{token}", web::post().to(handlers::join_restaurant))
 }
 
 pub async fn run_server() -> std::io::Result<()> {
