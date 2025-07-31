@@ -1,6 +1,4 @@
-use crate::models::{
-    Claims, CreateMenuSectionRequest, PublicMenu, PublicRestaurantInfo,
-};
+use crate::models::{Claims, CreateMenuSectionRequest, PublicMenu, PublicRestaurantInfo};
 use actix_web::{web, HttpResponse, Result};
 use sqlx::{Pool, Sqlite};
 use uuid::Uuid;
@@ -25,7 +23,7 @@ pub async fn create_menu_section(
     .await;
 
     match permission_check {
-        Ok(row) if row.count > 0 => {}, // User has menu permission
+        Ok(row) if row.count > 0 => {} // User has menu permission
         Ok(_) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Menu management permission required"
@@ -75,7 +73,6 @@ pub async fn create_menu_section(
                 "message": "Menu section created successfully",
                 "section_id": section_id
             })))
-
         }
         Err(e) => {
             log::error!("Database error creating menu section: {}", e);
@@ -103,7 +100,7 @@ pub async fn list_menu_sections(
     .await;
 
     match manager_check {
-        Ok(row) if row.count > 0 => {}, // User is a manager
+        Ok(row) if row.count > 0 => {} // User is a manager
         Ok(_) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Access denied"

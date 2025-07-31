@@ -11,7 +11,7 @@ fn generate_unique_code() -> String {
     use rand::Rng;
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let mut rng = rand::thread_rng();
-    
+
     (0..8)
         .map(|_| {
             let idx = rng.gen_range(0..CHARSET.len());
@@ -45,7 +45,7 @@ pub async fn create_table(
     .await;
 
     match permission_check {
-        Ok(row) if row.count > 0 => {}, // User has menu permission
+        Ok(row) if row.count > 0 => {} // User has menu permission
         Ok(_) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Menu management permission required"
@@ -62,7 +62,7 @@ pub async fn create_table(
     // Generate unique code (ensure it's unique)
     let mut unique_code = generate_unique_code();
     let mut attempts = 0;
-    
+
     while attempts < 10 {
         let existing = sqlx::query!(
             "SELECT COUNT(*) as count FROM tables WHERE unique_code = ?",
@@ -138,7 +138,7 @@ pub async fn list_tables(
     .await;
 
     match manager_check {
-        Ok(row) if row.count > 0 => {}, // User is a manager
+        Ok(row) if row.count > 0 => {} // User is a manager
         Ok(_) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Access denied"
@@ -177,7 +177,7 @@ pub async fn update_table(
     .await;
 
     match permission_check {
-        Ok(row) if row.count > 0 => {}, // User has menu permission
+        Ok(row) if row.count > 0 => {} // User has menu permission
         Ok(_) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Menu management permission required"
@@ -247,7 +247,7 @@ pub async fn delete_table(
     .await;
 
     match permission_check {
-        Ok(row) if row.count > 0 => {}, // User has menu permission
+        Ok(row) if row.count > 0 => {} // User has menu permission
         Ok(_) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Menu management permission required"
@@ -309,7 +309,7 @@ pub async fn get_table_qr_url(
     .await;
 
     match manager_check {
-        Ok(row) if row.count > 0 => {}, // User is a manager
+        Ok(row) if row.count > 0 => {} // User is a manager
         Ok(_) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Access denied"
@@ -350,7 +350,7 @@ pub async fn refresh_table_code(
     .await;
 
     match permission_check {
-        Ok(row) if row.count > 0 => {}, // User has menu permission
+        Ok(row) if row.count > 0 => {} // User has menu permission
         Ok(_) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Menu management permission required"
@@ -367,7 +367,7 @@ pub async fn refresh_table_code(
     // Generate new unique code
     let mut new_unique_code = generate_unique_code();
     let mut attempts = 0;
-    
+
     while attempts < 10 {
         let existing = sqlx::query!(
             "SELECT COUNT(*) as count FROM tables WHERE unique_code = ?",
@@ -450,7 +450,7 @@ pub async fn bulk_qr_codes(
     .await;
 
     match manager_check {
-        Ok(row) if row.count > 0 => {}, // User is a manager
+        Ok(row) if row.count > 0 => {} // User is a manager
         Ok(_) => {
             return Ok(HttpResponse::Forbidden().json(serde_json::json!({
                 "error": "Access denied"
