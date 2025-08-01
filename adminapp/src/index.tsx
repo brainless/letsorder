@@ -4,6 +4,7 @@ import { Router } from '@solidjs/router';
 import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { RestaurantProvider } from './contexts/RestaurantContext';
+import { TableProvider } from './contexts/TableContext';
 import App from './App';
 
 const root = document.getElementById('root');
@@ -17,9 +18,11 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 render(() => (
   <AuthProvider>
     <RestaurantProvider>
-      <Router>
-        <App />
-      </Router>
+      <TableProvider>
+        <Router>
+          <App />
+        </Router>
+      </TableProvider>
     </RestaurantProvider>
   </AuthProvider>
 ), root!);

@@ -48,14 +48,24 @@ export class AuthService {
 
   static async validateToken(token: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE}/auth/me`, {
+      console.log('Validating token with backend:', `${API_BASE}/api/test`);
+      const response = await fetch(`${API_BASE}/api/test`, {
         method: 'GET',
         headers: this.getAuthHeaders(token),
       });
       
+      console.log('Token validation response:', {
+        status: response.status,
+        ok: response.ok,
+        statusText: response.statusText
+      });
+      
       return response.ok;
-    } catch {
-      return false;
+    } catch (error) {
+      console.error('Token validation network error:', error);
+      // On network errors, assume token is still valid to avoid unnecessary logouts
+      // The token expiration check will handle truly expired tokens
+      return true;
     }
   }
 }

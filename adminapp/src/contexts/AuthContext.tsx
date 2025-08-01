@@ -25,37 +25,51 @@ export const AuthProvider: ParentComponent = (props) => {
 
   // Initialize auth state from storage
   createEffect(() => {
-    const storedToken = TokenStorage.getToken();
-    const storedUser = TokenStorage.getUser();
+    const initializeAuth = async () => {
+      try {
+        const storedToken = TokenStorage.getToken();
+        const storedUser = TokenStorage.getUser();
 
-    if (storedToken && storedUser) {
-      if (TokenStorage.isTokenExpired(storedToken)) {
-        TokenStorage.clear();
-        setIsLoading(false);
-        return;
-      }
+        console.log('Initializing auth with stored data:', { 
+          hasToken: !!storedToken, 
+          hasUser: !!storedUser 
+        });
 
-      // Validate token with backend
-      AuthService.validateToken(storedToken)
-        .then((valid) => {
+        if (storedToken && storedUser) {
+          // Check if token is expired before making API call
+          if (TokenStorage.isTokenExpired(storedToken)) {
+            console.log('Stored token is expired, clearing storage');
+            TokenStorage.clear();
+            setIsLoading(false);
+            return;
+          }
+
+          console.log('Validating stored token with backend');
+          // Validate token with backend
+          const valid = await AuthService.validateToken(storedToken);
+          
           if (valid) {
+            console.log('Token validation successful, restoring session');
             setToken(storedToken);
             setUser(storedUser);
             // Set up token expiration check
             setupTokenExpirationCheck(storedToken);
           } else {
+            console.log('Token validation failed, clearing storage');
             TokenStorage.clear();
           }
-        })
-        .catch(() => {
-          TokenStorage.clear();
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
-      setIsLoading(false);
-    }
+        } else {
+          console.log('No stored auth data found');
+        }
+      } catch (error) {
+        console.error('Error during auth initialization:', error);
+        TokenStorage.clear();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
   });
 
   // Set up token expiration monitoring
@@ -66,19 +80,29 @@ export const AuthProvider: ParentComponent = (props) => {
       const currentTime = Date.now();
       const timeUntilExpiration = expirationTime - currentTime;
 
-      // If token expires in less than 5 minutes, log out
+      console.log('Setting up token expiration check:', {
+        expirationTime,
+        currentTime,
+        timeUntilExpiration,
+        timeUntilExpirationHours: Math.floor(timeUntilExpiration / (1000 * 60 * 60))
+      });
+
+      // If token expires in less than 5 minutes, log out immediately
       if (timeUntilExpiration <= 5 * 60 * 1000) {
+        console.log('Token expires soon, logging out immediately');
         logout();
         return;
       }
 
       // Set timeout to logout 5 minutes before expiration
+      const logoutTime = Math.max(timeUntilExpiration - 5 * 60 * 1000, 0);
       setTimeout(() => {
+        console.log('Token expiration timeout reached, logging out');
         logout();
         setError('Your session has expired. Please log in again.');
-      }, timeUntilExpiration - 5 * 60 * 1000);
+      }, logoutTime);
     } catch (error) {
-      console.error('Error parsing token:', error);
+      console.error('Error parsing token for expiration check:', error);
       logout();
     }
   };
