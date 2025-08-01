@@ -1,4 +1,4 @@
-import { createContext, createSignal, createEffect, useContext, ParentComponent } from 'solid-js';
+import { createContext, createSignal, createEffect, createMemo, useContext, ParentComponent } from 'solid-js';
 import { AuthService, TokenStorage } from '../services/auth';
 import type { AuthState, User, LoginRequest, RegisterRequest } from '../types/auth';
 
@@ -138,7 +138,7 @@ export const AuthProvider: ParentComponent = (props) => {
     setError(null);
   };
 
-  const authValue: AuthContextType = {
+  const authValue = createMemo(() => ({
     user: user(),
     token: token(),
     isAuthenticated: isAuthenticated(),
@@ -148,10 +148,10 @@ export const AuthProvider: ParentComponent = (props) => {
     register,
     logout,
     clearError,
-  };
+  }));
 
   return (
-    <AuthContext.Provider value={authValue}>
+    <AuthContext.Provider value={authValue()}>
       {props.children}
     </AuthContext.Provider>
   );
