@@ -51,21 +51,21 @@ function RestaurantDashboard() {
             <h1 class="text-3xl font-bold text-gray-900">
               <Show 
                 when={viewMode() === 'list'} 
-                fallback={() => (
+                fallback={
                   <Show 
                     when={viewMode() === 'create'} 
-                    fallback={() => (
+                    fallback={
                       <Show 
                         when={viewMode() === 'edit'} 
                         fallback="Restaurant Details"
                       >
                         Edit Restaurant
                       </Show>
-                    )}
+                    }
                   >
                     Create New Restaurant
                   </Show>
-                )}
+                }
               >
                 Restaurant Management
               </Show>
@@ -73,21 +73,21 @@ function RestaurantDashboard() {
             <p class="mt-2 text-gray-600">
               <Show 
                 when={viewMode() === 'list'} 
-                fallback={() => (
+                fallback={
                   <Show 
                     when={viewMode() === 'create'} 
-                    fallback={() => (
+                    fallback={
                       <Show 
                         when={viewMode() === 'edit'} 
                         fallback="View and manage restaurant details"
                       >
                         Update restaurant information
                       </Show>
-                    )}
+                    }
                   >
                     Add a new restaurant to your management portfolio
                   </Show>
-                )}
+                }
               >
                 Manage your restaurants and their settings
               </Show>

@@ -1,4 +1,4 @@
-import { CONFIG } from '../config/env';
+import { config } from '../config/env';
 import { TokenStorage } from './auth';
 import type {
   Restaurant,
@@ -12,7 +12,7 @@ import type {
 } from '../types/restaurant';
 
 export class RestaurantService {
-  private static readonly BASE_URL = `${CONFIG.API_BASE_URL}/api`;
+  private static readonly BASE_URL = `${config.apiUrl}/api`;
 
   private static getHeaders(): HeadersInit {
     const token = TokenStorage.getToken();
