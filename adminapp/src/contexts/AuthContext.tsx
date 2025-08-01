@@ -9,7 +9,7 @@ interface AuthContextType extends AuthState {
   clearError: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>();
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: ParentComponent = (props) => {
   const [user, setUser] = createSignal<User | null>(null);
@@ -138,12 +138,12 @@ export const AuthProvider: ParentComponent = (props) => {
     setError(null);
   };
 
-  const authValue: AuthContextType = {
-    user: user(),
-    token: token(),
-    isAuthenticated: isAuthenticated(),
-    isLoading: isLoading(),
-    error: error(),
+  const contextValue: AuthContextType = {
+    get user() { return user(); },
+    get token() { return token(); },
+    get isAuthenticated() { return isAuthenticated(); },
+    get isLoading() { return isLoading(); },
+    get error() { return error(); },
     login,
     register,
     logout,
@@ -151,7 +151,7 @@ export const AuthProvider: ParentComponent = (props) => {
   };
 
   return (
-    <AuthContext.Provider value={authValue}>
+    <AuthContext.Provider value={contextValue}>
       {props.children}
     </AuthContext.Provider>
   );
