@@ -1,0 +1,203 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 4 * * *'  # Daily at 4 AM UTC
+
+env:
+  CARGO_TERM_COLOR: always
+  NODE_VERSION: '20'
+
+jobs:
+  full-stack-test:
+    name: Full Stack Integration Test
+    runs-on: ubuntu-latest
+    services:
+      backend:
+        image: rust:1.75
+        options: --health-cmd "curl -f http://localhost:8080/health || exit 1" --health-interval 30s --health-timeout 10s --health-retries 3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Backend Setup
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache backend dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            backend/target
+          key: ${{ runner.os }}-cargo-integration-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-integration-
+
+      - name: Setup test database
+        working-directory: ./backend
+        run: |
+          sqlite3 test.db < migrations/20250131000001_initial_schema.sql
+          sqlite3 test.db < migrations/20250131000002_manager_invites.sql
+          sqlite3 test.db < migrations/20250131000003_add_customer_name_to_orders.sql
+
+      - name: Build and start backend
+        working-directory: ./backend
+        run: |
+          cargo build --release
+          RUST_LOG=debug DATABASE_URL=sqlite:./test.db ./target/release/backend &
+          echo $! > backend.pid
+        env:
+          DATABASE_URL: sqlite:./test.db
+
+      - name: Wait for backend to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:8080/health; do sleep 2; done'
+
+      # Admin App Setup
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: './adminapp/package-lock.json'
+
+      - name: Install admin app dependencies
+        working-directory: ./adminapp
+        run: npm ci
+
+      - name: Build admin app
+        working-directory: ./adminapp
+        run: npm run build
+
+      - name: Start admin app
+        working-directory: ./adminapp
+        run: |
+          npm run preview &
+          echo $! > admin.pid
+        env:
+          VITE_API_URL: http://localhost:8080
+
+      - name: Wait for admin app to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:4173; do sleep 2; done'
+
+      # Website Setup
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-integration-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-integration-
+
+      - name: Install website dependencies
+        working-directory: ./website
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and start website
+        working-directory: ./website
+        run: |
+          pnpm build
+          pnpm preview &
+          echo $! > website.pid
+
+      - name: Wait for website to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:4321; do sleep 2; done'
+
+      # Integration Tests
+      - name: Run API health checks
+        run: |
+          echo "Testing backend API endpoints..."
+          curl -f http://localhost:8080/health
+          
+          echo "Testing admin app..."
+          curl -f http://localhost:4173
+          
+          echo "Testing website..."
+          curl -f http://localhost:4321
+
+      - name: Run basic API tests
+        run: |
+          echo "Testing user registration..."
+          response=$(curl -s -X POST http://localhost:8080/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"email":"test@example.com","phone":"1234567890","password":"testpass123"}')
+          echo "Registration response: $response"
+          
+          echo "Testing user login..."
+          login_response=$(curl -s -X POST http://localhost:8080/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"test@example.com","password":"testpass123"}')
+          echo "Login response: $login_response"
+
+      - name: Run frontend smoke tests
+        run: |
+          echo "Testing admin app pages..."
+          curl -f http://localhost:4173 | grep -q "LetsOrder Admin" || exit 1
+          
+          echo "Testing website pages..."
+          curl -f http://localhost:4321 | grep -q "LetsOrder" || exit 1
+
+      # Cleanup
+      - name: Stop services
+        if: always()
+        run: |
+          [ -f backend/backend.pid ] && kill $(cat backend/backend.pid) || true
+          [ -f adminapp/admin.pid ] && kill $(cat adminapp/admin.pid) || true
+          [ -f website/website.pid ] && kill $(cat website/website.pid) || true
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            backend/test.db
+            integration-test.log
+          retention-days: 3
+
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'  # Skip E2E on scheduled runs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Playwright
+        run: |
+          npm install -g @playwright/test
+          npx playwright install --with-deps
+
+      - name: Run E2E tests placeholder
+        run: |
+          echo "E2E tests would run here with Playwright"
+          echo "Testing user flows:"
+          echo "- Registration and login"
+          echo "- Restaurant creation"
+          echo "- Menu management"
+          echo "- Table and QR code generation"
