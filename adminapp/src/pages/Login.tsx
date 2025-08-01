@@ -1,5 +1,5 @@
 import { createSignal, Show, createEffect } from 'solid-js';
-import { Navigate } from '@solidjs/router';
+import { Navigate, useNavigate } from '@solidjs/router';
 import { useAuth } from '../contexts/AuthContext';
 
 function Login() {
@@ -9,13 +9,22 @@ function Login() {
   const [validationErrors, setValidationErrors] = createSignal<Record<string, string>>({});
 
   const auth = useAuth();
+  const navigate = useNavigate();
 
   // Clear auth errors when component mounts
   createEffect(() => {
     auth.clearError();
   });
 
-  // Redirect if already authenticated
+  // Watch for authentication changes and redirect
+  createEffect(() => {
+    if (auth.isAuthenticated) {
+      console.log('User authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  });
+
+  // Early return if already authenticated
   if (auth.isAuthenticated) {
     return <Navigate href="/dashboard" />;
   }
@@ -53,8 +62,10 @@ function Login() {
         email: email(),
         password: password(),
       });
-      // Navigation will happen automatically via ProtectedRoute
+      console.log('Login successful, navigating to dashboard...');
+      navigate('/dashboard', { replace: true });
     } catch (error) {
+      console.error('Login failed:', error);
       // Error is handled by AuthContext
     } finally {
       setIsSubmitting(false);

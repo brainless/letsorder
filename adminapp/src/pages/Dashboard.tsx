@@ -10,10 +10,10 @@ function Dashboard() {
         <h2 class="text-xl font-semibold mb-2">Getting Started</h2>
         <p class="text-gray-600">{message()}</p>
         <div class="mt-4 space-y-2">
-          <div class="p-4 bg-blue-50 rounded-md">
+          <a href="/restaurants" class="block p-4 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors">
             <h3 class="font-medium text-blue-900">Restaurants</h3>
             <p class="text-blue-700 text-sm">Manage your restaurant information and settings</p>
-          </div>
+          </a>
           <div class="p-4 bg-green-50 rounded-md">
             <h3 class="font-medium text-green-900">Menu</h3>
             <p class="text-green-700 text-sm">Create and manage your restaurant menu</p>
