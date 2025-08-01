@@ -14,9 +14,9 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 }
 
 render(() => (
-  <Router>
-    <AuthProvider>
+  <AuthProvider>
+    <Router>
       <App />
-    </AuthProvider>
-  </Router>
+    </Router>
+  </AuthProvider>
 ), root!);
