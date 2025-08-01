@@ -2,9 +2,11 @@ import { createSignal, Show, createEffect } from 'solid-js';
 import { Navigate } from '@solidjs/router';
 import { useAuth } from '../contexts/AuthContext';
 
-function Login() {
+function Register() {
   const [email, setEmail] = createSignal('');
+  const [phone, setPhone] = createSignal('');
   const [password, setPassword] = createSignal('');
+  const [confirmPassword, setConfirmPassword] = createSignal('');
   const [isSubmitting, setIsSubmitting] = createSignal(false);
   const [validationErrors, setValidationErrors] = createSignal<Record<string, string>>({});
 
@@ -35,6 +37,12 @@ function Login() {
       errors.password = 'Password must be at least 6 characters';
     }
     
+    if (!confirmPassword().trim()) {
+      errors.confirmPassword = 'Please confirm your password';
+    } else if (password() !== confirmPassword()) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+    
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -49,8 +57,9 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      await auth.login({
+      await auth.register({
         email: email(),
+        phone: phone() || undefined,
         password: password(),
       });
       // Navigation will happen automatically via ProtectedRoute
@@ -66,10 +75,10 @@ function Login() {
       <div class="max-w-md w-full space-y-8">
         <div>
           <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to LetsOrder Admin
+            Create your account
           </h2>
           <p class="mt-2 text-center text-sm text-gray-600">
-            Manage your restaurant with ease
+            Join LetsOrder and start managing your restaurant
           </p>
         </div>
         <form class="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -82,7 +91,7 @@ function Login() {
           <div class="rounded-md shadow-sm space-y-4">
             <div>
               <label for="email" class="block text-sm font-medium text-gray-700">
-                Email address
+                Email address *
               </label>
               <input
                 id="email"
@@ -106,15 +115,32 @@ function Login() {
                 <p class="mt-1 text-sm text-red-600">{validationErrors().email}</p>
               </Show>
             </div>
+            
+            <div>
+              <label for="phone" class="block text-sm font-medium text-gray-700">
+                Phone number (optional)
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Enter your phone number"
+                value={phone()}
+                onInput={(e) => setPhone(e.currentTarget.value)}
+              />
+            </div>
+            
             <div>
               <label for="password" class="block text-sm font-medium text-gray-700">
-                Password
+                Password *
               </label>
               <input
                 id="password"
                 name="password"
                 type="password"
-                autocomplete="current-password"
+                autocomplete="new-password"
                 required
                 class={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
                   validationErrors().password ? 'border-red-300' : 'border-gray-300'
@@ -130,6 +156,33 @@ function Login() {
               />
               <Show when={validationErrors().password}>
                 <p class="mt-1 text-sm text-red-600">{validationErrors().password}</p>
+              </Show>
+            </div>
+            
+            <div>
+              <label for="confirmPassword" class="block text-sm font-medium text-gray-700">
+                Confirm Password *
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autocomplete="new-password"
+                required
+                class={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
+                  validationErrors().confirmPassword ? 'border-red-300' : 'border-gray-300'
+                }`}
+                placeholder="Confirm your password"
+                value={confirmPassword()}
+                onInput={(e) => {
+                  setConfirmPassword(e.currentTarget.value);
+                  if (validationErrors().confirmPassword) {
+                    setValidationErrors({ ...validationErrors(), confirmPassword: '' });
+                  }
+                }}
+              />
+              <Show when={validationErrors().confirmPassword}>
+                <p class="mt-1 text-sm text-red-600">{validationErrors().confirmPassword}</p>
               </Show>
             </div>
           </div>
@@ -152,15 +205,15 @@ function Login() {
                   </svg>
                 </div>
               </Show>
-              {isSubmitting() ? 'Signing in...' : 'Sign in'}
+              {isSubmitting() ? 'Creating account...' : 'Create account'}
             </button>
           </div>
           
           <div class="text-center">
             <p class="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <a href="/register" class="font-medium text-indigo-600 hover:text-indigo-500">
-                Register here
+              Already have an account?{' '}
+              <a href="/login" class="font-medium text-indigo-600 hover:text-indigo-500">
+                Sign in here
               </a>
             </p>
           </div>
@@ -170,4 +223,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Register;
