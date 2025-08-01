@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import RestaurantDashboard from './pages/RestaurantDashboard';
 import TableDashboard from './pages/TableDashboard';
+import MenuDashboard from './pages/MenuDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
@@ -26,6 +27,11 @@ function App() {
         <Route path="/restaurants/:restaurantId/tables" component={() => (
           <ProtectedRoute>
             <TableDashboard />
+          </ProtectedRoute>
+        )} />
+        <Route path="/restaurants/:restaurantId/menu" component={() => (
+          <ProtectedRoute>
+            <MenuDashboard />
           </ProtectedRoute>
         )} />
       </Route>
