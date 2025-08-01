@@ -138,20 +138,20 @@ export const AuthProvider: ParentComponent = (props) => {
     setError(null);
   };
 
-  const authValue = () => ({
-    user: user(),
-    token: token(),
-    isAuthenticated: isAuthenticated(),
-    isLoading: isLoading(),
-    error: error(),
+  const contextValue: AuthContextType = {
+    get user() { return user(); },
+    get token() { return token(); },
+    get isAuthenticated() { return isAuthenticated(); },
+    get isLoading() { return isLoading(); },
+    get error() { return error(); },
     login,
     register,
     logout,
     clearError,
-  });
+  };
 
   return (
-    <AuthContext.Provider value={authValue()}>
+    <AuthContext.Provider value={contextValue}>
       {props.children}
     </AuthContext.Provider>
   );
@@ -160,7 +160,6 @@ export const AuthProvider: ParentComponent = (props) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    console.error('AuthContext is undefined. Make sure useAuth is called within an AuthProvider.');
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
