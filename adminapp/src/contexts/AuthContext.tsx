@@ -1,4 +1,4 @@
-import { createContext, createSignal, createEffect, createMemo, useContext, ParentComponent } from 'solid-js';
+import { createContext, createSignal, createEffect, useContext, ParentComponent } from 'solid-js';
 import { AuthService, TokenStorage } from '../services/auth';
 import type { AuthState, User, LoginRequest, RegisterRequest } from '../types/auth';
 
@@ -9,7 +9,7 @@ interface AuthContextType extends AuthState {
   clearError: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>();
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: ParentComponent = (props) => {
   const [user, setUser] = createSignal<User | null>(null);
@@ -138,7 +138,7 @@ export const AuthProvider: ParentComponent = (props) => {
     setError(null);
   };
 
-  const authValue = createMemo(() => ({
+  const authValue = () => ({
     user: user(),
     token: token(),
     isAuthenticated: isAuthenticated(),
@@ -148,7 +148,7 @@ export const AuthProvider: ParentComponent = (props) => {
     register,
     logout,
     clearError,
-  }));
+  });
 
   return (
     <AuthContext.Provider value={authValue()}>
@@ -160,6 +160,7 @@ export const AuthProvider: ParentComponent = (props) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
+    console.error('AuthContext is undefined. Make sure useAuth is called within an AuthProvider.');
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

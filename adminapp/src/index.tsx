@@ -2,6 +2,7 @@
 import { render } from 'solid-js/web';
 import { Router } from '@solidjs/router';
 import './index.css';
+import { AuthProvider } from './contexts/AuthContext';
 import App from './App';
 
 const root = document.getElementById('root');
@@ -14,6 +15,8 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 
 render(() => (
   <Router>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </Router>
 ), root!);
