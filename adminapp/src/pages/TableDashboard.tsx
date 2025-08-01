@@ -49,7 +49,7 @@ function TableDashboard() {
     setViewMode('bulk-qr');
   };
 
-  const handleFormSuccess = (newTable: Table) => {
+  const handleFormSuccess = () => {
     setViewMode('list');
     setEditingTable(null);
   };

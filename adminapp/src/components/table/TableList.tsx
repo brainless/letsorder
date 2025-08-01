@@ -28,7 +28,7 @@ function TableList(props: TableListProps) {
     if (selected) {
       setSelectedTables(new Set(table.filteredTables().map(t => t.id)));
     } else {
-      setSelectedTables(new Set());
+      setSelectedTables(new Set<string>());
     }
   };
 
@@ -58,7 +58,7 @@ function TableList(props: TableListProps) {
       });
       
       await Promise.all(deleteTasks);
-      setSelectedTables(new Set());
+      setSelectedTables(new Set<string>());
     } catch (error) {
       console.error('Failed to delete tables:', error);
     }
@@ -194,7 +194,11 @@ function TableList(props: TableListProps) {
               <input
                 type="checkbox"
                 checked={selectedTables().size === filteredTables().length && filteredTables().length > 0}
-                indeterminate={selectedTables().size > 0 && selectedTables().size < filteredTables().length}
+                ref={(el) => {
+                  if (el) {
+                    el.indeterminate = selectedTables().size > 0 && selectedTables().size < filteredTables().length;
+                  }
+                }}
                 onChange={(e) => handleSelectAll(e.currentTarget.checked)}
                 class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
