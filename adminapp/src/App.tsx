@@ -1,14 +1,24 @@
 import { Route, Router } from '@solidjs/router';
+import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import Register from './pages/Register';
 
 function App() {
   return (
-    <Route path="/" component={Layout}>
-      <Route path="/login" component={Login} />
-      <Route path={["", "/dashboard"]} component={Dashboard} />
-    </Route>
+    <AuthProvider>
+      <Route path="/" component={Layout}>
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+        <Route path={["", "/dashboard"]} component={() => (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        )} />
+      </Route>
+    </AuthProvider>
   );
 }
 
