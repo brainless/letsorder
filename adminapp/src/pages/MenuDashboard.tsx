@@ -5,6 +5,8 @@ import { useRestaurant } from '../contexts/RestaurantContext';
 import MenuModal from '../components/menu/MenuModal';
 import MenuSectionForm from '../components/menu/MenuSectionForm';
 import MenuItemForm from '../components/menu/MenuItemForm';
+import MenuPreview from '../components/menu/MenuPreview';
+import DragHandle from '../components/menu/DragHandle';
 import type { MenuSection, MenuItem } from '../types/menu';
 
 const MenuDashboard: Component = () => {
@@ -32,10 +34,15 @@ const MenuDashboardContent: Component = () => {
   const [editingSection, setEditingSection] = createSignal<MenuSection | null>(null);
   const [editingItem, setEditingItem] = createSignal<MenuItem | null>(null);
   const [currentSectionId, setCurrentSectionId] = createSignal<string>('');
+  
+  // Drag and drop state
+  const [draggedSectionId, setDraggedSectionId] = createSignal<string | null>(null);
+  const [draggedItemId, setDraggedItemId] = createSignal<string | null>(null);
+  const [dragOverIndex, setDragOverIndex] = createSignal<number | null>(null);
 
-  onMount(() => {
-    restaurant.loadRestaurant(params.restaurantId);
-  });
+  // onMount(() => {
+  //   // TODO: Load restaurant details if needed
+  // });
 
   // Modal handlers
   const openCreateSectionModal = () => {
@@ -70,6 +77,150 @@ const MenuDashboardContent: Component = () => {
 
   const handleFormSuccess = () => {
     closeModals();
+  };
+
+  // Drag and drop handlers for sections
+  const handleSectionDragStart = (e: DragEvent, sectionId: string) => {
+    setDraggedSectionId(sectionId);
+    e.dataTransfer!.effectAllowed = 'move';
+    e.dataTransfer!.setData('text/plain', '');
+  };
+
+  const handleSectionDragOver = (e: DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer!.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleSectionDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleSectionDrop = async (e: DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    const draggedId = draggedSectionId();
+    
+    if (!draggedId) return;
+
+    const sections = menu.sections;
+    const draggedIndex = sections.findIndex(s => s.id === draggedId);
+    
+    if (draggedIndex === -1 || draggedIndex === targetIndex) {
+      setDraggedSectionId(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    try {
+      // Calculate new display orders
+      const sectionOrders = sections.map((section, index) => {
+        if (section.id === draggedId) {
+          return { section_id: section.id, display_order: targetIndex + 1 };
+        }
+        
+        let newOrder = index + 1;
+        if (draggedIndex < targetIndex) {
+          // Moving down: shift items up
+          if (index > draggedIndex && index <= targetIndex) {
+            newOrder = index;
+          }
+        } else {
+          // Moving up: shift items down
+          if (index >= targetIndex && index < draggedIndex) {
+            newOrder = index + 2;
+          }
+        }
+        
+        return { section_id: section.id, display_order: newOrder };
+      });
+
+      await menu.reorderSections({ section_orders: sectionOrders });
+    } catch (err) {
+      console.error('Failed to reorder sections:', err);
+    }
+
+    setDraggedSectionId(null);
+    setDragOverIndex(null);
+  };
+
+  const handleSectionDragEnd = () => {
+    setDraggedSectionId(null);
+    setDragOverIndex(null);
+  };
+
+  // Drag and drop handlers for items
+  const handleItemDragStart = (e: DragEvent, itemId: string) => {
+    setDraggedItemId(itemId);
+    e.dataTransfer!.effectAllowed = 'move';
+    e.dataTransfer!.setData('text/plain', '');
+  };
+
+  const handleItemDrop = async (e: DragEvent, targetSectionId: string, targetItemIndex: number) => {
+    e.preventDefault();
+    const draggedId = draggedItemId();
+    
+    if (!draggedId) return;
+
+    // Find the dragged item and its current section
+    let draggedItem: MenuItem | undefined;
+    let sourceSectionId: string | undefined;
+    
+    for (const section of menu.sections) {
+      const item = section.items.find(i => i.id === draggedId);
+      if (item) {
+        draggedItem = item;
+        sourceSectionId = section.id;
+        break;
+      }
+    }
+
+    if (!draggedItem || !sourceSectionId) return;
+
+    try {
+      const targetSection = menu.sections.find(s => s.id === targetSectionId);
+      if (!targetSection) return;
+
+      // If moving within the same section
+      if (sourceSectionId === targetSectionId) {
+        const currentIndex = targetSection.items.findIndex(i => i.id === draggedId);
+        if (currentIndex === targetItemIndex) return;
+
+        // Calculate new display orders for items in this section
+        const itemOrders = targetSection.items.map((item, index) => {
+          if (item.id === draggedId) {
+            return { item_id: item.id, display_order: targetItemIndex + 1 };
+          }
+          
+          let newOrder = index + 1;
+          if (currentIndex < targetItemIndex) {
+            // Moving down: shift items up
+            if (index > currentIndex && index <= targetItemIndex) {
+              newOrder = index;
+            }
+          } else {
+            // Moving up: shift items down
+            if (index >= targetItemIndex && index < currentIndex) {
+              newOrder = index + 2;
+            }
+          }
+          
+          return { item_id: item.id, display_order: newOrder };
+        });
+
+        await menu.reorderItems({ item_orders: itemOrders });
+      } else {
+        // Moving between sections - would need to update item's section_id
+        console.log('Cross-section drag not implemented yet');
+      }
+    } catch (err) {
+      console.error('Failed to reorder items:', err);
+    }
+
+    setDraggedItemId(null);
+  };
+
+  const handleItemDragEnd = () => {
+    setDraggedItemId(null);
   };
 
   const toggleItemSelection = (itemId: string) => {
@@ -213,31 +364,52 @@ const MenuDashboardContent: Component = () => {
 
       {/* Menu Content */}
       <Show when={!menu.isLoading}>
-        <Show 
-          when={menu.sections.length > 0}
-          fallback={
-            <div class="text-center py-12">
-              <div class="text-gray-400 text-lg mb-4">No menu sections yet</div>
-              <Show when={!previewMode()}>
+        <Show when={previewMode()}>
+          <Show when={restaurant.currentRestaurant}>
+            <MenuPreview
+              restaurant={restaurant.currentRestaurant!} 
+              sections={menu.sections}
+            />
+          </Show>
+        </Show>
+        
+        <Show when={!previewMode()}>
+          <Show 
+            when={menu.sections.length > 0}
+            fallback={
+              <div class="text-center py-12">
+                <div class="text-gray-400 text-lg mb-4">No menu sections yet</div>
                 <button
                   onClick={openCreateSectionModal}
                   class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700"
                 >
                   Create Your First Section
                 </button>
-              </Show>
-            </div>
-          }
-        >
-          <div class="space-y-6">
+              </div>
+            }
+          >
+            <div class="space-y-6">
             <For each={menu.sections}>
-              {(section) => (
-                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              {(section, index) => (
+                <div 
+                  class={`bg-white rounded-lg border border-gray-200 overflow-hidden transition-all ${
+                    draggedSectionId() === section.id ? 'opacity-50 scale-95' : ''
+                  } ${
+                    dragOverIndex() === index() ? 'ring-2 ring-blue-500 ring-opacity-50' : ''
+                  }`}
+                  draggable={!previewMode()}
+                  onDragStart={(e) => !previewMode() && handleSectionDragStart(e, section.id)}
+                  onDragOver={(e) => !previewMode() && handleSectionDragOver(e, index())}
+                  onDragLeave={handleSectionDragLeave}
+                  onDrop={(e) => !previewMode() && handleSectionDrop(e, index())}
+                  onDragEnd={handleSectionDragEnd}
+                >
                   {/* Section Header */}
                   <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
                         <Show when={!previewMode()}>
+                          <DragHandle />
                           <input
                             type="checkbox"
                             checked={selectedSections().includes(section.id)}
@@ -303,11 +475,26 @@ const MenuDashboardContent: Component = () => {
                       }
                     >
                       <For each={section.items}>
-                        {(item) => (
-                          <div class="px-6 py-4">
+                        {(item, itemIndex) => (
+                          <div 
+                            class={`px-6 py-4 transition-all ${
+                              draggedItemId() === item.id ? 'opacity-50' : ''
+                            }`}
+                            draggable={!previewMode()}
+                            onDragStart={(e) => !previewMode() && handleItemDragStart(e, item.id)}
+                            onDragOver={(e) => {
+                              if (!previewMode()) {
+                                e.preventDefault();
+                                e.dataTransfer!.dropEffect = 'move';
+                              }
+                            }}
+                            onDrop={(e) => !previewMode() && handleItemDrop(e, section.id, itemIndex())}
+                            onDragEnd={handleItemDragEnd}
+                          >
                             <div class="flex items-center justify-between">
                               <div class="flex items-center gap-3 flex-1">
                                 <Show when={!previewMode()}>
+                                  <DragHandle class="text-sm" />
                                   <input
                                     type="checkbox"
                                     checked={selectedItems().includes(item.id)}
@@ -382,7 +569,8 @@ const MenuDashboardContent: Component = () => {
                 </div>
               )}
             </For>
-          </div>
+            </div>
+          </Show>
         </Show>
       </Show>
 
@@ -390,7 +578,7 @@ const MenuDashboardContent: Component = () => {
       <MenuModal isOpen={showSectionModal()} onClose={closeModals}>
         <MenuSectionForm
           restaurantId={params.restaurantId}
-          section={editingSection()}
+          section={editingSection() || undefined}
           onSuccess={handleFormSuccess}
           onCancel={closeModals}
         />
@@ -399,7 +587,7 @@ const MenuDashboardContent: Component = () => {
       <MenuModal isOpen={showItemModal()} onClose={closeModals}>
         <MenuItemForm
           sectionId={currentSectionId()}
-          item={editingItem()}
+          item={editingItem() || undefined}
           onSuccess={handleFormSuccess}
           onCancel={closeModals}
         />
