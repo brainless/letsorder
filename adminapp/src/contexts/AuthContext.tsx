@@ -17,7 +17,11 @@ export const AuthProvider: ParentComponent = (props) => {
   const [isLoading, setIsLoading] = createSignal(true);
   const [error, setError] = createSignal<string | null>(null);
 
-  const isAuthenticated = () => !!user() && !!token();
+  const isAuthenticated = () => {
+    const authState = !!user() && !!token();
+    console.log('isAuthenticated check:', { user: user(), token: token(), isAuth: authState });
+    return authState;
+  };
 
   // Initialize auth state from storage
   createEffect(() => {
@@ -85,6 +89,7 @@ export const AuthProvider: ParentComponent = (props) => {
 
     try {
       const response = await AuthService.login(credentials);
+      console.log('Login response:', response);
       
       setToken(response.token);
       setUser(response.user);
@@ -92,9 +97,12 @@ export const AuthProvider: ParentComponent = (props) => {
       TokenStorage.saveToken(response.token);
       TokenStorage.saveUser(response.user);
       
+      console.log('Auth state after login:', { user: response.user, token: response.token });
+      
       // Set up token expiration monitoring
       setupTokenExpirationCheck(response.token);
     } catch (err) {
+      console.error('Login error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);
       throw err;

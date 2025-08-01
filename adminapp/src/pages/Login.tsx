@@ -15,7 +15,7 @@ function Login() {
     auth.clearError();
   });
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (using Show for reactivity)
   if (auth.isAuthenticated) {
     return <Navigate href="/dashboard" />;
   }
