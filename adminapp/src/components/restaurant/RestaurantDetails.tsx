@@ -135,19 +135,22 @@ function RestaurantDetails(props: RestaurantDetailsProps) {
               </div>
             </a>
             
-            <div class="block p-4 bg-gray-50 border border-gray-200 rounded-lg opacity-50">
+            <a
+              href={`/restaurants/${props.restaurant.id}/menu`}
+              class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
+            >
               <div class="flex items-center">
                 <div class="flex-shrink-0">
-                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
                 <div class="ml-3">
-                  <h4 class="text-sm font-medium text-gray-400">Menu Management</h4>
-                  <p class="text-sm text-gray-400">Coming soon</p>
+                  <h4 class="text-sm font-medium text-gray-900">Menu Management</h4>
+                  <p class="text-sm text-gray-500">Manage sections, items, and pricing</p>
                 </div>
               </div>
-            </div>
+            </a>
             
             <div class="block p-4 bg-gray-50 border border-gray-200 rounded-lg opacity-50">
               <div class="flex items-center">
