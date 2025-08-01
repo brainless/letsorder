@@ -48,8 +48,8 @@ export class AuthService {
 
   static async validateToken(token: string): Promise<boolean> {
     try {
-      console.log('Validating token with backend:', `${API_BASE}/auth/test`);
-      const response = await fetch(`${API_BASE}/auth/test`, {
+      console.log('Validating token with backend:', `${API_BASE}/api/test`);
+      const response = await fetch(`${API_BASE}/api/test`, {
         method: 'GET',
         headers: this.getAuthHeaders(token),
       });
