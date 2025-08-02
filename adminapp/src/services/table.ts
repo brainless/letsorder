@@ -24,7 +24,7 @@ export class TableService {
   private static async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-      
+
       try {
         const errorBody = await response.json();
         if (errorBody.message) {
@@ -35,7 +35,7 @@ export class TableService {
       } catch {
         // If we can't parse JSON, stick with the basic error message
       }
-      
+
       throw new Error(errorMessage);
     }
 
@@ -50,57 +50,82 @@ export class TableService {
 
   // Get tables for a restaurant
   static async getRestaurantTables(restaurantId: string): Promise<Table[]> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/tables`, {
-      method: 'GET',
-      headers: this.getHeaders(),
-    });
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/tables`,
+      {
+        method: 'GET',
+        headers: this.getHeaders(),
+      }
+    );
 
     return this.handleResponse<Table[]>(response);
   }
 
   // Get single table details
   static async getTable(restaurantId: string, tableId: string): Promise<Table> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}`, {
-      method: 'GET',
-      headers: this.getHeaders(),
-    });
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}`,
+      {
+        method: 'GET',
+        headers: this.getHeaders(),
+      }
+    );
 
     return this.handleResponse<Table>(response);
   }
 
   // Create table
-  static async createTable(restaurantId: string, data: Omit<CreateTableRequest, 'restaurant_id'>): Promise<Table> {
+  static async createTable(
+    restaurantId: string,
+    data: Omit<CreateTableRequest, 'restaurant_id'>
+  ): Promise<Table> {
     const requestData: CreateTableRequest = {
       ...data,
       restaurant_id: restaurantId,
     };
 
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/tables`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-      body: JSON.stringify(requestData),
-    });
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/tables`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(requestData),
+      }
+    );
 
     return this.handleResponse<Table>(response);
   }
 
   // Update table
-  static async updateTable(restaurantId: string, tableId: string, data: UpdateTableRequest): Promise<Table> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}`, {
-      method: 'PUT',
-      headers: this.getHeaders(),
-      body: JSON.stringify(data),
-    });
+  static async updateTable(
+    restaurantId: string,
+    tableId: string,
+    data: UpdateTableRequest
+  ): Promise<Table> {
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}`,
+      {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
 
     return this.handleResponse<Table>(response);
   }
 
   // Delete table
-  static async deleteTable(restaurantId: string, tableId: string): Promise<void> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}`, {
-      method: 'DELETE',
-      headers: this.getHeaders(),
-    });
+  static async deleteTable(
+    restaurantId: string,
+    tableId: string
+  ): Promise<void> {
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}`,
+      {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+      }
+    );
 
     return this.handleResponse<void>(response);
   }
@@ -108,32 +133,50 @@ export class TableService {
   // QR Code operations
 
   // Get QR code for a table
-  static async getTableQRCode(restaurantId: string, tableId: string): Promise<QrCodeResponse> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}/qr`, {
-      method: 'GET',
-      headers: this.getHeaders(),
-    });
+  static async getTableQRCode(
+    restaurantId: string,
+    tableId: string
+  ): Promise<QrCodeResponse> {
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}/qr`,
+      {
+        method: 'GET',
+        headers: this.getHeaders(),
+      }
+    );
 
     return this.handleResponse<QrCodeResponse>(response);
   }
 
   // Generate bulk QR codes
-  static async generateBulkQRCodes(restaurantId: string, data: BulkQrCodeRequest): Promise<BulkQrCodeResponse> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/qr/bulk`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-      body: JSON.stringify(data),
-    });
+  static async generateBulkQRCodes(
+    restaurantId: string,
+    data: BulkQrCodeRequest
+  ): Promise<BulkQrCodeResponse> {
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/qr/bulk`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
 
     return this.handleResponse<BulkQrCodeResponse>(response);
   }
 
   // Refresh table unique code
-  static async refreshTableCode(restaurantId: string, tableId: string): Promise<RefreshCodeResponse> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}/refresh-code`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-    });
+  static async refreshTableCode(
+    restaurantId: string,
+    tableId: string
+  ): Promise<RefreshCodeResponse> {
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}/refresh-code`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+      }
+    );
 
     return this.handleResponse<RefreshCodeResponse>(response);
   }

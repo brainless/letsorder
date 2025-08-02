@@ -1,5 +1,9 @@
 import { config } from '../config/env';
-import type { AuthResponse, LoginRequest, RegisterRequest } from '../types/auth';
+import type {
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+} from '../types/auth';
 
 const API_BASE = config.apiUrl;
 
@@ -8,11 +12,11 @@ export class AuthService {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
-    
+
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
+
     return headers;
   }
 
@@ -24,7 +28,9 @@ export class AuthService {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Login failed' }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: 'Login failed' }));
       throw new Error(error.error || `Login failed: ${response.status}`);
     }
 
@@ -39,7 +45,9 @@ export class AuthService {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Registration failed' }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: 'Registration failed' }));
       throw new Error(error.error || `Registration failed: ${response.status}`);
     }
 
@@ -53,13 +61,13 @@ export class AuthService {
         method: 'GET',
         headers: this.getAuthHeaders(token),
       });
-      
+
       console.log('Token validation response:', {
         status: response.status,
         ok: response.ok,
-        statusText: response.statusText
+        statusText: response.statusText,
       });
-      
+
       return response.ok;
     } catch (error) {
       console.error('Token validation network error:', error);

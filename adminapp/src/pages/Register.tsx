@@ -8,7 +8,9 @@ function Register() {
   const [password, setPassword] = createSignal('');
   const [confirmPassword, setConfirmPassword] = createSignal('');
   const [isSubmitting, setIsSubmitting] = createSignal(false);
-  const [validationErrors, setValidationErrors] = createSignal<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = createSignal<
+    Record<string, string>
+  >({});
 
   const auth = useAuth();
 
@@ -24,32 +26,32 @@ function Register() {
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!email().trim()) {
       errors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email())) {
       errors.email = 'Please enter a valid email address';
     }
-    
+
     if (!password().trim()) {
       errors.password = 'Password is required';
     } else if (password().length < 6) {
       errors.password = 'Password must be at least 6 characters';
     }
-    
+
     if (!confirmPassword().trim()) {
       errors.confirmPassword = 'Please confirm your password';
     } else if (password() !== confirmPassword()) {
       errors.confirmPassword = 'Passwords do not match';
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -90,7 +92,10 @@ function Register() {
 
           <div class="rounded-md shadow-sm space-y-4">
             <div>
-              <label for="email" class="block text-sm font-medium text-gray-700">
+              <label
+                for="email"
+                class="block text-sm font-medium text-gray-700"
+              >
                 Email address *
               </label>
               <input
@@ -100,7 +105,9 @@ function Register() {
                 autocomplete="email"
                 required
                 class={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
-                  validationErrors().email ? 'border-red-300' : 'border-gray-300'
+                  validationErrors().email
+                    ? 'border-red-300'
+                    : 'border-gray-300'
                 }`}
                 placeholder="Enter your email"
                 value={email()}
@@ -112,12 +119,17 @@ function Register() {
                 }}
               />
               <Show when={validationErrors().email}>
-                <p class="mt-1 text-sm text-red-600">{validationErrors().email}</p>
+                <p class="mt-1 text-sm text-red-600">
+                  {validationErrors().email}
+                </p>
               </Show>
             </div>
-            
+
             <div>
-              <label for="phone" class="block text-sm font-medium text-gray-700">
+              <label
+                for="phone"
+                class="block text-sm font-medium text-gray-700"
+              >
                 Phone number (optional)
               </label>
               <input
@@ -131,9 +143,12 @@ function Register() {
                 onInput={(e) => setPhone(e.currentTarget.value)}
               />
             </div>
-            
+
             <div>
-              <label for="password" class="block text-sm font-medium text-gray-700">
+              <label
+                for="password"
+                class="block text-sm font-medium text-gray-700"
+              >
                 Password *
               </label>
               <input
@@ -143,24 +158,34 @@ function Register() {
                 autocomplete="new-password"
                 required
                 class={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
-                  validationErrors().password ? 'border-red-300' : 'border-gray-300'
+                  validationErrors().password
+                    ? 'border-red-300'
+                    : 'border-gray-300'
                 }`}
                 placeholder="Enter your password"
                 value={password()}
                 onInput={(e) => {
                   setPassword(e.currentTarget.value);
                   if (validationErrors().password) {
-                    setValidationErrors({ ...validationErrors(), password: '' });
+                    setValidationErrors({
+                      ...validationErrors(),
+                      password: '',
+                    });
                   }
                 }}
               />
               <Show when={validationErrors().password}>
-                <p class="mt-1 text-sm text-red-600">{validationErrors().password}</p>
+                <p class="mt-1 text-sm text-red-600">
+                  {validationErrors().password}
+                </p>
               </Show>
             </div>
-            
+
             <div>
-              <label for="confirmPassword" class="block text-sm font-medium text-gray-700">
+              <label
+                for="confirmPassword"
+                class="block text-sm font-medium text-gray-700"
+              >
                 Confirm Password *
               </label>
               <input
@@ -170,19 +195,26 @@ function Register() {
                 autocomplete="new-password"
                 required
                 class={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
-                  validationErrors().confirmPassword ? 'border-red-300' : 'border-gray-300'
+                  validationErrors().confirmPassword
+                    ? 'border-red-300'
+                    : 'border-gray-300'
                 }`}
                 placeholder="Confirm your password"
                 value={confirmPassword()}
                 onInput={(e) => {
                   setConfirmPassword(e.currentTarget.value);
                   if (validationErrors().confirmPassword) {
-                    setValidationErrors({ ...validationErrors(), confirmPassword: '' });
+                    setValidationErrors({
+                      ...validationErrors(),
+                      confirmPassword: '',
+                    });
                   }
                 }}
               />
               <Show when={validationErrors().confirmPassword}>
-                <p class="mt-1 text-sm text-red-600">{validationErrors().confirmPassword}</p>
+                <p class="mt-1 text-sm text-red-600">
+                  {validationErrors().confirmPassword}
+                </p>
               </Show>
             </div>
           </div>
@@ -200,19 +232,33 @@ function Register() {
               <Show when={isSubmitting()}>
                 <div class="animate-spin -ml-1 mr-3 h-5 w-5 text-white">
                   <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                 </div>
               </Show>
               {isSubmitting() ? 'Creating account...' : 'Create account'}
             </button>
           </div>
-          
+
           <div class="text-center">
             <p class="text-sm text-gray-600">
               Already have an account?{' '}
-              <a href="/login" class="font-medium text-indigo-600 hover:text-indigo-500">
+              <a
+                href="/login"
+                class="font-medium text-indigo-600 hover:text-indigo-500"
+              >
                 Sign in here
               </a>
             </p>

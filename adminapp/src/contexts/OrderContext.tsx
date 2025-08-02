@@ -1,6 +1,18 @@
-import { createContext, createSignal, useContext, ParentComponent, createEffect } from 'solid-js';
+import {
+  createContext,
+  createSignal,
+  useContext,
+  ParentComponent,
+  createEffect,
+} from 'solid-js';
 import { OrderService } from '../services/order';
-import type { Order, OrderStats, OrderFilters, OrderStatus, OrderContextType } from '../types/order';
+import type {
+  Order,
+  OrderStats,
+  OrderFilters,
+  OrderStatus,
+  OrderContextType,
+} from '../types/order';
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
@@ -10,14 +22,18 @@ export const OrderProvider: ParentComponent = (props) => {
   const [isLoading, setIsLoading] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
   const [filters, setFilters] = createSignal<OrderFilters>({});
-  const [currentRestaurantId, setCurrentRestaurantId] = createSignal<string | null>(null);
+  const [currentRestaurantId, setCurrentRestaurantId] = createSignal<
+    string | null
+  >(null);
 
   // Auto-refresh interval for real-time updates
-  const [refreshInterval, setRefreshInterval] = createSignal<number | null>(null);
+  const [refreshInterval, setRefreshInterval] =
+    createSignal<NodeJS.Timeout | null>(null);
 
   const handleError = (err: unknown) => {
     console.error('Order operation error:', err);
-    const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+    const message =
+      err instanceof Error ? err.message : 'An unexpected error occurred';
     setError(message);
   };
 
@@ -31,9 +47,10 @@ export const OrderProvider: ParentComponent = (props) => {
     setCurrentRestaurantId(restaurantId);
 
     try {
-      const fetchedOrders = await OrderService.getRestaurantOrders(restaurantId);
+      const fetchedOrders =
+        await OrderService.getRestaurantOrders(restaurantId);
       setOrders(fetchedOrders);
-      
+
       // Calculate stats
       const orderStats = OrderService.calculateOrderStats(fetchedOrders);
       setStats(orderStats);
@@ -52,7 +69,7 @@ export const OrderProvider: ParentComponent = (props) => {
     try {
       const fetchedOrders = await OrderService.getTodayOrders(restaurantId);
       setOrders(fetchedOrders);
-      
+
       // Calculate stats
       const orderStats = OrderService.calculateOrderStats(fetchedOrders);
       setStats(orderStats);
@@ -69,9 +86,12 @@ export const OrderProvider: ParentComponent = (props) => {
     setCurrentRestaurantId(restaurantId);
 
     try {
-      const fetchedOrders = await OrderService.getTableOrders(restaurantId, tableId);
+      const fetchedOrders = await OrderService.getTableOrders(
+        restaurantId,
+        tableId
+      );
       setOrders(fetchedOrders);
-      
+
       // Calculate stats
       const orderStats = OrderService.calculateOrderStats(fetchedOrders);
       setStats(orderStats);
@@ -98,13 +118,13 @@ export const OrderProvider: ParentComponent = (props) => {
 
     try {
       await OrderService.updateOrderStatus(orderId, status);
-      
+
       // Update local order status
-      setOrders(prev => prev.map(order => 
-        order.id === orderId 
-          ? { ...order, status }
-          : order
-      ));
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId ? { ...order, status } : order
+        )
+      );
 
       // Recalculate stats
       const updatedOrders = orders();
@@ -148,19 +168,33 @@ export const OrderProvider: ParentComponent = (props) => {
   const getFilteredOrders = () => {
     const currentFilters = filters();
     let filteredOrders = OrderService.filterOrders(orders(), currentFilters);
-    
+
     // Default sort by created_at desc (newest first)
-    filteredOrders = OrderService.sortOrders(filteredOrders, 'created_at', 'desc');
-    
+    filteredOrders = OrderService.sortOrders(
+      filteredOrders,
+      'created_at',
+      'desc'
+    );
+
     return filteredOrders;
   };
 
   const contextValue: OrderContextType = {
-    get orders() { return getFilteredOrders(); },
-    get stats() { return stats(); },
-    get isLoading() { return isLoading(); },
-    get error() { return error(); },
-    get filters() { return filters(); },
+    get orders() {
+      return getFilteredOrders();
+    },
+    get stats() {
+      return stats();
+    },
+    get isLoading() {
+      return isLoading();
+    },
+    get error() {
+      return error();
+    },
+    get filters() {
+      return filters();
+    },
     setFilters,
     loadOrders,
     loadTodayOrders,
@@ -195,23 +229,26 @@ export const useOrders = () => {
 };
 
 // Hook for order management with auto-refresh
-export const useOrderManagement = (restaurantId: string, autoRefresh = true) => {
+export const useOrderManagement = (
+  restaurantId: string,
+  autoRefresh = true
+) => {
   const orders = useOrders();
-  
+
   createEffect(() => {
     if (restaurantId) {
       orders.loadOrders(restaurantId);
-      
+
       if (autoRefresh) {
         // Start auto-refresh every 30 seconds
         const interval = setInterval(() => {
           orders.refreshOrders();
         }, 30000);
-        
+
         return () => clearInterval(interval);
       }
     }
   });
-  
+
   return orders;
 };

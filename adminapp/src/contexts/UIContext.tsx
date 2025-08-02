@@ -23,9 +23,7 @@ export const UIProvider: ParentComponent = (props) => {
   };
 
   return (
-    <UIContext.Provider value={value}>
-      {props.children}
-    </UIContext.Provider>
+    <UIContext.Provider value={value}>{props.children}</UIContext.Provider>
   );
 };
 

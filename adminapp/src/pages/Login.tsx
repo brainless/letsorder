@@ -6,7 +6,9 @@ function Login() {
   const [email, setEmail] = createSignal('');
   const [password, setPassword] = createSignal('');
   const [isSubmitting, setIsSubmitting] = createSignal(false);
-  const [validationErrors, setValidationErrors] = createSignal<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = createSignal<
+    Record<string, string>
+  >({});
 
   const auth = useAuth();
   const navigate = useNavigate();
@@ -31,26 +33,26 @@ function Login() {
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!email().trim()) {
       errors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email())) {
       errors.email = 'Please enter a valid email address';
     }
-    
+
     if (!password().trim()) {
       errors.password = 'Password is required';
     } else if (password().length < 6) {
       errors.password = 'Password must be at least 6 characters';
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -92,7 +94,10 @@ function Login() {
 
           <div class="rounded-md shadow-sm space-y-4">
             <div>
-              <label for="email" class="block text-sm font-medium text-gray-700">
+              <label
+                for="email"
+                class="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <input
@@ -102,7 +107,9 @@ function Login() {
                 autocomplete="email"
                 required
                 class={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
-                  validationErrors().email ? 'border-red-300' : 'border-gray-300'
+                  validationErrors().email
+                    ? 'border-red-300'
+                    : 'border-gray-300'
                 }`}
                 placeholder="Enter your email"
                 value={email()}
@@ -114,11 +121,16 @@ function Login() {
                 }}
               />
               <Show when={validationErrors().email}>
-                <p class="mt-1 text-sm text-red-600">{validationErrors().email}</p>
+                <p class="mt-1 text-sm text-red-600">
+                  {validationErrors().email}
+                </p>
               </Show>
             </div>
             <div>
-              <label for="password" class="block text-sm font-medium text-gray-700">
+              <label
+                for="password"
+                class="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
@@ -128,19 +140,26 @@ function Login() {
                 autocomplete="current-password"
                 required
                 class={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
-                  validationErrors().password ? 'border-red-300' : 'border-gray-300'
+                  validationErrors().password
+                    ? 'border-red-300'
+                    : 'border-gray-300'
                 }`}
                 placeholder="Enter your password"
                 value={password()}
                 onInput={(e) => {
                   setPassword(e.currentTarget.value);
                   if (validationErrors().password) {
-                    setValidationErrors({ ...validationErrors(), password: '' });
+                    setValidationErrors({
+                      ...validationErrors(),
+                      password: '',
+                    });
                   }
                 }}
               />
               <Show when={validationErrors().password}>
-                <p class="mt-1 text-sm text-red-600">{validationErrors().password}</p>
+                <p class="mt-1 text-sm text-red-600">
+                  {validationErrors().password}
+                </p>
               </Show>
             </div>
           </div>
@@ -158,19 +177,33 @@ function Login() {
               <Show when={isSubmitting()}>
                 <div class="animate-spin -ml-1 mr-3 h-5 w-5 text-white">
                   <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                 </div>
               </Show>
               {isSubmitting() ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
-          
+
           <div class="text-center">
             <p class="text-sm text-gray-600">
               Don't have an account?{' '}
-              <a href="/register" class="font-medium text-indigo-600 hover:text-indigo-500">
+              <a
+                href="/register"
+                class="font-medium text-indigo-600 hover:text-indigo-500"
+              >
                 Register here
               </a>
             </p>

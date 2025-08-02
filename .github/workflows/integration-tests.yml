@@ -16,14 +16,15 @@ jobs:
   full-stack-test:
     name: Full Stack Integration Test
     runs-on: ubuntu-latest
-    services:
-      backend:
-        image: rust:1.75
-        options: --health-cmd "curl -f http://localhost:8080/health || exit 1" --health-interval 30s --health-timeout 10s --health-retries 3
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl sqlite3
 
       # Backend Setup
       - name: Install Rust toolchain
@@ -43,22 +44,57 @@ jobs:
       - name: Setup test database
         working-directory: ./backend
         run: |
-          sqlite3 test.db < migrations/20250131000001_initial_schema.sql
-          sqlite3 test.db < migrations/20250131000002_manager_invites.sql
-          sqlite3 test.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          # Create empty database file and run migrations for SQLx compile-time validation
+          touch test.db
+          # Install sqlx-cli for running migrations
+          cargo install sqlx-cli --no-default-features --features sqlite
+          # Run migrations to create schema (required for SQLx compile-time validation)
+          sqlx migrate run --database-url sqlite:./test.db
 
       - name: Build and start backend
         working-directory: ./backend
         run: |
           cargo build --release
-          RUST_LOG=debug DATABASE_URL=sqlite:./test.db ./target/release/backend &
+          # Create a local settings file for integration tests (overrides default settings.ini)
+          cat > local.settings.ini << EOF
+          [server]
+          host = "0.0.0.0"
+          port = 8080
+          
+          [database]
+          url = "sqlite:./test.db"
+          max_connections = 10
+          
+          [jwt]
+          secret = "test-jwt-secret-for-integration-tests"
+          expiration_hours = 24
+          EOF
+          # Start backend with test configuration
+          echo "Starting backend..."
+          RUST_LOG=debug DATABASE_URL=sqlite:./test.db ./target/release/backend > backend.log 2>&1 &
           echo $! > backend.pid
+          echo "Backend started with PID: $(cat backend.pid)"
+          # Wait a moment for the process to start
+          sleep 3
+          echo "Backend log output:"
+          cat backend.log || echo "No log output yet"
         env:
           DATABASE_URL: sqlite:./test.db
 
       - name: Wait for backend to be ready
         run: |
-          timeout 60 bash -c 'until curl -f http://localhost:8080/health; do sleep 2; done'
+          echo "Checking if backend process is running..."
+          ps aux | grep backend || echo "No backend process found"
+          echo "Checking if backend.pid file exists..."
+          ls -la backend/ | grep pid || echo "No PID file found"
+          echo "Checking if port 8080 is listening..."
+          netstat -tlnp | grep 8080 || echo "Port 8080 not listening"
+          echo "Trying to connect to backend..."
+          timeout 60 bash -c 'until curl -f http://localhost:8080/health; do 
+            echo "Backend not ready, checking process status..."
+            ps aux | grep backend | grep -v grep || echo "Backend process not found"
+            sleep 2
+          done'
 
       # Admin App Setup
       - name: Setup Node.js

@@ -10,7 +10,8 @@ type ViewMode = 'list' | 'create' | 'edit' | 'details';
 function RestaurantDashboard() {
   const restaurant = useRestaurant();
   const [viewMode, setViewMode] = createSignal<ViewMode>('list');
-  const [editingRestaurant, setEditingRestaurant] = createSignal<Restaurant | null>(null);
+  const [editingRestaurant, setEditingRestaurant] =
+    createSignal<Restaurant | null>(null);
 
   const handleCreateNew = () => {
     setEditingRestaurant(null);
@@ -49,14 +50,14 @@ function RestaurantDashboard() {
         <div class="md:flex md:items-center md:justify-between">
           <div class="flex-1 min-w-0">
             <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl truncate">
-              <Show 
-                when={viewMode() === 'list'} 
+              <Show
+                when={viewMode() === 'list'}
                 fallback={
-                  <Show 
-                    when={viewMode() === 'create'} 
+                  <Show
+                    when={viewMode() === 'create'}
                     fallback={
-                      <Show 
-                        when={viewMode() === 'edit'} 
+                      <Show
+                        when={viewMode() === 'edit'}
                         fallback="Restaurant Details"
                       >
                         Edit Restaurant
@@ -71,14 +72,14 @@ function RestaurantDashboard() {
               </Show>
             </h1>
             <p class="mt-1 text-sm text-gray-600">
-              <Show 
-                when={viewMode() === 'list'} 
+              <Show
+                when={viewMode() === 'list'}
                 fallback={
-                  <Show 
-                    when={viewMode() === 'create'} 
+                  <Show
+                    when={viewMode() === 'create'}
                     fallback={
-                      <Show 
-                        when={viewMode() === 'edit'} 
+                      <Show
+                        when={viewMode() === 'edit'}
                         fallback="View and manage restaurant details"
                       >
                         Update restaurant information
@@ -93,7 +94,7 @@ function RestaurantDashboard() {
               </Show>
             </p>
           </div>
-          
+
           <div class="mt-4 flex md:mt-0 md:ml-4">
             <Show when={viewMode() === 'list'}>
               <button
@@ -101,8 +102,18 @@ function RestaurantDashboard() {
                 onClick={handleCreateNew}
                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                <svg class="w-5 h-5 sm:-ml-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                <svg
+                  class="w-5 h-5 sm:-ml-1 sm:mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  ></path>
                 </svg>
                 <span class="hidden sm:block">Add Restaurant</span>
               </button>
@@ -111,11 +122,23 @@ function RestaurantDashboard() {
             <Show when={viewMode() !== 'list'}>
               <button
                 type="button"
-                onClick={viewMode() === 'details' ? handleBackToList : handleCancel}
+                onClick={
+                  viewMode() === 'details' ? handleBackToList : handleCancel
+                }
                 class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                <svg class="w-5 h-5 -ml-1 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                <svg
+                  class="w-5 h-5 -ml-1 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  ></path>
                 </svg>
                 Back to List
               </button>
@@ -129,15 +152,21 @@ function RestaurantDashboard() {
         <div class="mb-6 rounded-md bg-red-50 p-4">
           <div class="flex">
             <div class="flex-shrink-0">
-              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              <svg
+                class="h-5 w-5 text-red-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clip-rule="evenodd"
+                />
               </svg>
             </div>
             <div class="ml-3">
               <h3 class="text-sm font-medium text-red-800">Error</h3>
-              <div class="mt-2 text-sm text-red-700">
-                {restaurant.error}
-              </div>
+              <div class="mt-2 text-sm text-red-700">{restaurant.error}</div>
             </div>
             <div class="ml-auto pl-3">
               <div class="-mx-1.5 -my-1.5">
@@ -146,7 +175,11 @@ function RestaurantDashboard() {
                   class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
                 >
                   <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
                   </svg>
                 </button>
               </div>
@@ -158,19 +191,16 @@ function RestaurantDashboard() {
       {/* Main Content */}
       <div class="bg-white shadow rounded-lg">
         <Show when={viewMode() === 'list'}>
-          <RestaurantList 
-            onEdit={handleEdit}
-            onView={handleView}
-          />
+          <RestaurantList onEdit={handleEdit} onView={handleView} />
         </Show>
-        
+
         <Show when={viewMode() === 'create'}>
           <RestaurantForm
             onSuccess={handleFormSuccess}
             onCancel={handleCancel}
           />
         </Show>
-        
+
         <Show when={viewMode() === 'edit'}>
           <RestaurantForm
             restaurant={editingRestaurant()}
@@ -178,11 +208,14 @@ function RestaurantDashboard() {
             onCancel={handleCancel}
           />
         </Show>
-        
+
         <Show when={viewMode() === 'details'}>
           <RestaurantDetails
             restaurant={restaurant.currentRestaurant!}
-            onEdit={() => restaurant.currentRestaurant && handleEdit(restaurant.currentRestaurant)}
+            onEdit={() =>
+              restaurant.currentRestaurant &&
+              handleEdit(restaurant.currentRestaurant)
+            }
           />
         </Show>
       </div>

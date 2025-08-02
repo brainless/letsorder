@@ -1,32 +1,53 @@
-import { createContext, createSignal, useContext, ParentComponent } from 'solid-js';
+import {
+  createContext,
+  createSignal,
+  useContext,
+  ParentComponent,
+} from 'solid-js';
 import { TableService } from '../services/table';
-import type { 
-  Table, 
-  CreateTableRequest, 
+import type {
+  Table,
+  CreateTableRequest,
   UpdateTableRequest,
   QrCodeResponse,
   BulkQrCodeRequest,
   RefreshCodeResponse,
   TableState,
-  TableFilters
+  TableFilters,
 } from '../types/table';
 
 interface TableContextType extends TableState {
   // Table CRUD
   loadRestaurantTables: (restaurantId: string) => Promise<void>;
-  createTable: (restaurantId: string, data: Omit<CreateTableRequest, 'restaurant_id'>) => Promise<Table>;
-  updateTable: (restaurantId: string, tableId: string, data: UpdateTableRequest) => Promise<Table>;
+  createTable: (
+    restaurantId: string,
+    data: Omit<CreateTableRequest, 'restaurant_id'>
+  ) => Promise<Table>;
+  updateTable: (
+    restaurantId: string,
+    tableId: string,
+    data: UpdateTableRequest
+  ) => Promise<Table>;
   deleteTable: (restaurantId: string, tableId: string) => Promise<void>;
-  
+
   // QR Code operations
-  getTableQRCode: (restaurantId: string, tableId: string) => Promise<QrCodeResponse>;
-  generateBulkQRCodes: (restaurantId: string, tableIds: string[]) => Promise<QrCodeResponse[]>;
-  refreshTableCode: (restaurantId: string, tableId: string) => Promise<RefreshCodeResponse>;
-  
+  getTableQRCode: (
+    restaurantId: string,
+    tableId: string
+  ) => Promise<QrCodeResponse>;
+  generateBulkQRCodes: (
+    restaurantId: string,
+    tableIds: string[]
+  ) => Promise<QrCodeResponse[]>;
+  refreshTableCode: (
+    restaurantId: string,
+    tableId: string
+  ) => Promise<RefreshCodeResponse>;
+
   // UI state management
   setCurrentTable: (table: Table | null) => void;
   clearError: () => void;
-  
+
   // Filtering and search
   filteredTables: () => Table[];
   setFilters: (filters: Partial<TableFilters>) => void;
@@ -38,13 +59,15 @@ const TableContext = createContext<TableContextType | undefined>(undefined);
 export const TableProvider: ParentComponent = (props) => {
   const [tables, setTables] = createSignal<Table[]>([]);
   const [currentTable, setCurrentTable] = createSignal<Table | null>(null);
-  const [qrCodes, setQrCodes] = createSignal<Map<string, QrCodeResponse>>(new Map());
+  const [qrCodes, setQrCodes] = createSignal<Map<string, QrCodeResponse>>(
+    new Map()
+  );
   const [isLoading, setIsLoading] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
   const [filters, setFiltersSignal] = createSignal<TableFilters>({
     searchTerm: '',
     sortBy: 'name',
-    sortOrder: 'asc'
+    sortOrder: 'asc',
   });
 
   const clearError = () => {
@@ -52,7 +75,8 @@ export const TableProvider: ParentComponent = (props) => {
   };
 
   const handleError = (err: unknown) => {
-    const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+    const errorMessage =
+      err instanceof Error ? err.message : 'An unexpected error occurred';
     setError(errorMessage);
     console.error('Table operation error:', err);
   };
@@ -61,23 +85,24 @@ export const TableProvider: ParentComponent = (props) => {
   const filteredTables = () => {
     const currentFilters = filters();
     const currentTables = tables();
-    
+
     let filtered = [...currentTables];
-    
+
     // Apply search filter
     if (currentFilters.searchTerm) {
       const searchTerm = currentFilters.searchTerm.toLowerCase();
-      filtered = filtered.filter(table => 
-        table.name.toLowerCase().includes(searchTerm) ||
-        table.unique_code.toLowerCase().includes(searchTerm)
+      filtered = filtered.filter(
+        (table) =>
+          table.name.toLowerCase().includes(searchTerm) ||
+          table.unique_code.toLowerCase().includes(searchTerm)
       );
     }
-    
+
     // Apply sorting
     filtered.sort((a, b) => {
       let aValue: string | Date;
       let bValue: string | Date;
-      
+
       if (currentFilters.sortBy === 'name') {
         aValue = a.name.toLowerCase();
         bValue = b.name.toLowerCase();
@@ -85,19 +110,19 @@ export const TableProvider: ParentComponent = (props) => {
         aValue = new Date(a.created_at);
         bValue = new Date(b.created_at);
       }
-      
+
       let comparison = 0;
       if (aValue < bValue) comparison = -1;
       if (aValue > bValue) comparison = 1;
-      
+
       return currentFilters.sortOrder === 'desc' ? -comparison : comparison;
     });
-    
+
     return filtered;
   };
 
   const setFilters = (newFilters: Partial<TableFilters>) => {
-    setFiltersSignal(prev => ({ ...prev, ...newFilters }));
+    setFiltersSignal((prev) => ({ ...prev, ...newFilters }));
   };
 
   const getFilters = () => filters();
@@ -106,9 +131,10 @@ export const TableProvider: ParentComponent = (props) => {
   const loadRestaurantTables = async (restaurantId: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const restaurantTables = await TableService.getRestaurantTables(restaurantId);
+      const restaurantTables =
+        await TableService.getRestaurantTables(restaurantId);
       setTables(restaurantTables);
     } catch (err) {
       handleError(err);
@@ -117,13 +143,16 @@ export const TableProvider: ParentComponent = (props) => {
     }
   };
 
-  const createTable = async (restaurantId: string, data: Omit<CreateTableRequest, 'restaurant_id'>): Promise<Table> => {
+  const createTable = async (
+    restaurantId: string,
+    data: Omit<CreateTableRequest, 'restaurant_id'>
+  ): Promise<Table> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const newTable = await TableService.createTable(restaurantId, data);
-      setTables(prev => [...prev, newTable]);
+      setTables((prev) => [...prev, newTable]);
       return newTable;
     } catch (err) {
       handleError(err);
@@ -133,19 +162,29 @@ export const TableProvider: ParentComponent = (props) => {
     }
   };
 
-  const updateTable = async (restaurantId: string, tableId: string, data: UpdateTableRequest): Promise<Table> => {
+  const updateTable = async (
+    restaurantId: string,
+    tableId: string,
+    data: UpdateTableRequest
+  ): Promise<Table> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const updatedTable = await TableService.updateTable(restaurantId, tableId, data);
-      setTables(prev => prev.map(t => t.id === tableId ? updatedTable : t));
-      
+      const updatedTable = await TableService.updateTable(
+        restaurantId,
+        tableId,
+        data
+      );
+      setTables((prev) =>
+        prev.map((t) => (t.id === tableId ? updatedTable : t))
+      );
+
       // Update current table if it's the one being updated
       if (currentTable()?.id === tableId) {
         setCurrentTable(updatedTable);
       }
-      
+
       return updatedTable;
     } catch (err) {
       handleError(err);
@@ -155,21 +194,24 @@ export const TableProvider: ParentComponent = (props) => {
     }
   };
 
-  const deleteTable = async (restaurantId: string, tableId: string): Promise<void> => {
+  const deleteTable = async (
+    restaurantId: string,
+    tableId: string
+  ): Promise<void> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await TableService.deleteTable(restaurantId, tableId);
-      setTables(prev => prev.filter(t => t.id !== tableId));
-      
+      setTables((prev) => prev.filter((t) => t.id !== tableId));
+
       // Clear current table if it's the one being deleted
       if (currentTable()?.id === tableId) {
         setCurrentTable(null);
       }
-      
+
       // Remove QR code from cache
-      setQrCodes(prev => {
+      setQrCodes((prev) => {
         const newMap = new Map(prev);
         newMap.delete(tableId);
         return newMap;
@@ -183,20 +225,26 @@ export const TableProvider: ParentComponent = (props) => {
   };
 
   // QR Code operations
-  const getTableQRCode = async (restaurantId: string, tableId: string): Promise<QrCodeResponse> => {
+  const getTableQRCode = async (
+    restaurantId: string,
+    tableId: string
+  ): Promise<QrCodeResponse> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const qrResponse = await TableService.getTableQRCode(restaurantId, tableId);
-      
+      const qrResponse = await TableService.getTableQRCode(
+        restaurantId,
+        tableId
+      );
+
       // Cache the QR code data
-      setQrCodes(prev => {
+      setQrCodes((prev) => {
         const newMap = new Map(prev);
         newMap.set(tableId, qrResponse);
         return newMap;
       });
-      
+
       return qrResponse;
     } catch (err) {
       handleError(err);
@@ -206,23 +254,29 @@ export const TableProvider: ParentComponent = (props) => {
     }
   };
 
-  const generateBulkQRCodes = async (restaurantId: string, tableIds: string[]): Promise<QrCodeResponse[]> => {
+  const generateBulkQRCodes = async (
+    restaurantId: string,
+    tableIds: string[]
+  ): Promise<QrCodeResponse[]> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const bulkRequest: BulkQrCodeRequest = { table_ids: tableIds };
-      const bulkResponse = await TableService.generateBulkQRCodes(restaurantId, bulkRequest);
-      
+      const bulkResponse = await TableService.generateBulkQRCodes(
+        restaurantId,
+        bulkRequest
+      );
+
       // Cache all QR codes
-      setQrCodes(prev => {
+      setQrCodes((prev) => {
         const newMap = new Map(prev);
         bulkResponse.qr_codes.forEach((qrCode, index) => {
           newMap.set(tableIds[index], qrCode);
         });
         return newMap;
       });
-      
+
       return bulkResponse.qr_codes;
     } catch (err) {
       handleError(err);
@@ -232,37 +286,48 @@ export const TableProvider: ParentComponent = (props) => {
     }
   };
 
-  const refreshTableCode = async (restaurantId: string, tableId: string): Promise<RefreshCodeResponse> => {
+  const refreshTableCode = async (
+    restaurantId: string,
+    tableId: string
+  ): Promise<RefreshCodeResponse> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const refreshResponse = await TableService.refreshTableCode(restaurantId, tableId);
-      
+      const refreshResponse = await TableService.refreshTableCode(
+        restaurantId,
+        tableId
+      );
+
       // Update table with new unique code
-      setTables(prev => prev.map(t => 
-        t.id === tableId 
-          ? { ...t, unique_code: refreshResponse.new_unique_code }
-          : t
-      ));
-      
+      setTables((prev) =>
+        prev.map((t) =>
+          t.id === tableId
+            ? { ...t, unique_code: refreshResponse.new_unique_code }
+            : t
+        )
+      );
+
       // Update current table if it's the one being refreshed
       const current = currentTable();
       if (current?.id === tableId) {
-        setCurrentTable({ ...current, unique_code: refreshResponse.new_unique_code });
+        setCurrentTable({
+          ...current,
+          unique_code: refreshResponse.new_unique_code,
+        });
       }
-      
+
       // Update cached QR code
-      setQrCodes(prev => {
+      setQrCodes((prev) => {
         const newMap = new Map(prev);
         newMap.set(tableId, {
           qr_url: refreshResponse.qr_url,
-          table_name: tables().find(t => t.id === tableId)?.name || '',
-          unique_code: refreshResponse.new_unique_code
+          table_name: tables().find((t) => t.id === tableId)?.name || '',
+          unique_code: refreshResponse.new_unique_code,
         });
         return newMap;
       });
-      
+
       return refreshResponse;
     } catch (err) {
       handleError(err);
@@ -273,27 +338,37 @@ export const TableProvider: ParentComponent = (props) => {
   };
 
   const contextValue: TableContextType = {
-    get tables() { return tables(); },
-    get currentTable() { return currentTable(); },
-    get qrCodes() { return qrCodes(); },
-    get isLoading() { return isLoading(); },
-    get error() { return error(); },
-    
+    get tables() {
+      return tables();
+    },
+    get currentTable() {
+      return currentTable();
+    },
+    get qrCodes() {
+      return qrCodes();
+    },
+    get isLoading() {
+      return isLoading();
+    },
+    get error() {
+      return error();
+    },
+
     // Table CRUD
     loadRestaurantTables,
     createTable,
     updateTable,
     deleteTable,
-    
+
     // QR Code operations
     getTableQRCode,
     generateBulkQRCodes,
     refreshTableCode,
-    
+
     // UI state
     setCurrentTable,
     clearError,
-    
+
     // Filtering and search
     filteredTables,
     setFilters,
