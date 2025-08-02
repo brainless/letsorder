@@ -44,8 +44,12 @@ jobs:
       - name: Setup test database
         working-directory: ./backend
         run: |
-          # Create empty database file (migrations will handle schema creation)
+          # Create empty database file and run migrations for SQLx compile-time validation
           touch test.db
+          # Install sqlx-cli for running migrations
+          cargo install sqlx-cli --no-default-features --features sqlite
+          # Run migrations to create schema (required for SQLx compile-time validation)
+          sqlx migrate run --database-url sqlite:./test.db
 
       - name: Build and start backend
         working-directory: ./backend
