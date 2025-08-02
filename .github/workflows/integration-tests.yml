@@ -67,16 +67,31 @@ jobs:
           expiration_hours = 24
           EOF
           # Start backend with test configuration
-          RUST_LOG=debug DATABASE_URL=sqlite:./test.db ./target/release/backend &
+          echo "Starting backend..."
+          RUST_LOG=debug DATABASE_URL=sqlite:./test.db ./target/release/backend > backend.log 2>&1 &
           echo $! > backend.pid
+          echo "Backend started with PID: $(cat backend.pid)"
           # Wait a moment for the process to start
           sleep 3
+          echo "Backend log output:"
+          cat backend.log || echo "No log output yet"
         env:
           DATABASE_URL: sqlite:./test.db
 
       - name: Wait for backend to be ready
         run: |
-          timeout 60 bash -c 'until curl -f http://localhost:8080/health; do sleep 2; done'
+          echo "Checking if backend process is running..."
+          ps aux | grep backend || echo "No backend process found"
+          echo "Checking if backend.pid file exists..."
+          ls -la backend/ | grep pid || echo "No PID file found"
+          echo "Checking if port 8080 is listening..."
+          netstat -tlnp | grep 8080 || echo "Port 8080 not listening"
+          echo "Trying to connect to backend..."
+          timeout 60 bash -c 'until curl -f http://localhost:8080/health; do 
+            echo "Backend not ready, checking process status..."
+            ps aux | grep backend | grep -v grep || echo "Backend process not found"
+            sleep 2
+          done'
 
       # Admin App Setup
       - name: Setup Node.js
