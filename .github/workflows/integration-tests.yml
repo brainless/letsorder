@@ -16,14 +16,15 @@ jobs:
   full-stack-test:
     name: Full Stack Integration Test
     runs-on: ubuntu-latest
-    services:
-      backend:
-        image: rust:1.75
-        options: --health-cmd "curl -f http://localhost:8080/health || exit 1" --health-interval 30s --health-timeout 10s --health-retries 3
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl sqlite3
 
       # Backend Setup
       - name: Install Rust toolchain
