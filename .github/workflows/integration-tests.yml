@@ -44,9 +44,8 @@ jobs:
       - name: Setup test database
         working-directory: ./backend
         run: |
-          sqlite3 test.db < migrations/20250131000001_initial_schema.sql
-          sqlite3 test.db < migrations/20250131000002_manager_invites.sql
-          sqlite3 test.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          # Create empty database file (migrations will handle schema creation)
+          touch test.db
 
       - name: Build and start backend
         working-directory: ./backend
