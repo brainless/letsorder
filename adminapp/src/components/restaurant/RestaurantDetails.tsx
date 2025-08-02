@@ -152,19 +152,22 @@ function RestaurantDetails(props: RestaurantDetailsProps) {
               </div>
             </a>
             
-            <div class="block p-4 bg-gray-50 border border-gray-200 rounded-lg opacity-50">
+            <a
+              href={`/restaurants/${props.restaurant.id}/orders`}
+              class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
+            >
               <div class="flex items-center">
                 <div class="flex-shrink-0">
-                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                   </svg>
                 </div>
                 <div class="ml-3">
-                  <h4 class="text-sm font-medium text-gray-400">Orders</h4>
-                  <p class="text-sm text-gray-400">Coming soon</p>
+                  <h4 class="text-sm font-medium text-gray-900">Order Management</h4>
+                  <p class="text-sm text-gray-500">View and manage orders</p>
                 </div>
               </div>
-            </div>
+            </a>
           </div>
         </div>
       </div>
