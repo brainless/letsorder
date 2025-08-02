@@ -52,8 +52,25 @@ jobs:
         working-directory: ./backend
         run: |
           cargo build --release
+          # Create a local settings file for integration tests (overrides default settings.ini)
+          cat > local.settings.ini << EOF
+          [server]
+          host = "0.0.0.0"
+          port = 8080
+          
+          [database]
+          url = "sqlite:./test.db"
+          max_connections = 10
+          
+          [jwt]
+          secret = "test-jwt-secret-for-integration-tests"
+          expiration_hours = 24
+          EOF
+          # Start backend with test configuration
           RUST_LOG=debug DATABASE_URL=sqlite:./test.db ./target/release/backend &
           echo $! > backend.pid
+          # Wait a moment for the process to start
+          sleep 3
         env:
           DATABASE_URL: sqlite:./test.db
 
