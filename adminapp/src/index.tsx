@@ -5,6 +5,7 @@ import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { RestaurantProvider } from './contexts/RestaurantContext';
 import { TableProvider } from './contexts/TableContext';
+import { OrderProvider } from './contexts/OrderContext';
 import App from './App';
 
 const root = document.getElementById('root');
@@ -19,9 +20,11 @@ render(() => (
   <AuthProvider>
     <RestaurantProvider>
       <TableProvider>
-        <Router>
-          <App />
-        </Router>
+        <OrderProvider>
+          <Router>
+            <App />
+          </Router>
+        </OrderProvider>
       </TableProvider>
     </RestaurantProvider>
   </AuthProvider>
