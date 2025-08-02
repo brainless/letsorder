@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { UIProvider } from './contexts/UIContext';
 import { RestaurantProvider } from './contexts/RestaurantContext';
 import { TableProvider } from './contexts/TableContext';
+import { OrderProvider } from './contexts/OrderContext';
 import App from './App';
 
 const root = document.getElementById('root');
@@ -21,9 +22,11 @@ render(() => (
     <UIProvider>
       <RestaurantProvider>
         <TableProvider>
-          <Router>
-            <App />
-          </Router>
+          <OrderProvider>
+            <Router>
+              <App />
+            </Router>
+          </OrderProvider>
         </TableProvider>
       </RestaurantProvider>
     </UIProvider>
