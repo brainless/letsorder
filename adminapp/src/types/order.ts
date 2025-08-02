@@ -18,7 +18,13 @@ export interface Order {
   created_at: string;
 }
 
-export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+export type OrderStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'preparing'
+  | 'ready'
+  | 'delivered'
+  | 'cancelled';
 
 export interface UpdateOrderStatusRequest {
   status: OrderStatus;

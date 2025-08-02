@@ -25,7 +25,7 @@ export class RestaurantService {
   private static async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-      
+
       try {
         const errorBody = await response.json();
         if (errorBody.message) {
@@ -36,7 +36,7 @@ export class RestaurantService {
       } catch {
         // If we can't parse JSON, stick with the basic error message
       }
-      
+
       throw new Error(errorMessage);
     }
 
@@ -57,7 +57,9 @@ export class RestaurantService {
 
     // Handle 404 gracefully for missing endpoint
     if (response.status === 404) {
-      console.warn('GET /user/restaurants endpoint not implemented yet - returning empty array');
+      console.warn(
+        'GET /user/restaurants endpoint not implemented yet - returning empty array'
+      );
       return [];
     }
 
@@ -75,7 +77,9 @@ export class RestaurantService {
   }
 
   // Get restaurant with managers
-  static async getRestaurantWithManagers(id: string): Promise<RestaurantWithManagers> {
+  static async getRestaurantWithManagers(
+    id: string
+  ): Promise<RestaurantWithManagers> {
     const [restaurant, managers] = await Promise.all([
       this.getRestaurant(id),
       this.getRestaurantManagers(id),
@@ -85,7 +89,9 @@ export class RestaurantService {
   }
 
   // Create restaurant
-  static async createRestaurant(data: CreateRestaurantRequest): Promise<Restaurant> {
+  static async createRestaurant(
+    data: CreateRestaurantRequest
+  ): Promise<Restaurant> {
     const response = await fetch(`${this.BASE_URL}/restaurants`, {
       method: 'POST',
       headers: this.getHeaders(),
@@ -96,7 +102,10 @@ export class RestaurantService {
   }
 
   // Update restaurant
-  static async updateRestaurant(id: string, data: UpdateRestaurantRequest): Promise<Restaurant> {
+  static async updateRestaurant(
+    id: string,
+    data: UpdateRestaurantRequest
+  ): Promise<Restaurant> {
     const response = await fetch(`${this.BASE_URL}/restaurants/${id}`, {
       method: 'PUT',
       headers: this.getHeaders(),
@@ -118,21 +127,30 @@ export class RestaurantService {
 
   // Manager management
   static async getRestaurantManagers(id: string): Promise<ManagerInfo[]> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${id}/managers`, {
-      method: 'GET',
-      headers: this.getHeaders(),
-    });
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${id}/managers`,
+      {
+        method: 'GET',
+        headers: this.getHeaders(),
+      }
+    );
 
     return this.handleResponse<ManagerInfo[]>(response);
   }
 
   // Invite manager
-  static async inviteManager(restaurantId: string, data: InviteManagerRequest): Promise<InviteResponse> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/managers/invite`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-      body: JSON.stringify(data),
-    });
+  static async inviteManager(
+    restaurantId: string,
+    data: InviteManagerRequest
+  ): Promise<InviteResponse> {
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/managers/invite`,
+      {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
 
     return this.handleResponse<InviteResponse>(response);
   }
@@ -143,21 +161,30 @@ export class RestaurantService {
     userId: string,
     data: UpdateManagerPermissionsRequest
   ): Promise<void> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/managers/${userId}`, {
-      method: 'PUT',
-      headers: this.getHeaders(),
-      body: JSON.stringify(data),
-    });
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/managers/${userId}`,
+      {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
 
     return this.handleResponse<void>(response);
   }
 
   // Remove manager
-  static async removeManager(restaurantId: string, userId: string): Promise<void> {
-    const response = await fetch(`${this.BASE_URL}/restaurants/${restaurantId}/managers/${userId}`, {
-      method: 'DELETE',
-      headers: this.getHeaders(),
-    });
+  static async removeManager(
+    restaurantId: string,
+    userId: string
+  ): Promise<void> {
+    const response = await fetch(
+      `${this.BASE_URL}/restaurants/${restaurantId}/managers/${userId}`,
+      {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+      }
+    );
 
     return this.handleResponse<void>(response);
   }

@@ -1,6 +1,17 @@
-import { createContext, createSignal, createEffect, useContext, ParentComponent } from 'solid-js';
+import {
+  createContext,
+  createSignal,
+  createEffect,
+  useContext,
+  ParentComponent,
+} from 'solid-js';
 import { AuthService, TokenStorage } from '../services/auth';
-import type { AuthState, User, LoginRequest, RegisterRequest } from '../types/auth';
+import type {
+  AuthState,
+  User,
+  LoginRequest,
+  RegisterRequest,
+} from '../types/auth';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
@@ -19,7 +30,11 @@ export const AuthProvider: ParentComponent = (props) => {
 
   const isAuthenticated = () => {
     const authState = !!user() && !!token();
-    console.log('isAuthenticated check:', { user: user(), token: token(), isAuth: authState });
+    console.log('isAuthenticated check:', {
+      user: user(),
+      token: token(),
+      isAuth: authState,
+    });
     return authState;
   };
 
@@ -30,9 +45,9 @@ export const AuthProvider: ParentComponent = (props) => {
         const storedToken = TokenStorage.getToken();
         const storedUser = TokenStorage.getUser();
 
-        console.log('Initializing auth with stored data:', { 
-          hasToken: !!storedToken, 
-          hasUser: !!storedUser 
+        console.log('Initializing auth with stored data:', {
+          hasToken: !!storedToken,
+          hasUser: !!storedUser,
         });
 
         if (storedToken && storedUser) {
@@ -47,7 +62,7 @@ export const AuthProvider: ParentComponent = (props) => {
           console.log('Validating stored token with backend');
           // Validate token with backend
           const valid = await AuthService.validateToken(storedToken);
-          
+
           if (valid) {
             console.log('Token validation successful, restoring session');
             setToken(storedToken);
@@ -84,7 +99,9 @@ export const AuthProvider: ParentComponent = (props) => {
         expirationTime,
         currentTime,
         timeUntilExpiration,
-        timeUntilExpirationHours: Math.floor(timeUntilExpiration / (1000 * 60 * 60))
+        timeUntilExpirationHours: Math.floor(
+          timeUntilExpiration / (1000 * 60 * 60)
+        ),
       });
 
       // If token expires in less than 5 minutes, log out immediately
@@ -114,15 +131,18 @@ export const AuthProvider: ParentComponent = (props) => {
     try {
       const response = await AuthService.login(credentials);
       console.log('Login response:', response);
-      
+
       setToken(response.token);
       setUser(response.user);
-      
+
       TokenStorage.saveToken(response.token);
       TokenStorage.saveUser(response.user);
-      
-      console.log('Auth state after login:', { user: response.user, token: response.token });
-      
+
+      console.log('Auth state after login:', {
+        user: response.user,
+        token: response.token,
+      });
+
       // Set up token expiration monitoring
       setupTokenExpirationCheck(response.token);
     } catch (err) {
@@ -141,17 +161,18 @@ export const AuthProvider: ParentComponent = (props) => {
 
     try {
       const response = await AuthService.register(userData);
-      
+
       setToken(response.token);
       setUser(response.user);
-      
+
       TokenStorage.saveToken(response.token);
       TokenStorage.saveUser(response.user);
-      
+
       // Set up token expiration monitoring
       setupTokenExpirationCheck(response.token);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Registration failed';
       setError(errorMessage);
       throw err;
     } finally {
@@ -171,11 +192,21 @@ export const AuthProvider: ParentComponent = (props) => {
   };
 
   const contextValue: AuthContextType = {
-    get user() { return user(); },
-    get token() { return token(); },
-    get isAuthenticated() { return isAuthenticated(); },
-    get isLoading() { return isLoading(); },
-    get error() { return error(); },
+    get user() {
+      return user();
+    },
+    get token() {
+      return token();
+    },
+    get isAuthenticated() {
+      return isAuthenticated();
+    },
+    get isLoading() {
+      return isLoading();
+    },
+    get error() {
+      return error();
+    },
     login,
     register,
     logout,

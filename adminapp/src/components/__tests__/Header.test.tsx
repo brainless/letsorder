@@ -1,108 +1,93 @@
 import { render, screen, fireEvent } from '@solidjs/testing-library';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import Header from '../Header';
-import { createMockAuthProvider, createMockUIProvider } from '../../test/mocks/contexts';
 
-// Mock the context imports
+// Mock the context modules before importing Header
+const mockAuth = {
+  user: null as any,
+  isAuthenticated: false,
+  logout: vi.fn(),
+  loading: false,
+  error: null,
+  login: vi.fn(),
+  register: vi.fn(),
+  clearError: vi.fn(),
+  token: null,
+};
+
+const mockUI = {
+  sidebarOpen: false,
+  toggleSidebar: vi.fn(),
+  closeSidebar: vi.fn(),
+};
+
 vi.mock('../../contexts/AuthContext', () => ({
-  useAuth: () => vi.fn(),
+  useAuth: () => mockAuth,
 }));
 
 vi.mock('../../contexts/UIContext', () => ({
-  useUI: () => vi.fn(),
+  useUI: () => mockUI,
 }));
 
-describe('Header Component', () => {
-  let MockAuthProvider: ReturnType<typeof createMockAuthProvider>;
-  let MockUIProvider: ReturnType<typeof createMockUIProvider>;
+// Now import Header after mocking
+import Header from '../Header';
 
+describe('Header Component', () => {
   beforeEach(() => {
-    MockAuthProvider = createMockAuthProvider();
-    MockUIProvider = createMockUIProvider();
+    vi.clearAllMocks();
+    // Reset mock values
+    mockAuth.user = null;
+    mockAuth.isAuthenticated = false;
+    mockUI.sidebarOpen = false;
   });
 
   it('renders the application title', () => {
-    render(() => (
-      <MockAuthProvider>
-        <MockUIProvider>
-          <Header />
-        </MockUIProvider>
-      </MockAuthProvider>
-    ));
-
+    render(() => <Header />);
     expect(screen.getByText('LetsOrder Admin')).toBeInTheDocument();
   });
 
   it('shows user menu when authenticated', () => {
-    const authenticatedUser = { id: 1, email: 'test@example.com', role: 'manager' };
-    MockAuthProvider = createMockAuthProvider(authenticatedUser);
+    mockAuth.user = { id: 1, email: 'test@example.com', role: 'manager' };
+    mockAuth.isAuthenticated = true;
 
-    render(() => (
-      <MockAuthProvider>
-        <MockUIProvider>
-          <Header />
-        </MockUIProvider>
-      </MockAuthProvider>
-    ));
+    render(() => <Header />);
 
     expect(screen.getByText('T')).toBeInTheDocument(); // User initial
     expect(screen.getByText('test@example.com')).toBeInTheDocument();
   });
 
   it('does not show user menu when not authenticated', () => {
-    render(() => (
-      <MockAuthProvider>
-        <MockUIProvider>
-          <Header />
-        </MockUIProvider>
-      </MockAuthProvider>
-    ));
+    mockAuth.user = null;
+    mockAuth.isAuthenticated = false;
+
+    render(() => <Header />);
 
     expect(screen.queryByText('test@example.com')).not.toBeInTheDocument();
   });
 
   it('displays correct user initials', () => {
-    const authenticatedUser = { id: 1, email: 'john.doe@example.com', role: 'manager' };
-    MockAuthProvider = createMockAuthProvider(authenticatedUser);
+    mockAuth.user = { id: 1, email: 'john.doe@example.com', role: 'manager' };
+    mockAuth.isAuthenticated = true;
 
-    render(() => (
-      <MockAuthProvider>
-        <MockUIProvider>
-          <Header />
-        </MockUIProvider>
-      </MockAuthProvider>
-    ));
+    render(() => <Header />);
 
     expect(screen.getByText('J')).toBeInTheDocument();
   });
 
   it('handles user with no email gracefully', () => {
-    const authenticatedUser = { id: 1, email: '', role: 'manager' };
-    MockAuthProvider = createMockAuthProvider(authenticatedUser);
+    mockAuth.user = { id: 1, email: '', role: 'manager' };
+    mockAuth.isAuthenticated = true;
 
-    render(() => (
-      <MockAuthProvider>
-        <MockUIProvider>
-          <Header />
-        </MockUIProvider>
-      </MockAuthProvider>
-    ));
+    render(() => <Header />);
 
     expect(screen.getByText('U')).toBeInTheDocument(); // Default initial
     expect(screen.getByText('User')).toBeInTheDocument(); // Default display name
   });
 
   it('toggles user menu when clicked', async () => {
-    const authenticatedUser = { id: 1, email: 'test@example.com', role: 'manager' };
-    MockAuthProvider = createMockAuthProvider(authenticatedUser);
+    mockAuth.user = { id: 1, email: 'test@example.com', role: 'manager' };
+    mockAuth.isAuthenticated = true;
 
-    render(() => (
-      <MockAuthProvider>
-        <MockUIProvider>
-          <Header />
-        </MockUIProvider>
-      </MockAuthProvider>
-    ));
+    render(() => <Header />);
 
     const userButton = screen.getByRole('button', { name: /open user menu/i });
     
@@ -116,15 +101,33 @@ describe('Header Component', () => {
   });
 
   it('shows mobile sidebar toggle button', () => {
-    render(() => (
-      <MockAuthProvider>
-        <MockUIProvider>
-          <Header />
-        </MockUIProvider>
-      </MockAuthProvider>
-    ));
+    render(() => <Header />);
 
     const sidebarButton = screen.getByRole('button', { name: /open sidebar/i });
     expect(sidebarButton).toBeInTheDocument();
+  });
+
+  it('calls logout function when sign out is clicked', () => {
+    mockAuth.user = { id: 1, email: 'test@example.com', role: 'manager' };
+    mockAuth.isAuthenticated = true;
+
+    render(() => <Header />);
+
+    const userButton = screen.getByRole('button', { name: /open user menu/i });
+    fireEvent.click(userButton);
+
+    const signOutButton = screen.getByText('Sign out');
+    fireEvent.click(signOutButton);
+
+    expect(mockAuth.logout).toHaveBeenCalled();
+  });
+
+  it('calls toggle sidebar when mobile menu button is clicked', () => {
+    render(() => <Header />);
+
+    const sidebarButton = screen.getByRole('button', { name: /open sidebar/i });
+    fireEvent.click(sidebarButton);
+
+    expect(mockUI.toggleSidebar).toHaveBeenCalled();
   });
 });

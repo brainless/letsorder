@@ -29,8 +29,18 @@ function Header() {
         onClick={ui.toggleSidebar}
       >
         <span class="sr-only">Open sidebar</span>
-        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        <svg
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+          />
         </svg>
       </button>
 
@@ -39,7 +49,9 @@ function Header() {
 
       <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <div class="relative flex flex-1">
-          <h1 class="text-xl font-semibold text-gray-900 self-center">LetsOrder Admin</h1>
+          <h1 class="text-xl font-semibold text-gray-900 self-center">
+            LetsOrder Admin
+          </h1>
         </div>
         <div class="flex items-center gap-x-4 lg:gap-x-6">
           <Show when={auth.isAuthenticated}>
@@ -52,20 +64,26 @@ function Header() {
               >
                 <span class="sr-only">Open user menu</span>
                 <div class="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center">
-                  <span class="text-sm font-medium text-white">{getUserInitials()}</span>
+                  <span class="text-sm font-medium text-white">
+                    {getUserInitials()}
+                  </span>
                 </div>
                 <span class="hidden lg:flex lg:items-center">
-                  <span class="ml-4 text-sm font-semibold leading-6 text-gray-900">{getUserDisplayName()}</span>
+                  <span class="ml-4 text-sm font-semibold leading-6 text-gray-900">
+                    {getUserDisplayName()}
+                  </span>
                 </span>
               </button>
-              
+
               <Show when={userMenuOpen()}>
-                <div 
+                <div
                   class="absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5"
                   onClick={() => setUserMenuOpen(false)}
                 >
                   <div class="px-3 py-2 border-b border-gray-100">
-                    <p class="text-sm font-medium text-gray-900">{getUserDisplayName()}</p>
+                    <p class="text-sm font-medium text-gray-900">
+                      {getUserDisplayName()}
+                    </p>
                     <p class="text-xs text-gray-500">Restaurant Manager</p>
                   </div>
                   <button

@@ -11,6 +11,8 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "lint": "tsc --noEmit",
     "format": "prettier --write src/**/*.{ts,tsx}"
   },
@@ -25,6 +27,7 @@
     "solid-js": "^1.9.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@solidjs/testing-library": "^0.8.10",
     "@tailwindcss/forms": "^0.5.10",
     "@testing-library/jest-dom": "^6.6.4",
@@ -37,6 +40,7 @@
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "tailwindcss": "^3.4.17",
+    "terser": "^5.43.1",
     "typescript": "^5.9.2",
     "vite": "^7.0.6",
     "vite-plugin-solid": "^2.11.8",

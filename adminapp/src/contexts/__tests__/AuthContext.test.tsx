@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AuthProvider, useAuth } from '../AuthContext';
 import { createSignal } from 'solid-js';
+import { createValidJWT, createExpiredJWT } from '../../test/utils/jwt';
 
 // Mock the auth service
 vi.mock('../../services/auth', () => ({
@@ -107,7 +108,7 @@ describe('AuthContext', () => {
 
   it('should restore authentication from storage', async () => {
     const mockUser = { id: 1, email: 'test@example.com' };
-    const mockToken = 'valid-token';
+    const mockToken = createValidJWT({ email: 'test@example.com' });
 
     (TokenStorage.getToken as any).mockReturnValue(mockToken);
     (TokenStorage.getUser as any).mockReturnValue(mockUser);
@@ -122,15 +123,15 @@ describe('AuthContext', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
-      expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
-    });
-
+    }, { timeout: 3000 });
+    
+    expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
     expect(AuthService.validateToken).toHaveBeenCalledWith(mockToken);
   });
 
   it('should clear storage if token is expired', async () => {
     const mockUser = { id: 1, email: 'test@example.com' };
-    const mockToken = 'expired-token';
+    const mockToken = createExpiredJWT({ email: 'test@example.com' });
 
     (TokenStorage.getToken as any).mockReturnValue(mockToken);
     (TokenStorage.getUser as any).mockReturnValue(mockUser);
@@ -152,7 +153,7 @@ describe('AuthContext', () => {
 
   it('should handle successful login', async () => {
     const mockResponse = {
-      token: 'new-token',
+      token: createValidJWT({ email: 'test@example.com' }),
       user: { id: 1, email: 'test@example.com' },
     };
 
@@ -180,14 +181,14 @@ describe('AuthContext', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
-      expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
-    });
-
+    }, { timeout: 3000 });
+    
+    expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
     expect(AuthService.login).toHaveBeenCalledWith({
       email: 'test@example.com',
       password: 'password123',
     });
-    expect(TokenStorage.saveToken).toHaveBeenCalledWith('new-token');
+    expect(TokenStorage.saveToken).toHaveBeenCalledWith(mockResponse.token);
     expect(TokenStorage.saveUser).toHaveBeenCalledWith(mockResponse.user);
   });
 
@@ -224,7 +225,7 @@ describe('AuthContext', () => {
   it('should handle logout', async () => {
     // Start with authenticated user
     const mockUser = { id: 1, email: 'test@example.com' };
-    const mockToken = 'valid-token';
+    const mockToken = createValidJWT({ email: 'test@example.com' });
 
     (TokenStorage.getToken as any).mockReturnValue(mockToken);
     (TokenStorage.getUser as any).mockReturnValue(mockUser);

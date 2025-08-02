@@ -1,38 +1,57 @@
-import { createContext, createSignal, useContext, createEffect, ParentComponent } from 'solid-js';
+import {
+  createContext,
+  createSignal,
+  useContext,
+  createEffect,
+  ParentComponent,
+} from 'solid-js';
 import { RestaurantService } from '../services/restaurant';
-import type { 
-  Restaurant, 
-  CreateRestaurantRequest, 
+import type {
+  Restaurant,
+  CreateRestaurantRequest,
   UpdateRestaurantRequest,
   ManagerInfo,
   InviteManagerRequest,
   UpdateManagerPermissionsRequest,
-  RestaurantState 
+  RestaurantState,
 } from '../types/restaurant';
 
 interface RestaurantContextType extends RestaurantState {
   // Restaurant CRUD
   loadUserRestaurants: () => Promise<void>;
   createRestaurant: (data: CreateRestaurantRequest) => Promise<Restaurant>;
-  updateRestaurant: (id: string, data: UpdateRestaurantRequest) => Promise<Restaurant>;
+  updateRestaurant: (
+    id: string,
+    data: UpdateRestaurantRequest
+  ) => Promise<Restaurant>;
   deleteRestaurant: (id: string) => Promise<void>;
-  
+
   // Manager management
   loadRestaurantManagers: (restaurantId: string) => Promise<void>;
-  inviteManager: (restaurantId: string, data: InviteManagerRequest) => Promise<void>;
-  updateManagerPermissions: (restaurantId: string, userId: string, data: UpdateManagerPermissionsRequest) => Promise<void>;
+  inviteManager: (
+    restaurantId: string,
+    data: InviteManagerRequest
+  ) => Promise<void>;
+  updateManagerPermissions: (
+    restaurantId: string,
+    userId: string,
+    data: UpdateManagerPermissionsRequest
+  ) => Promise<void>;
   removeManager: (restaurantId: string, userId: string) => Promise<void>;
-  
+
   // UI state
   setCurrentRestaurant: (restaurant: Restaurant | null) => void;
   clearError: () => void;
 }
 
-const RestaurantContext = createContext<RestaurantContextType | undefined>(undefined);
+const RestaurantContext = createContext<RestaurantContextType | undefined>(
+  undefined
+);
 
 export const RestaurantProvider: ParentComponent = (props) => {
   const [restaurants, setRestaurants] = createSignal<Restaurant[]>([]);
-  const [currentRestaurant, setCurrentRestaurant] = createSignal<Restaurant | null>(null);
+  const [currentRestaurant, setCurrentRestaurant] =
+    createSignal<Restaurant | null>(null);
   const [managers, setManagers] = createSignal<ManagerInfo[]>([]);
   const [isLoading, setIsLoading] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
@@ -47,7 +66,8 @@ export const RestaurantProvider: ParentComponent = (props) => {
   };
 
   const handleError = (err: unknown) => {
-    const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+    const errorMessage =
+      err instanceof Error ? err.message : 'An unexpected error occurred';
     setError(errorMessage);
     console.error('Restaurant operation error:', err);
   };
@@ -56,7 +76,7 @@ export const RestaurantProvider: ParentComponent = (props) => {
   const loadUserRestaurants = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const userRestaurants = await RestaurantService.getUserRestaurants();
       setRestaurants(userRestaurants);
@@ -67,13 +87,15 @@ export const RestaurantProvider: ParentComponent = (props) => {
     }
   };
 
-  const createRestaurant = async (data: CreateRestaurantRequest): Promise<Restaurant> => {
+  const createRestaurant = async (
+    data: CreateRestaurantRequest
+  ): Promise<Restaurant> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const newRestaurant = await RestaurantService.createRestaurant(data);
-      setRestaurants(prev => [...prev, newRestaurant]);
+      setRestaurants((prev) => [...prev, newRestaurant]);
       return newRestaurant;
     } catch (err) {
       handleError(err);
@@ -83,19 +105,27 @@ export const RestaurantProvider: ParentComponent = (props) => {
     }
   };
 
-  const updateRestaurant = async (id: string, data: UpdateRestaurantRequest): Promise<Restaurant> => {
+  const updateRestaurant = async (
+    id: string,
+    data: UpdateRestaurantRequest
+  ): Promise<Restaurant> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const updatedRestaurant = await RestaurantService.updateRestaurant(id, data);
-      setRestaurants(prev => prev.map(r => r.id === id ? updatedRestaurant : r));
-      
+      const updatedRestaurant = await RestaurantService.updateRestaurant(
+        id,
+        data
+      );
+      setRestaurants((prev) =>
+        prev.map((r) => (r.id === id ? updatedRestaurant : r))
+      );
+
       // Update current restaurant if it's the one being updated
       if (currentRestaurant()?.id === id) {
         setCurrentRestaurant(updatedRestaurant);
       }
-      
+
       return updatedRestaurant;
     } catch (err) {
       handleError(err);
@@ -108,11 +138,11 @@ export const RestaurantProvider: ParentComponent = (props) => {
   const deleteRestaurant = async (id: string): Promise<void> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await RestaurantService.deleteRestaurant(id);
-      setRestaurants(prev => prev.filter(r => r.id !== id));
-      
+      setRestaurants((prev) => prev.filter((r) => r.id !== id));
+
       // Clear current restaurant if it's the one being deleted
       if (currentRestaurant()?.id === id) {
         setCurrentRestaurant(null);
@@ -129,9 +159,10 @@ export const RestaurantProvider: ParentComponent = (props) => {
   const loadRestaurantManagers = async (restaurantId: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const restaurantManagers = await RestaurantService.getRestaurantManagers(restaurantId);
+      const restaurantManagers =
+        await RestaurantService.getRestaurantManagers(restaurantId);
       setManagers(restaurantManagers);
     } catch (err) {
       handleError(err);
@@ -140,10 +171,13 @@ export const RestaurantProvider: ParentComponent = (props) => {
     }
   };
 
-  const inviteManager = async (restaurantId: string, data: InviteManagerRequest): Promise<void> => {
+  const inviteManager = async (
+    restaurantId: string,
+    data: InviteManagerRequest
+  ): Promise<void> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await RestaurantService.inviteManager(restaurantId, data);
       // Reload managers after successful invitation
@@ -157,15 +191,19 @@ export const RestaurantProvider: ParentComponent = (props) => {
   };
 
   const updateManagerPermissions = async (
-    restaurantId: string, 
-    userId: string, 
+    restaurantId: string,
+    userId: string,
     data: UpdateManagerPermissionsRequest
   ): Promise<void> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      await RestaurantService.updateManagerPermissions(restaurantId, userId, data);
+      await RestaurantService.updateManagerPermissions(
+        restaurantId,
+        userId,
+        data
+      );
       // Reload managers after successful update
       await loadRestaurantManagers(restaurantId);
     } catch (err) {
@@ -176,10 +214,13 @@ export const RestaurantProvider: ParentComponent = (props) => {
     }
   };
 
-  const removeManager = async (restaurantId: string, userId: string): Promise<void> => {
+  const removeManager = async (
+    restaurantId: string,
+    userId: string
+  ): Promise<void> => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await RestaurantService.removeManager(restaurantId, userId);
       // Reload managers after successful removal
@@ -193,24 +234,34 @@ export const RestaurantProvider: ParentComponent = (props) => {
   };
 
   const contextValue: RestaurantContextType = {
-    get restaurants() { return restaurants(); },
-    get currentRestaurant() { return currentRestaurant(); },
-    get managers() { return managers(); },
-    get isLoading() { return isLoading(); },
-    get error() { return error(); },
-    
+    get restaurants() {
+      return restaurants();
+    },
+    get currentRestaurant() {
+      return currentRestaurant();
+    },
+    get managers() {
+      return managers();
+    },
+    get isLoading() {
+      return isLoading();
+    },
+    get error() {
+      return error();
+    },
+
     // Restaurant CRUD
     loadUserRestaurants,
     createRestaurant,
     updateRestaurant,
     deleteRestaurant,
-    
+
     // Manager management
     loadRestaurantManagers,
     inviteManager,
     updateManagerPermissions,
     removeManager,
-    
+
     // UI state
     setCurrentRestaurant,
     clearError,

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { beforeEach } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 import { cleanup } from '@solidjs/testing-library';
 
 // Cleanup after each test

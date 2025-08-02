@@ -1,4 +1,10 @@
-import { createContext, useContext, createSignal, createEffect, ParentComponent } from 'solid-js';
+import {
+  createContext,
+  useContext,
+  createSignal,
+  createEffect,
+  ParentComponent,
+} from 'solid-js';
 import { MenuService } from '../services/menu';
 import type {
   MenuState,
@@ -16,25 +22,34 @@ import type {
 interface MenuContextType extends MenuState {
   // Actions
   loadMenu: (restaurantId: string) => Promise<void>;
-  
+
   // Section actions
-  createSection: (restaurantId: string, data: CreateMenuSectionRequest) => Promise<void>;
-  updateSection: (sectionId: string, data: UpdateMenuSectionRequest) => Promise<void>;
+  createSection: (
+    restaurantId: string,
+    data: CreateMenuSectionRequest
+  ) => Promise<void>;
+  updateSection: (
+    sectionId: string,
+    data: UpdateMenuSectionRequest
+  ) => Promise<void>;
   deleteSection: (sectionId: string) => Promise<void>;
   reorderSections: (data: ReorderSectionsRequest) => Promise<void>;
-  
+
   // Item actions
   createItem: (sectionId: string, data: CreateMenuItemRequest) => Promise<void>;
   updateItem: (itemId: string, data: UpdateMenuItemRequest) => Promise<void>;
   deleteItem: (itemId: string) => Promise<void>;
   toggleItemAvailability: (itemId: string, available: boolean) => Promise<void>;
   reorderItems: (data: ReorderItemsRequest) => Promise<void>;
-  
+
   // Bulk actions
   bulkDeleteItems: (itemIds: string[]) => Promise<void>;
-  bulkToggleAvailability: (itemIds: string[], available: boolean) => Promise<void>;
+  bulkToggleAvailability: (
+    itemIds: string[],
+    available: boolean
+  ) => Promise<void>;
   bulkDeleteSections: (sectionIds: string[]) => Promise<void>;
-  
+
   // UI state
   setSelectedSection: (section: MenuSection | null) => void;
   setSelectedItem: (item: MenuItem | null) => void;
@@ -43,11 +58,14 @@ interface MenuContextType extends MenuState {
 
 const MenuContext = createContext<MenuContextType>();
 
-export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) => {
+export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (
+  props
+) => {
   const [sections, setSections] = createSignal<MenuSectionWithItems[]>([]);
   const [isLoading, setIsLoading] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
-  const [selectedSection, setSelectedSection] = createSignal<MenuSection | null>(null);
+  const [selectedSection, setSelectedSection] =
+    createSignal<MenuSection | null>(null);
   const [selectedItem, setSelectedItem] = createSignal<MenuItem | null>(null);
 
   const handleError = (err: any) => {
@@ -69,7 +87,10 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
   };
 
   // Section actions
-  const createSection = async (restaurantId: string, data: CreateMenuSectionRequest) => {
+  const createSection = async (
+    restaurantId: string,
+    data: CreateMenuSectionRequest
+  ) => {
     setError(null);
     try {
       await MenuService.createSection(restaurantId, data);
@@ -80,16 +101,19 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     }
   };
 
-  const updateSection = async (sectionId: string, data: UpdateMenuSectionRequest) => {
+  const updateSection = async (
+    sectionId: string,
+    data: UpdateMenuSectionRequest
+  ) => {
     setError(null);
     try {
       await MenuService.updateSection(sectionId, data);
       // Update local state
-      setSections(prev => prev.map(section => 
-        section.id === sectionId 
-          ? { ...section, ...data } 
-          : section
-      ));
+      setSections((prev) =>
+        prev.map((section) =>
+          section.id === sectionId ? { ...section, ...data } : section
+        )
+      );
     } catch (err) {
       handleError(err);
       throw err;
@@ -100,7 +124,7 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     setError(null);
     try {
       await MenuService.deleteSection(sectionId);
-      setSections(prev => prev.filter(section => section.id !== sectionId));
+      setSections((prev) => prev.filter((section) => section.id !== sectionId));
       if (selectedSection()?.id === sectionId) {
         setSelectedSection(null);
       }
@@ -115,10 +139,10 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     try {
       await MenuService.reorderSections(data);
       // Update local display order
-      setSections(prev => {
+      setSections((prev) => {
         const updated = [...prev];
-        data.section_orders.forEach(order => {
-          const section = updated.find(s => s.id === order.section_id);
+        data.section_orders.forEach((order) => {
+          const section = updated.find((s) => s.id === order.section_id);
           if (section) {
             section.display_order = order.display_order;
           }
@@ -136,11 +160,13 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     setError(null);
     try {
       const newItem = await MenuService.createItem(sectionId, data);
-      setSections(prev => prev.map(section => 
-        section.id === sectionId 
-          ? { ...section, items: [...section.items, newItem] }
-          : section
-      ));
+      setSections((prev) =>
+        prev.map((section) =>
+          section.id === sectionId
+            ? { ...section, items: [...section.items, newItem] }
+            : section
+        )
+      );
     } catch (err) {
       handleError(err);
       throw err;
@@ -151,14 +177,14 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     setError(null);
     try {
       await MenuService.updateItem(itemId, data);
-      setSections(prev => prev.map(section => ({
-        ...section,
-        items: section.items.map(item => 
-          item.id === itemId 
-            ? { ...item, ...data }
-            : item
-        )
-      })));
+      setSections((prev) =>
+        prev.map((section) => ({
+          ...section,
+          items: section.items.map((item) =>
+            item.id === itemId ? { ...item, ...data } : item
+          ),
+        }))
+      );
     } catch (err) {
       handleError(err);
       throw err;
@@ -169,10 +195,12 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     setError(null);
     try {
       await MenuService.deleteItem(itemId);
-      setSections(prev => prev.map(section => ({
-        ...section,
-        items: section.items.filter(item => item.id !== itemId)
-      })));
+      setSections((prev) =>
+        prev.map((section) => ({
+          ...section,
+          items: section.items.filter((item) => item.id !== itemId),
+        }))
+      );
       if (selectedItem()?.id === itemId) {
         setSelectedItem(null);
       }
@@ -186,14 +214,14 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     setError(null);
     try {
       await MenuService.toggleItemAvailability(itemId, { available });
-      setSections(prev => prev.map(section => ({
-        ...section,
-        items: section.items.map(item => 
-          item.id === itemId 
-            ? { ...item, available }
-            : item
-        )
-      })));
+      setSections((prev) =>
+        prev.map((section) => ({
+          ...section,
+          items: section.items.map((item) =>
+            item.id === itemId ? { ...item, available } : item
+          ),
+        }))
+      );
     } catch (err) {
       handleError(err);
       throw err;
@@ -204,13 +232,19 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     setError(null);
     try {
       await MenuService.reorderItems(data);
-      setSections(prev => prev.map(section => ({
-        ...section,
-        items: section.items.map(item => {
-          const order = data.item_orders.find(o => o.item_id === item.id);
-          return order ? { ...item, display_order: order.display_order } : item;
-        }).sort((a, b) => a.display_order - b.display_order)
-      })));
+      setSections((prev) =>
+        prev.map((section) => ({
+          ...section,
+          items: section.items
+            .map((item) => {
+              const order = data.item_orders.find((o) => o.item_id === item.id);
+              return order
+                ? { ...item, display_order: order.display_order }
+                : item;
+            })
+            .sort((a, b) => a.display_order - b.display_order),
+        }))
+      );
     } catch (err) {
       handleError(err);
       throw err;
@@ -222,28 +256,33 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     setError(null);
     try {
       await MenuService.bulkDeleteItems(itemIds);
-      setSections(prev => prev.map(section => ({
-        ...section,
-        items: section.items.filter(item => !itemIds.includes(item.id))
-      })));
+      setSections((prev) =>
+        prev.map((section) => ({
+          ...section,
+          items: section.items.filter((item) => !itemIds.includes(item.id)),
+        }))
+      );
     } catch (err) {
       handleError(err);
       throw err;
     }
   };
 
-  const bulkToggleAvailability = async (itemIds: string[], available: boolean) => {
+  const bulkToggleAvailability = async (
+    itemIds: string[],
+    available: boolean
+  ) => {
     setError(null);
     try {
       await MenuService.bulkToggleAvailability(itemIds, available);
-      setSections(prev => prev.map(section => ({
-        ...section,
-        items: section.items.map(item => 
-          itemIds.includes(item.id) 
-            ? { ...item, available }
-            : item
-        )
-      })));
+      setSections((prev) =>
+        prev.map((section) => ({
+          ...section,
+          items: section.items.map((item) =>
+            itemIds.includes(item.id) ? { ...item, available } : item
+          ),
+        }))
+      );
     } catch (err) {
       handleError(err);
       throw err;
@@ -254,7 +293,9 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     setError(null);
     try {
       await MenuService.bulkDeleteSections(sectionIds);
-      setSections(prev => prev.filter(section => !sectionIds.includes(section.id)));
+      setSections((prev) =>
+        prev.filter((section) => !sectionIds.includes(section.id))
+      );
     } catch (err) {
       handleError(err);
       throw err;
@@ -276,7 +317,7 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
     error: error(),
     selectedSection: selectedSection(),
     selectedItem: selectedItem(),
-    
+
     loadMenu,
     createSection,
     updateSection,
@@ -296,9 +337,7 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (props) 
   };
 
   return (
-    <MenuContext.Provider value={value}>
-      {props.children}
-    </MenuContext.Provider>
+    <MenuContext.Provider value={value}>{props.children}</MenuContext.Provider>
   );
 };
 

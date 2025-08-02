@@ -50,7 +50,13 @@ export interface TableFilters {
   sortOrder: 'asc' | 'desc';
 }
 
-export type TableViewMode = 'list' | 'create' | 'edit' | 'qr' | 'bulk-qr' | 'print';
+export type TableViewMode =
+  | 'list'
+  | 'create'
+  | 'edit'
+  | 'qr'
+  | 'bulk-qr'
+  | 'print';
 
 export interface TableFormData {
   name: string;
