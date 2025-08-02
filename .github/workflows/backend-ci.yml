@@ -2,12 +2,12 @@ name: Backend CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
@@ -23,48 +23,46 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
-        components: rustfmt, clippy
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
 
-    - name: Cache cargo registry
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          backend/target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            backend/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
-    - name: Check formatting
-      run: cargo fmt --check
+      - name: Check formatting
+        run: cargo fmt --check
 
-    - name: Run clippy
-      run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
-    - name: Build
-      run: cargo build --verbose
+      - name: Build
+        run: cargo build --verbose
 
-    - name: Run tests
-      run: cargo test --verbose
-      env:
-        DATABASE_URL: sqlite::memory:
+      - name: Run tests
+        run: cargo test --verbose
+        env:
+          DATABASE_URL: "sqlite::memory:"
 
-    - name: Security audit
-      uses: actions-rs/audit-check@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: Security audit
+        run: cargo audit
 
   sqlx-check:
     name: SQLx Query Verification
@@ -72,39 +70,35 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-    - name: Cache cargo registry
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          backend/target
-        key: ${{ runner.os }}-cargo-sqlx-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            backend/target
+          key: ${{ runner.os }}-cargo-sqlx-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
-    - name: Setup test database
-      run: |
-        sqlite3 test.db < migrations/20250131000001_initial_schema.sql
-        sqlite3 test.db < migrations/20250131000002_manager_invites.sql
-        sqlite3 test.db < migrations/20250131000003_add_customer_name_to_orders.sql
+      - name: Setup test database
+        run: |
+          sqlite3 test.db < migrations/20250131000001_initial_schema.sql
+          sqlite3 test.db < migrations/20250131000002_manager_invites.sql
+          sqlite3 test.db < migrations/20250131000003_add_customer_name_to_orders.sql
 
-    - name: Verify SQLx queries
-      run: cargo sqlx prepare --check
-      env:
-        DATABASE_URL: sqlite:./test.db
+      - name: Verify SQLx queries
+        run: cargo sqlx prepare --check
+        env:
+          DATABASE_URL: sqlite:./test.db
 
   matrix-test:
     name: Matrix Testing
@@ -116,33 +110,31 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: ${{ matrix.rust }}
-        override: true
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
 
-    - name: Cache cargo registry
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          backend/target
-        key: ${{ runner.os }}-${{ matrix.rust }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ matrix.rust }}-cargo-
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            backend/target
+          key: ${{ runner.os }}-${{ matrix.rust }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.rust }}-cargo-
 
-    - name: Build
-      run: cargo build --verbose
+      - name: Build
+        run: cargo build --verbose
 
-    - name: Run tests
-      run: cargo test --verbose
-      env:
-        DATABASE_URL: sqlite::memory:
+      - name: Run tests
+        run: cargo test --verbose
+        env:
+          DATABASE_URL: "sqlite::memory:"

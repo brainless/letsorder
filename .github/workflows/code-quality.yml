@@ -2,17 +2,17 @@ name: Code Quality
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'backend/**'
       - '.github/workflows/code-quality.yml'
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'backend/**'
       - '.github/workflows/code-quality.yml'
   schedule:
-    - cron: '0 0 * * 1' # Weekly on Monday
+    - cron: '0 0 * * 1'  # Weekly on Monday
 
 env:
   CARGO_TERM_COLOR: always
@@ -24,47 +24,41 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-    - name: Install cargo-tarpaulin
-      uses: actions-rs/install@v0.1
-      with:
-        crate: cargo-tarpaulin
-        version: latest
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
 
-    - name: Cache cargo registry
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          backend/target
-        key: ${{ runner.os }}-cargo-coverage-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-coverage-
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            backend/target
+          key: ${{ runner.os }}-cargo-coverage-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-coverage-
 
-    - name: Generate coverage report
-      run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
-      env:
-        DATABASE_URL: sqlite::memory:
+      - name: Generate coverage report
+        run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+        env:
+          DATABASE_URL: "sqlite::memory:"
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./backend/cobertura.xml
-        flags: backend
-        name: backend-coverage
-        fail_ci_if_error: false
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/cobertura.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   documentation:
     name: Documentation
@@ -72,36 +66,32 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-    - name: Cache cargo registry
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          backend/target
-        key: ${{ runner.os }}-cargo-docs-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-docs-
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            backend/target
+          key: ${{ runner.os }}-cargo-docs-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-docs-
 
-    - name: Build documentation
-      run: cargo doc --no-deps --all-features
+      - name: Build documentation
+        run: cargo doc --no-deps --all-features
 
-    - name: Check for missing documentation
-      run: cargo doc --no-deps --all-features --document-private-items
-      env:
-        RUSTDOCFLAGS: "-D missing_docs"
+      - name: Check for missing documentation
+        run: cargo doc --no-deps --all-features --document-private-items
+        env:
+          RUSTDOCFLAGS: "-D missing_docs"
 
   dependency-audit:
     name: Dependency Audit
@@ -109,35 +99,25 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-    - name: Install cargo-audit
-      uses: actions-rs/install@v0.1
-      with:
-        crate: cargo-audit
-        version: latest
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
 
-    - name: Install cargo-deny
-      uses: actions-rs/install@v0.1
-      with:
-        crate: cargo-deny
-        version: latest
+      - name: Install cargo-deny
+        run: cargo install cargo-deny
 
-    - name: Security audit
-      run: cargo audit
+      - name: Security audit
+        run: cargo audit
 
-    - name: License and dependency policy check
-      run: cargo deny check
+      - name: License and dependency policy check
+        run: cargo deny check
 
   benchmarks:
     name: Performance Benchmarks
@@ -145,33 +125,29 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-    - name: Cache cargo registry
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          backend/target
-        key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-bench-
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            backend/target
+          key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-bench-
 
-    - name: Run benchmarks
-      run: cargo bench --verbose
-      env:
-        DATABASE_URL: sqlite::memory:
+      - name: Run benchmarks
+        run: cargo bench --verbose
+        env:
+          DATABASE_URL: "sqlite::memory:"
 
   dependency-updates:
     name: Dependency Updates Check
@@ -180,23 +156,16 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-    - name: Install cargo-outdated
-      uses: actions-rs/install@v0.1
-      with:
-        crate: cargo-outdated
-        version: latest
+      - name: Install cargo-outdated
+        run: cargo install cargo-outdated
 
-    - name: Check for outdated dependencies
-      run: cargo outdated --exit-code 1
+      - name: Check for outdated dependencies
+        run: cargo outdated --exit-code 1
