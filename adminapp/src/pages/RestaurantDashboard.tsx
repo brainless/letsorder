@@ -46,9 +46,9 @@ function RestaurantDashboard() {
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div class="mb-8">
-        <div class="flex justify-between items-center">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900">
+        <div class="md:flex md:items-center md:justify-between">
+          <div class="flex-1 min-w-0">
+            <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl truncate">
               <Show 
                 when={viewMode() === 'list'} 
                 fallback={
@@ -70,7 +70,7 @@ function RestaurantDashboard() {
                 Restaurant Management
               </Show>
             </h1>
-            <p class="mt-2 text-gray-600">
+            <p class="mt-1 text-sm text-gray-600">
               <Show 
                 when={viewMode() === 'list'} 
                 fallback={
@@ -94,29 +94,33 @@ function RestaurantDashboard() {
             </p>
           </div>
           
-          <Show when={viewMode() === 'list'}>
-            <button
-              onClick={handleCreateNew}
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-              Add Restaurant
-            </button>
-          </Show>
-          
-          <Show when={viewMode() !== 'list'}>
-            <button
-              onClick={viewMode() === 'details' ? handleBackToList : handleCancel}
-              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-              </svg>
-              Back to List
-            </button>
-          </Show>
+          <div class="mt-4 flex md:mt-0 md:ml-4">
+            <Show when={viewMode() === 'list'}>
+              <button
+                type="button"
+                onClick={handleCreateNew}
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <svg class="w-5 h-5 sm:-ml-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span class="hidden sm:block">Add Restaurant</span>
+              </button>
+            </Show>
+
+            <Show when={viewMode() !== 'list'}>
+              <button
+                type="button"
+                onClick={viewMode() === 'details' ? handleBackToList : handleCancel}
+                class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <svg class="w-5 h-5 -ml-1 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to List
+              </button>
+            </Show>
+          </div>
         </div>
       </div>
 

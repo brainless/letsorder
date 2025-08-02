@@ -172,43 +172,74 @@ function TableDashboard() {
 
       {/* Main Content */}
       <div class="bg-white shadow rounded-lg">
-        <Show when={viewMode() === 'list'}>
-          <TableList 
-            onEdit={handleEdit}
-            onShowQR={handleShowQR}
-          />
-        </Show>
-        
-        <Show when={viewMode() === 'create'}>
-          <TableForm
-            restaurantId={params.restaurantId}
-            onSuccess={handleFormSuccess}
-            onCancel={handleCancel}
-          />
-        </Show>
-        
-        <Show when={viewMode() === 'edit'}>
-          <TableForm
-            restaurantId={params.restaurantId}
-            table={editingTable()}
-            onSuccess={handleFormSuccess}
-            onCancel={handleCancel}
-          />
-        </Show>
-        
-        <Show when={viewMode() === 'qr'}>
-          <QRCodeView
-            table={table.currentTable!}
-            restaurantId={params.restaurantId}
-            onClose={handleCancel}
-          />
-        </Show>
-        
-        <Show when={viewMode() === 'bulk-qr'}>
-          <BulkQRCodeView
-            restaurantId={params.restaurantId}
-            onClose={handleCancel}
-          />
+        <Show
+          when={!table.isLoading}
+          fallback={
+            <div class="text-center py-12">
+              <div class="animate-spin mx-auto h-8 w-8 text-indigo-600"></div>
+              <p class="mt-2 text-sm text-gray-500">Loading tables...</p>
+            </div>
+          }
+        >
+          <Show when={viewMode() === 'list'}>
+            <Show
+              when={table.tables.length > 0}
+              fallback={
+                <div class="text-center py-12">
+                  <h3 class="mt-2 text-sm font-medium text-gray-900">No tables found</h3>
+                  <p class="mt-1 text-sm text-gray-500">Get started by creating your first table.</p>
+                  <div class="mt-6">
+                    <button
+                      onClick={handleCreateNew}
+                      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                      </svg>
+                      Add Table
+                    </button>
+                  </div>
+                </div>
+              }
+            >
+              <TableList
+                onEdit={handleEdit}
+                onShowQR={handleShowQR}
+              />
+            </Show>
+          </Show>
+
+          <Show when={viewMode() === 'create'}>
+            <TableForm
+              restaurantId={params.restaurantId}
+              onSuccess={handleFormSuccess}
+              onCancel={handleCancel}
+            />
+          </Show>
+
+          <Show when={viewMode() === 'edit'}>
+            <TableForm
+              restaurantId={params.restaurantId}
+              table={editingTable()}
+              onSuccess={handleFormSuccess}
+              onCancel={handleCancel}
+            />
+          </Show>
+
+          <Show when={viewMode() === 'qr'}>
+            <QRCodeView
+              table={table.currentTable!}
+              restaurantId={params.restaurantId}
+              onClose={handleCancel}
+            />
+          </Show>
+
+          <Show when={viewMode() === 'bulk-qr'}>
+            <BulkQRCodeView
+              restaurantId={params.restaurantId}
+              onClose={handleCancel}
+            />
+          </Show>
         </Show>
       </div>
     </div>

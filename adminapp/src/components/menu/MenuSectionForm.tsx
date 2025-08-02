@@ -12,7 +12,7 @@ interface MenuSectionFormProps {
 const MenuSectionForm: Component<MenuSectionFormProps> = (props) => {
   const menu = useMenu();
   const [isSubmitting, setIsSubmitting] = createSignal(false);
-  const [formError, setFormError] = createSignal<string | null>(null);
+  const [validationErrors, setValidationErrors] = createSignal<Record<string, string>>({});
 
   const [formData, setFormData] = createSignal({
     name: props.section?.name || '',
@@ -21,58 +21,53 @@ const MenuSectionForm: Component<MenuSectionFormProps> = (props) => {
 
   const isEditing = () => !!props.section;
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    const data = formData();
+
+    if (!data.name.trim()) {
+      errors.name = 'Section name is required';
+    }
+
+    if (data.display_order) {
+      const order = parseInt(data.display_order);
+      if (isNaN(order) || order < 1) {
+        errors.display_order = 'Display order must be a positive number';
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setFormError(null);
-
-    const data = formData();
-    
-    // Validation
-    if (!data.name.trim()) {
-      setFormError('Section name is required');
-      setIsSubmitting(false);
+    if (!validateForm()) {
       return;
     }
+
+    setIsSubmitting(true);
+
+    const data = formData();
 
     try {
       if (isEditing()) {
         const updateData: UpdateMenuSectionRequest = {
           name: data.name.trim(),
+          display_order: data.display_order ? parseInt(data.display_order) : undefined,
         };
-        
-        if (data.display_order) {
-          const order = parseInt(data.display_order);
-          if (isNaN(order) || order < 1) {
-            setFormError('Display order must be a positive number');
-            setIsSubmitting(false);
-            return;
-          }
-          updateData.display_order = order;
-        }
-
         await menu.updateSection(props.section!.id, updateData);
       } else {
         const createData: CreateMenuSectionRequest = {
           name: data.name.trim(),
+          display_order: data.display_order ? parseInt(data.display_order) : undefined,
         };
-        
-        if (data.display_order) {
-          const order = parseInt(data.display_order);
-          if (isNaN(order) || order < 1) {
-            setFormError('Display order must be a positive number');
-            setIsSubmitting(false);
-            return;
-          }
-          createData.display_order = order;
-        }
-
         await menu.createSection(props.restaurantId, createData);
       }
 
       props.onSuccess();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Failed to save section');
+      // Error is handled by the context and displayed on the dashboard
     } finally {
       setIsSubmitting(false);
     }
@@ -80,6 +75,13 @@ const MenuSectionForm: Component<MenuSectionFormProps> = (props) => {
 
   const updateFormData = (key: string, value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+    if (validationErrors()[key]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[key];
+        return newErrors;
+      });
+    }
   };
 
   return (
@@ -87,12 +89,6 @@ const MenuSectionForm: Component<MenuSectionFormProps> = (props) => {
       <h3 class="text-lg font-medium text-gray-900 mb-6">
         {isEditing() ? 'Edit Menu Section' : 'Create New Menu Section'}
       </h3>
-
-      <Show when={formError()}>
-        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-          <p class="text-red-800 text-sm">{formError()}</p>
-        </div>
-      </Show>
 
       <form onSubmit={handleSubmit} class="space-y-4">
         <div>
@@ -105,9 +101,14 @@ const MenuSectionForm: Component<MenuSectionFormProps> = (props) => {
             value={formData().name}
             onInput={(e) => updateFormData('name', e.currentTarget.value)}
             placeholder="e.g., Appetizers, Main Course, Desserts"
-            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            class={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+              validationErrors().name ? 'border-red-500' : 'border-gray-300'
+            }`}
             required
           />
+          <Show when={validationErrors().name}>
+            <p class="mt-1 text-sm text-red-600">{validationErrors().name}</p>
+          </Show>
         </div>
 
         <div>
@@ -121,8 +122,13 @@ const MenuSectionForm: Component<MenuSectionFormProps> = (props) => {
             onInput={(e) => updateFormData('display_order', e.currentTarget.value)}
             placeholder="Leave empty for automatic ordering"
             min="1"
-            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            class={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+              validationErrors().display_order ? 'border-red-500' : 'border-gray-300'
+            }`}
           />
+          <Show when={validationErrors().display_order}>
+            <p class="mt-1 text-sm text-red-600">{validationErrors().display_order}</p>
+          </Show>
           <p class="mt-1 text-sm text-gray-500">
             Optional. Lower numbers appear first. Leave empty to add at the end.
           </p>
