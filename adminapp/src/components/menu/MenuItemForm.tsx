@@ -12,7 +12,7 @@ interface MenuItemFormProps {
 const MenuItemForm: Component<MenuItemFormProps> = (props) => {
   const menu = useMenu();
   const [isSubmitting, setIsSubmitting] = createSignal(false);
-  const [formError, setFormError] = createSignal<string | null>(null);
+  const [validationErrors, setValidationErrors] = createSignal<Record<string, string>>({});
 
   const [formData, setFormData] = createSignal({
     name: props.item?.name || '',
@@ -23,26 +23,38 @@ const MenuItemForm: Component<MenuItemFormProps> = (props) => {
 
   const isEditing = () => !!props.item;
 
-  const handleSubmit = async (e: Event) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setFormError(null);
-
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
     const data = formData();
-    
-    // Validation
+
     if (!data.name.trim()) {
-      setFormError('Item name is required');
-      setIsSubmitting(false);
-      return;
+      errors.name = 'Item name is required';
     }
 
     if (!data.price || isNaN(parseFloat(data.price)) || parseFloat(data.price) < 0) {
-      setFormError('Valid price is required (must be 0 or greater)');
-      setIsSubmitting(false);
+      errors.price = 'Valid price is required (must be 0 or greater)';
+    }
+
+    if (data.display_order) {
+      const order = parseInt(data.display_order);
+      if (isNaN(order) || order < 1) {
+        errors.display_order = 'Display order must be a positive number';
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: Event) => {
+    e.preventDefault();
+    if (!validateForm()) {
       return;
     }
 
+    setIsSubmitting(true);
+
+    const data = formData();
     const price = parseFloat(data.price);
 
     try {
@@ -51,42 +63,22 @@ const MenuItemForm: Component<MenuItemFormProps> = (props) => {
           name: data.name.trim(),
           description: data.description.trim() || undefined,
           price,
+          display_order: data.display_order ? parseInt(data.display_order) : undefined,
         };
-        
-        if (data.display_order) {
-          const order = parseInt(data.display_order);
-          if (isNaN(order) || order < 1) {
-            setFormError('Display order must be a positive number');
-            setIsSubmitting(false);
-            return;
-          }
-          updateData.display_order = order;
-        }
-
         await menu.updateItem(props.item!.id, updateData);
       } else {
         const createData: CreateMenuItemRequest = {
           name: data.name.trim(),
           description: data.description.trim() || undefined,
           price,
+          display_order: data.display_order ? parseInt(data.display_order) : undefined,
         };
-        
-        if (data.display_order) {
-          const order = parseInt(data.display_order);
-          if (isNaN(order) || order < 1) {
-            setFormError('Display order must be a positive number');
-            setIsSubmitting(false);
-            return;
-          }
-          createData.display_order = order;
-        }
-
         await menu.createItem(props.sectionId, createData);
       }
 
       props.onSuccess();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Failed to save item');
+      // Error is handled by the context and displayed on the dashboard
     } finally {
       setIsSubmitting(false);
     }
@@ -94,6 +86,13 @@ const MenuItemForm: Component<MenuItemFormProps> = (props) => {
 
   const updateFormData = (key: string, value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+    if (validationErrors()[key]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[key];
+        return newErrors;
+      });
+    }
   };
 
   const formatPrice = (value: string) => {
@@ -126,12 +125,6 @@ const MenuItemForm: Component<MenuItemFormProps> = (props) => {
         {isEditing() ? 'Edit Menu Item' : 'Create New Menu Item'}
       </h3>
 
-      <Show when={formError()}>
-        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-          <p class="text-red-800 text-sm">{formError()}</p>
-        </div>
-      </Show>
-
       <form onSubmit={handleSubmit} class="space-y-4">
         <div>
           <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
@@ -143,9 +136,14 @@ const MenuItemForm: Component<MenuItemFormProps> = (props) => {
             value={formData().name}
             onInput={(e) => updateFormData('name', e.currentTarget.value)}
             placeholder="e.g., Caesar Salad, Grilled Salmon"
-            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            class={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+              validationErrors().name ? 'border-red-500' : 'border-gray-300'
+            }`}
             required
           />
+          <Show when={validationErrors().name}>
+            <p class="mt-1 text-sm text-red-600">{validationErrors().name}</p>
+          </Show>
         </div>
 
         <div>
@@ -177,10 +175,15 @@ const MenuItemForm: Component<MenuItemFormProps> = (props) => {
                 value={formData().price}
                 onInput={handlePriceInput}
                 placeholder="0.00"
-                class="block w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                class={`block w-full pl-7 pr-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                  validationErrors().price ? 'border-red-500' : 'border-gray-300'
+                }`}
                 required
               />
             </div>
+            <Show when={validationErrors().price}>
+              <p class="mt-1 text-sm text-red-600">{validationErrors().price}</p>
+            </Show>
           </div>
 
           <div>
@@ -194,8 +197,13 @@ const MenuItemForm: Component<MenuItemFormProps> = (props) => {
               onInput={(e) => updateFormData('display_order', e.currentTarget.value)}
               placeholder="Auto"
               min="1"
-              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              class={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                validationErrors().display_order ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
+            <Show when={validationErrors().display_order}>
+              <p class="mt-1 text-sm text-red-600">{validationErrors().display_order}</p>
+            </Show>
           </div>
         </div>
 

@@ -68,8 +68,8 @@ function RestaurantList(props: RestaurantListProps) {
                       <div class="flex items-center space-x-2">
                         <button
                           onClick={() => props.onView(restaurantItem)}
-                          class="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
-                          title="View details"
+                          class="p-1 rounded-full text-indigo-600 hover:text-indigo-900 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          aria-label="View details"
                         >
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -78,8 +78,8 @@ function RestaurantList(props: RestaurantListProps) {
                         </button>
                         <button
                           onClick={() => props.onEdit(restaurantItem)}
-                          class="text-gray-600 hover:text-gray-900 text-sm font-medium"
-                          title="Edit restaurant"
+                          class="p-1 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          aria-label="Edit restaurant"
                         >
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -88,8 +88,8 @@ function RestaurantList(props: RestaurantListProps) {
                         <button
                           onClick={() => handleDelete(restaurantItem)}
                           disabled={deletingId() === restaurantItem.id}
-                          class="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50"
-                          title="Delete restaurant"
+                          class="p-1 rounded-full text-red-600 hover:text-red-900 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                          aria-label="Delete restaurant"
                         >
                           <Show 
                             when={deletingId() !== restaurantItem.id} 

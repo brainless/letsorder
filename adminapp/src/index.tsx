@@ -3,6 +3,7 @@ import { render } from 'solid-js/web';
 import { Router } from '@solidjs/router';
 import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
+import { UIProvider } from './contexts/UIContext';
 import { RestaurantProvider } from './contexts/RestaurantContext';
 import { TableProvider } from './contexts/TableContext';
 import { OrderProvider } from './contexts/OrderContext';
@@ -18,14 +19,16 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 
 render(() => (
   <AuthProvider>
-    <RestaurantProvider>
-      <TableProvider>
-        <OrderProvider>
-          <Router>
-            <App />
-          </Router>
-        </OrderProvider>
-      </TableProvider>
-    </RestaurantProvider>
+    <UIProvider>
+      <RestaurantProvider>
+        <TableProvider>
+          <OrderProvider>
+            <Router>
+              <App />
+            </Router>
+          </OrderProvider>
+        </TableProvider>
+      </RestaurantProvider>
+    </UIProvider>
   </AuthProvider>
 ), root!);
