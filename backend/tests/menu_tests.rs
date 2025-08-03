@@ -172,11 +172,11 @@ async fn test_menu_item_creation_and_retrieval() {
 
     assert_eq!(item_models[0].name, "Garlic Bread");
     assert_eq!(item_models[0].price, 5.99);
-    assert_eq!(item_models[0].available, true);
+    assert!(item_models[0].available);
 
     assert_eq!(item_models[1].name, "Caesar Salad");
     assert_eq!(item_models[1].price, 8.50);
-    assert_eq!(item_models[1].available, true);
+    assert!(item_models[1].available);
 }
 
 #[tokio::test]

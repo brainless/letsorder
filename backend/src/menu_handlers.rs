@@ -33,7 +33,7 @@ pub async fn create_menu_section(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking menu permission: {}", e);
+            log::error!("Database error checking menu permission: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -78,7 +78,7 @@ pub async fn create_menu_section(
             })))
         }
         Err(e) => {
-            log::error!("Database error creating menu section: {}", e);
+            log::error!("Database error creating menu section: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to create menu section"
             })))
@@ -110,7 +110,7 @@ pub async fn list_menu_sections(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking manager access: {}", e);
+            log::error!("Database error checking manager access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -148,7 +148,7 @@ pub async fn get_restaurant_menu(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking manager access: {}", e);
+            log::error!("Database error checking manager access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -169,7 +169,7 @@ pub async fn get_restaurant_menu(
     let sections = match sections_result {
         Ok(rows) => rows.into_iter().map(MenuSection::from).collect::<Vec<_>>(),
         Err(e) => {
-            log::error!("Database error fetching menu sections: {}", e);
+            log::error!("Database error fetching menu sections: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -250,7 +250,7 @@ pub async fn get_public_menu(
             })));
         }
         Err(e) => {
-            log::error!("Database error fetching restaurant/table: {}", e);
+            log::error!("Database error fetching restaurant/table: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));

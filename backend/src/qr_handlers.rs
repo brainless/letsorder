@@ -50,7 +50,7 @@ fn generate_qr_code_png(url: &str) -> Result<String, Box<dyn std::error::Error>>
 
     // For now, return a simple base64 encoded string representation
     // In a real implementation, you'd want to generate actual PNG bytes
-    let qr_string = format!("QR Code for: {}", url);
+    let qr_string = format!("QR Code for: {url}");
     Ok(general_purpose::STANDARD.encode(qr_string.as_bytes()))
 }
 
@@ -91,7 +91,7 @@ pub async fn generate_single_qr_code(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking manager access: {}", e);
+            log::error!("Database error checking manager access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -126,7 +126,7 @@ pub async fn generate_single_qr_code(
                 "svg" => match generate_qr_code_svg(&qr_url) {
                     Ok(svg) => svg,
                     Err(e) => {
-                        log::error!("Error generating SVG QR code: {}", e);
+                        log::error!("Error generating SVG QR code: {e}");
                         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                             "error": "Failed to generate QR code"
                         })));
@@ -135,7 +135,7 @@ pub async fn generate_single_qr_code(
                 _ => match generate_qr_code_png(&qr_url) {
                     Ok(png) => png,
                     Err(e) => {
-                        log::error!("Error generating PNG QR code: {}", e);
+                        log::error!("Error generating PNG QR code: {e}");
                         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                             "error": "Failed to generate QR code"
                         })));
@@ -158,7 +158,7 @@ pub async fn generate_single_qr_code(
             "error": "Table not found"
         }))),
         Err(e) => {
-            log::error!("Database error fetching table: {}", e);
+            log::error!("Database error fetching table: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })))
@@ -191,7 +191,7 @@ pub async fn generate_bulk_qr_codes(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking manager access: {}", e);
+            log::error!("Database error checking manager access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -213,7 +213,7 @@ pub async fn generate_bulk_qr_codes(
             })));
         }
         Err(e) => {
-            log::error!("Database error fetching restaurant: {}", e);
+            log::error!("Database error fetching restaurant: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -253,17 +253,17 @@ pub async fn generate_bulk_qr_codes(
                         });
                     }
                     Err(e) => {
-                        log::error!("Error generating QR code for table {}: {}", table_id, e);
+                        log::error!("Error generating QR code for table {table_id}: {e}");
                         // Continue with other tables instead of failing completely
                     }
                 }
             }
             Ok(None) => {
-                log::warn!("Table {} not found", table_id);
+                log::warn!("Table {table_id} not found");
                 // Continue with other tables
             }
             Err(e) => {
-                log::error!("Database error fetching table {}: {}", table_id, e);
+                log::error!("Database error fetching table {table_id}: {e}");
                 // Continue with other tables
             }
         }
@@ -310,7 +310,7 @@ pub async fn generate_print_sheet(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking manager access: {}", e);
+            log::error!("Database error checking manager access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -331,7 +331,7 @@ pub async fn generate_print_sheet(
             })));
         }
         Err(e) => {
-            log::error!("Database error fetching restaurant: {}", e);
+            log::error!("Database error fetching restaurant: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -370,15 +370,15 @@ pub async fn generate_print_sheet(
                         });
                     }
                     Err(e) => {
-                        log::error!("Error generating QR code for table {}: {}", table_id, e);
+                        log::error!("Error generating QR code for table {table_id}: {e}");
                     }
                 }
             }
             Ok(None) => {
-                log::warn!("Table {} not found", table_id);
+                log::warn!("Table {table_id} not found");
             }
             Err(e) => {
-                log::error!("Database error fetching table {}: {}", table_id, e);
+                log::error!("Database error fetching table {table_id}: {e}");
             }
         }
     }
@@ -388,7 +388,7 @@ pub async fn generate_print_sheet(
         r#"<!DOCTYPE html>
 <html>
 <head>
-    <title>QR Codes - {}</title>
+    <title>QR Codes - {restaurant_name}</title>
     <style>
         @media print {{
             body {{ margin: 0; }}
@@ -430,11 +430,10 @@ pub async fn generate_print_sheet(
 </head>
 <body>
     <div class="header">
-        <h1>{}</h1>
+        <h1>{restaurant_name}</h1>
         <h2>Table QR Codes</h2>
     </div>
-    <div class="qr-grid">"#,
-        restaurant_name, restaurant_name
+    <div class="qr-grid">"#
     );
 
     for qr_code in &qr_codes {

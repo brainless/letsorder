@@ -281,7 +281,7 @@ pub async fn run_server() -> std::io::Result<()> {
 
     // Seed database if empty (development only)
     if let Err(e) = seed_database_if_empty(&pool).await {
-        log::warn!("Failed to seed database: {}", e);
+        log::warn!("Failed to seed database: {e}");
     }
 
     // Initialize JWT manager

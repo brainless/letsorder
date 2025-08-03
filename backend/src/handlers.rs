@@ -31,7 +31,7 @@ pub async fn register(
         }
         Ok(None) => {}
         Err(e) => {
-            log::error!("Database error during user lookup: {}", e);
+            log::error!("Database error during user lookup: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -42,7 +42,7 @@ pub async fn register(
     let password_hash = match PasswordHasher::hash_password(&req.password) {
         Ok(hash) => hash,
         Err(e) => {
-            log::error!("Password hashing error: {}", e);
+            log::error!("Password hashing error: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -84,7 +84,7 @@ pub async fn register(
                             Ok(HttpResponse::Created().json(response))
                         }
                         Err(e) => {
-                            log::error!("JWT generation error: {}", e);
+                            log::error!("JWT generation error: {e}");
                             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                                 "error": "Internal server error"
                             })))
@@ -92,7 +92,7 @@ pub async fn register(
                     }
                 }
                 Err(e) => {
-                    log::error!("Database error fetching created user: {}", e);
+                    log::error!("Database error fetching created user: {e}");
                     Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                         "error": "Internal server error"
                     })))
@@ -100,7 +100,7 @@ pub async fn register(
             }
         }
         Err(e) => {
-            log::error!("Database error creating user: {}", e);
+            log::error!("Database error creating user: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })))
@@ -137,7 +137,7 @@ pub async fn login(
                             Ok(HttpResponse::Ok().json(response))
                         }
                         Err(e) => {
-                            log::error!("JWT generation error: {}", e);
+                            log::error!("JWT generation error: {e}");
                             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                                 "error": "Internal server error"
                             })))
@@ -148,7 +148,7 @@ pub async fn login(
                     "error": "Invalid credentials"
                 }))),
                 Err(e) => {
-                    log::error!("Password verification error: {}", e);
+                    log::error!("Password verification error: {e}");
                     Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                         "error": "Internal server error"
                     })))
@@ -159,7 +159,7 @@ pub async fn login(
             "error": "Invalid credentials"
         }))),
         Err(e) => {
-            log::error!("Database error during login: {}", e);
+            log::error!("Database error during login: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })))
@@ -188,7 +188,7 @@ pub async fn create_restaurant(
     let mut tx = match pool.begin().await {
         Ok(tx) => tx,
         Err(e) => {
-            log::error!("Failed to start transaction: {}", e);
+            log::error!("Failed to start transaction: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -208,7 +208,7 @@ pub async fn create_restaurant(
     .await;
 
     if let Err(e) = result {
-        log::error!("Failed to create restaurant: {}", e);
+        log::error!("Failed to create restaurant: {e}");
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": "Failed to create restaurant"
         })));
@@ -224,7 +224,7 @@ pub async fn create_restaurant(
     .await;
 
     if let Err(e) = result {
-        log::error!("Failed to add super admin: {}", e);
+        log::error!("Failed to add super admin: {e}");
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": "Failed to create restaurant"
         })));
@@ -232,7 +232,7 @@ pub async fn create_restaurant(
 
     // Commit transaction
     if let Err(e) = tx.commit().await {
-        log::error!("Failed to commit transaction: {}", e);
+        log::error!("Failed to commit transaction: {e}");
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": "Failed to create restaurant"
         })));
@@ -252,7 +252,7 @@ pub async fn create_restaurant(
             Ok(HttpResponse::Created().json(restaurant))
         }
         Err(e) => {
-            log::error!("Failed to fetch created restaurant: {}", e);
+            log::error!("Failed to fetch created restaurant: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Restaurant created but failed to fetch details"
             })))
@@ -284,7 +284,7 @@ pub async fn get_restaurant(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking manager access: {}", e);
+            log::error!("Database error checking manager access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -308,7 +308,7 @@ pub async fn get_restaurant(
             "error": "Restaurant not found"
         }))),
         Err(e) => {
-            log::error!("Database error fetching restaurant: {}", e);
+            log::error!("Database error fetching restaurant: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })))
@@ -341,7 +341,7 @@ pub async fn update_restaurant(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking super admin access: {}", e);
+            log::error!("Database error checking super admin access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -421,7 +421,7 @@ pub async fn update_restaurant(
                         Ok(HttpResponse::Ok().json(restaurant))
                     }
                     Err(e) => {
-                        log::error!("Failed to fetch updated restaurant: {}", e);
+                        log::error!("Failed to fetch updated restaurant: {e}");
                         Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                             "error": "Restaurant updated but failed to fetch details"
                         })))
@@ -430,7 +430,7 @@ pub async fn update_restaurant(
             }
         }
         Err(e) => {
-            log::error!("Database error updating restaurant: {}", e);
+            log::error!("Database error updating restaurant: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to update restaurant"
             })))
@@ -462,7 +462,7 @@ pub async fn delete_restaurant(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking super admin access: {}", e);
+            log::error!("Database error checking super admin access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -485,7 +485,7 @@ pub async fn delete_restaurant(
             }
         }
         Err(e) => {
-            log::error!("Database error deleting restaurant: {}", e);
+            log::error!("Database error deleting restaurant: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to delete restaurant"
             })))
@@ -518,7 +518,7 @@ pub async fn invite_manager(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking super admin access: {}", e);
+            log::error!("Database error checking super admin access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -542,7 +542,7 @@ pub async fn invite_manager(
         }
         Ok(None) => {}
         Err(e) => {
-            log::error!("Database error checking existing manager: {}", e);
+            log::error!("Database error checking existing manager: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -566,7 +566,7 @@ pub async fn invite_manager(
         }
         Ok(None) => {}
         Err(e) => {
-            log::error!("Database error checking existing invite: {}", e);
+            log::error!("Database error checking existing invite: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -598,7 +598,7 @@ pub async fn invite_manager(
             Ok(HttpResponse::Created().json(response))
         }
         Err(e) => {
-            log::error!("Database error creating invite: {}", e);
+            log::error!("Database error creating invite: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to create invite"
             })))
@@ -631,7 +631,7 @@ pub async fn join_restaurant(
             })));
         }
         Err(e) => {
-            log::error!("Database error fetching invite: {}", e);
+            log::error!("Database error fetching invite: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -649,7 +649,7 @@ pub async fn join_restaurant(
     let mut tx = match pool.begin().await {
         Ok(tx) => tx,
         Err(e) => {
-            log::error!("Failed to start transaction: {}", e);
+            log::error!("Failed to start transaction: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -683,7 +683,7 @@ pub async fn join_restaurant(
                 }
                 Ok(None) => user.id,
                 Err(e) => {
-                    log::error!("Database error checking existing manager: {}", e);
+                    log::error!("Database error checking existing manager: {e}");
                     return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                         "error": "Internal server error"
                     })));
@@ -695,7 +695,7 @@ pub async fn join_restaurant(
             let password_hash = match PasswordHasher::hash_password(&req.password) {
                 Ok(hash) => hash,
                 Err(e) => {
-                    log::error!("Password hashing error: {}", e);
+                    log::error!("Password hashing error: {e}");
                     return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                         "error": "Internal server error"
                     })));
@@ -716,7 +716,7 @@ pub async fn join_restaurant(
             match result {
                 Ok(_) => new_user_id,
                 Err(e) => {
-                    log::error!("Database error creating user: {}", e);
+                    log::error!("Database error creating user: {e}");
                     return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                         "error": "Failed to create user"
                     })));
@@ -724,7 +724,7 @@ pub async fn join_restaurant(
             }
         }
         Err(e) => {
-            log::error!("Database error checking existing user: {}", e);
+            log::error!("Database error checking existing user: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -742,7 +742,7 @@ pub async fn join_restaurant(
     .await;
 
     if let Err(e) = result {
-        log::error!("Database error adding manager: {}", e);
+        log::error!("Database error adding manager: {e}");
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": "Failed to add manager"
         })));
@@ -754,7 +754,7 @@ pub async fn join_restaurant(
         .await;
 
     if let Err(e) = result {
-        log::error!("Database error deleting invite: {}", e);
+        log::error!("Database error deleting invite: {e}");
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": "Failed to process invite"
         })));
@@ -762,7 +762,7 @@ pub async fn join_restaurant(
 
     // Commit transaction
     if let Err(e) = tx.commit().await {
-        log::error!("Failed to commit transaction: {}", e);
+        log::error!("Failed to commit transaction: {e}");
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": "Failed to join restaurant"
         })));
@@ -788,7 +788,7 @@ pub async fn join_restaurant(
                     Ok(HttpResponse::Ok().json(response))
                 }
                 Err(e) => {
-                    log::error!("JWT generation error: {}", e);
+                    log::error!("JWT generation error: {e}");
                     Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                         "error": "Internal server error"
                     })))
@@ -796,7 +796,7 @@ pub async fn join_restaurant(
             }
         }
         Err(e) => {
-            log::error!("Database error fetching user: {}", e);
+            log::error!("Database error fetching user: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })))
@@ -828,7 +828,7 @@ pub async fn list_managers(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking manager access: {}", e);
+            log::error!("Database error checking manager access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -863,7 +863,7 @@ pub async fn list_managers(
             Ok(HttpResponse::Ok().json(manager_infos))
         }
         Err(e) => {
-            log::error!("Database error fetching managers: {}", e);
+            log::error!("Database error fetching managers: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })))
@@ -895,7 +895,7 @@ pub async fn remove_manager(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking super admin access: {}", e);
+            log::error!("Database error checking super admin access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -929,7 +929,7 @@ pub async fn remove_manager(
             }
         }
         Err(e) => {
-            log::error!("Database error removing manager: {}", e);
+            log::error!("Database error removing manager: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to remove manager"
             })))
@@ -962,7 +962,7 @@ pub async fn update_manager_permissions(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking super admin access: {}", e);
+            log::error!("Database error checking super admin access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -990,7 +990,7 @@ pub async fn update_manager_permissions(
             }
         }
         Err(e) => {
-            log::error!("Database error updating manager permissions: {}", e);
+            log::error!("Database error updating manager permissions: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to update manager permissions"
             })))

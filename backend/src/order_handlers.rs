@@ -27,7 +27,7 @@ pub async fn create_order(
             })));
         }
         Err(e) => {
-            log::error!("Database error finding table: {}", e);
+            log::error!("Database error finding table: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -58,7 +58,7 @@ pub async fn create_order(
                 })));
             }
             Err(e) => {
-                log::error!("Database error finding menu item: {}", e);
+                log::error!("Database error finding menu item: {e}");
                 return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                     "error": "Internal server error"
                 })));
@@ -93,7 +93,7 @@ pub async fn create_order(
     let items_json = match serde_json::to_string(&order_items) {
         Ok(json) => json,
         Err(e) => {
-            log::error!("Error serializing order items: {}", e);
+            log::error!("Error serializing order items: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -122,7 +122,7 @@ pub async fn create_order(
             Ok(HttpResponse::Created().json(response))
         }
         Err(e) => {
-            log::error!("Database error creating order: {}", e);
+            log::error!("Database error creating order: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to create order"
             })))
@@ -156,7 +156,7 @@ pub async fn get_order(
             let order_items: Vec<OrderItem> = match serde_json::from_str(&items) {
                 Ok(items) => items,
                 Err(e) => {
-                    log::error!("Error parsing order items: {}", e);
+                    log::error!("Error parsing order items: {e}");
                     return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                         "error": "Internal server error"
                     })));
@@ -194,7 +194,7 @@ pub async fn get_order(
                         });
                     }
                     Err(e) => {
-                        log::error!("Error fetching menu item details: {}", e);
+                        log::error!("Error fetching menu item details: {e}");
                         response_items.push(OrderItemResponse {
                             menu_item_id: item.menu_item_id,
                             menu_item_name: "Unknown Item".to_string(),
@@ -228,7 +228,7 @@ pub async fn get_order(
             "error": "Order not found"
         }))),
         Err(e) => {
-            log::error!("Database error fetching order: {}", e);
+            log::error!("Database error fetching order: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })))
@@ -295,7 +295,7 @@ pub async fn list_restaurant_orders(
                 let order_items: Vec<OrderItem> = match serde_json::from_str(&items) {
                     Ok(items) => items,
                     Err(e) => {
-                        log::error!("Error parsing order items: {}", e);
+                        log::error!("Error parsing order items: {e}");
                         continue;
                     }
                 };
@@ -362,7 +362,7 @@ pub async fn list_restaurant_orders(
             Ok(HttpResponse::Ok().json(order_responses))
         }
         Err(e) => {
-            log::error!("Database error fetching orders: {}", e);
+            log::error!("Database error fetching orders: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })))
@@ -429,7 +429,7 @@ pub async fn list_today_orders(
                 let order_items: Vec<OrderItem> = match serde_json::from_str(&items) {
                     Ok(items) => items,
                     Err(e) => {
-                        log::error!("Error parsing order items: {}", e);
+                        log::error!("Error parsing order items: {e}");
                         continue;
                     }
                 };
@@ -496,7 +496,7 @@ pub async fn list_today_orders(
             Ok(HttpResponse::Ok().json(order_responses))
         }
         Err(e) => {
-            log::error!("Database error fetching today's orders: {}", e);
+            log::error!("Database error fetching today's orders: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })))
@@ -578,7 +578,7 @@ pub async fn list_table_orders(
                 let order_items: Vec<OrderItem> = match serde_json::from_str(&items) {
                     Ok(items) => items,
                     Err(e) => {
-                        log::error!("Error parsing order items: {}", e);
+                        log::error!("Error parsing order items: {e}");
                         continue;
                     }
                 };
@@ -645,7 +645,7 @@ pub async fn list_table_orders(
             Ok(HttpResponse::Ok().json(order_responses))
         }
         Err(e) => {
-            log::error!("Database error fetching table orders: {}", e);
+            log::error!("Database error fetching table orders: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })))

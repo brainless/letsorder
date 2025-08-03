@@ -99,8 +99,7 @@ async fn test_password_timing_attack_resistance() {
     let ratio = correct_duration.as_nanos() as f64 / incorrect_duration.as_nanos() as f64;
     assert!(
         ratio > 0.5 && ratio < 2.0,
-        "Timing difference too large: {}",
-        ratio
+        "Timing difference too large: {ratio}"
     );
 }
 
@@ -171,7 +170,7 @@ async fn test_jwt_token_malformed() {
 
     for token in malformed_tokens {
         let result = jwt_manager.validate_token(token);
-        assert!(result.is_err(), "Token should be invalid: {}", token);
+        assert!(result.is_err(), "Token should be invalid: {token}");
     }
 }
 
@@ -341,7 +340,7 @@ async fn test_user_registration_invalid_email_formats() {
             && !email.ends_with('.')
             && !email.is_empty();
 
-        assert!(!is_valid, "Email should be invalid: {}", email);
+        assert!(!is_valid, "Email should be invalid: {email}");
     }
 }
 
@@ -361,7 +360,7 @@ async fn test_user_registration_weak_passwords() {
             && password.chars().any(|c| c.is_ascii_digit())
             && password.chars().any(|c| c.is_ascii_alphabetic());
 
-        assert!(!is_strong, "Password should be weak: {}", password);
+        assert!(!is_strong, "Password should be weak: {password}");
     }
 }
 
@@ -605,7 +604,7 @@ async fn test_concurrent_user_operations() {
         let pool_clone = pool.clone();
         let handle = tokio::spawn(async move {
             let user_id = uuid::Uuid::new_v4().to_string();
-            let email = format!("concurrent_user_{}@example.com", i);
+            let email = format!("concurrent_user_{i}@example.com");
             let password_hash =
                 PasswordHasher::hash_password("password123").expect("Failed to hash password");
 
