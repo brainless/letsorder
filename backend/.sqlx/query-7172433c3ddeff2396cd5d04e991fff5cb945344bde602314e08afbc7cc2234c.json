@@ -1,0 +1,44 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT name, description, CAST(price as REAL) as price, available, display_order FROM menu_items WHERE section_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "name",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "description",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "price",
+        "ordinal": 2,
+        "type_info": "Float"
+      },
+      {
+        "name": "available",
+        "ordinal": 3,
+        "type_info": "Bool"
+      },
+      {
+        "name": "display_order",
+        "ordinal": 4,
+        "type_info": "Int64"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "7172433c3ddeff2396cd5d04e991fff5cb945344bde602314e08afbc7cc2234c"
+}
