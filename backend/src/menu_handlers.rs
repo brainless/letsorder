@@ -1,4 +1,4 @@
-use crate::models::{Claims, CreateMenuSectionRequest, PublicMenu, PublicRestaurantInfo};
+use crate::models::{Claims, CreateMenuSectionRequest, PublicMenu, PublicRestaurantInfo, RestaurantMenu, MenuSectionWithItems, MenuItem, MenuSection};
 use actix_web::{web, HttpResponse, Result};
 use sqlx::{Pool, Sqlite};
 use uuid::Uuid;
@@ -119,6 +119,100 @@ pub async fn list_menu_sections(
         "message": "Menu sections listed successfully",
         "restaurant_id": restaurant_id
     })))
+}
+
+pub async fn get_restaurant_menu(
+    pool: web::Data<Pool<Sqlite>>,
+    path: web::Path<String>,
+    claims: web::ReqData<Claims>,
+) -> Result<HttpResponse> {
+    let restaurant_id = path.into_inner();
+
+    // Check if user is a manager of this restaurant
+    let manager_check = sqlx::query!(
+        "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
+        restaurant_id,
+        claims.sub
+    )
+    .fetch_one(pool.get_ref())
+    .await;
+
+    match manager_check {
+        Ok(row) if row.count > 0 => {} // User is a manager
+        Ok(_) => {
+            return Ok(HttpResponse::Forbidden().json(serde_json::json!({
+                "error": "Access denied"
+            })));
+        }
+        Err(e) => {
+            log::error!("Database error checking manager access: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            })));
+        }
+    }
+
+    // Fetch menu sections
+    let sections_result = sqlx::query_as::<_, crate::models::MenuSectionRow>(
+        "SELECT id, restaurant_id, name, display_order, created_at 
+         FROM menu_sections 
+         WHERE restaurant_id = ? 
+         ORDER BY display_order ASC",
+    )
+    .bind(restaurant_id.clone())
+    .fetch_all(pool.get_ref())
+    .await;
+
+    let sections = match sections_result {
+        Ok(rows) => rows.into_iter().map(MenuSection::from).collect::<Vec<_>>(),
+        Err(e) => {
+            log::error!("Database error fetching menu sections: {}", e);
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            })));
+        }
+    };
+
+    // Fetch menu items for all sections
+    let mut sections_with_items = Vec::new();
+    
+    for section in sections {
+        let items_result = sqlx::query_as::<_, crate::models::MenuItemRow>(
+            "SELECT id, section_id, name, description, price, available, display_order, created_at 
+             FROM menu_items 
+             WHERE section_id = ? 
+             ORDER BY display_order ASC",
+        )
+        .bind(&section.id)
+        .fetch_all(pool.get_ref())
+        .await;
+
+        let items = match items_result {
+            Ok(rows) => rows.into_iter().map(MenuItem::from).collect(),
+            Err(e) => {
+                log::error!("Database error fetching menu items for section {}: {}", section.id, e);
+                return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                    "error": "Internal server error"
+                })));
+            }
+        };
+
+        sections_with_items.push(MenuSectionWithItems {
+            id: section.id,
+            restaurant_id: section.restaurant_id,
+            name: section.name,
+            display_order: section.display_order,
+            created_at: section.created_at,
+            items,
+        });
+    }
+
+    let restaurant_menu = RestaurantMenu {
+        restaurant_id,
+        sections: sections_with_items,
+    };
+
+    Ok(HttpResponse::Ok().json(restaurant_menu))
 }
 
 // Public Menu Access

@@ -176,6 +176,11 @@ pub fn create_app(pool: Pool<Sqlite>, jwt_manager: JwtManager) -> App<impl actix
                     "/restaurants/{id}/menu/sections",
                     web::get().to(menu_handlers::list_menu_sections),
                 )
+                // Menu management route
+                .route(
+                    "/restaurants/{id}/menu",
+                    web::get().to(menu_handlers::get_restaurant_menu),
+                )
                 // Table management routes
                 .route(
                     "/restaurants/{id}/tables",

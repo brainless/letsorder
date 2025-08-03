@@ -388,50 +388,73 @@ pub struct PublicMenuItem {
 
 #[derive(Debug, Clone, FromRow)]
 pub struct MenuSectionRow {
-    pub id: String,
-    pub restaurant_id: String,
-    pub name: String,
-    pub display_order: i64,
-    pub created_at: NaiveDateTime,
+    pub id: Option<String>,
+    pub restaurant_id: Option<String>,
+    pub name: Option<String>,
+    pub display_order: Option<i64>,
+    pub created_at: Option<NaiveDateTime>,
 }
 
 impl From<MenuSectionRow> for MenuSection {
     fn from(row: MenuSectionRow) -> Self {
         Self {
-            id: row.id,
-            restaurant_id: row.restaurant_id,
-            name: row.name,
-            display_order: row.display_order as i32,
-            created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
+            id: row.id.unwrap_or_default(),
+            restaurant_id: row.restaurant_id.unwrap_or_default(),
+            name: row.name.unwrap_or_default(),
+            display_order: row.display_order.unwrap_or(0) as i32,
+            created_at: DateTime::from_naive_utc_and_offset(
+                row.created_at.unwrap_or_else(|| NaiveDateTime::default()), 
+                Utc
+            ),
         }
     }
 }
 
 #[derive(Debug, Clone, FromRow)]
 pub struct MenuItemRow {
-    pub id: String,
-    pub section_id: String,
-    pub name: String,
+    pub id: Option<String>,
+    pub section_id: Option<String>,
+    pub name: Option<String>,
     pub description: Option<String>,
-    pub price: f64,
-    pub available: bool,
-    pub display_order: i64,
-    pub created_at: NaiveDateTime,
+    pub price: Option<f64>,
+    pub available: Option<bool>,
+    pub display_order: Option<i64>,
+    pub created_at: Option<NaiveDateTime>,
 }
 
 impl From<MenuItemRow> for MenuItem {
     fn from(row: MenuItemRow) -> Self {
         Self {
-            id: row.id,
-            section_id: row.section_id,
-            name: row.name,
+            id: row.id.unwrap_or_default(),
+            section_id: row.section_id.unwrap_or_default(),
+            name: row.name.unwrap_or_default(),
             description: row.description,
-            price: row.price,
-            available: row.available,
-            display_order: row.display_order as i32,
-            created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
+            price: row.price.unwrap_or(0.0),
+            available: row.available.unwrap_or(true),
+            display_order: row.display_order.unwrap_or(0) as i32,
+            created_at: DateTime::from_naive_utc_and_offset(
+                row.created_at.unwrap_or_else(|| NaiveDateTime::default()), 
+                Utc
+            ),
         }
     }
+}
+
+// Restaurant menu response types
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestaurantMenu {
+    pub restaurant_id: String,
+    pub sections: Vec<MenuSectionWithItems>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MenuSectionWithItems {
+    pub id: String,
+    pub restaurant_id: String,
+    pub name: String,
+    pub display_order: i32,
+    pub created_at: DateTime<Utc>,
+    pub items: Vec<MenuItem>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
