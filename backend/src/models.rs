@@ -403,8 +403,8 @@ impl From<MenuSectionRow> for MenuSection {
             name: row.name.unwrap_or_default(),
             display_order: row.display_order.unwrap_or(0) as i32,
             created_at: DateTime::from_naive_utc_and_offset(
-                row.created_at.unwrap_or_else(|| NaiveDateTime::default()), 
-                Utc
+                row.created_at.unwrap_or_else(|| NaiveDateTime::default()),
+                Utc,
             ),
         }
     }
@@ -433,8 +433,8 @@ impl From<MenuItemRow> for MenuItem {
             available: row.available.unwrap_or(true),
             display_order: row.display_order.unwrap_or(0) as i32,
             created_at: DateTime::from_naive_utc_and_offset(
-                row.created_at.unwrap_or_else(|| NaiveDateTime::default()), 
-                Utc
+                row.created_at.unwrap_or_else(|| NaiveDateTime::default()),
+                Utc,
             ),
         }
     }

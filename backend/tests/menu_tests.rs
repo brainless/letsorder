@@ -1,5 +1,5 @@
 use backend::init_database;
-use backend::models::{MenuSectionRow, MenuItemRow, MenuSection, MenuItem};
+use backend::models::{MenuItem, MenuItemRow, MenuSection, MenuSectionRow};
 use sqlx::{Pool, Sqlite};
 use std::sync::Once;
 
@@ -16,8 +16,12 @@ async fn setup_test_db() -> Pool<Sqlite> {
 
     // Clean database
     let _ = sqlx::query("DELETE FROM menu_items").execute(&pool).await;
-    let _ = sqlx::query("DELETE FROM menu_sections").execute(&pool).await;
-    let _ = sqlx::query("DELETE FROM restaurant_managers").execute(&pool).await;
+    let _ = sqlx::query("DELETE FROM menu_sections")
+        .execute(&pool)
+        .await;
+    let _ = sqlx::query("DELETE FROM restaurant_managers")
+        .execute(&pool)
+        .await;
     let _ = sqlx::query("DELETE FROM restaurants").execute(&pool).await;
     let _ = sqlx::query("DELETE FROM users").execute(&pool).await;
 
@@ -27,7 +31,7 @@ async fn setup_test_db() -> Pool<Sqlite> {
 #[tokio::test]
 async fn test_menu_section_creation_and_retrieval() {
     let pool = setup_test_db().await;
-    
+
     // Create a restaurant
     let restaurant_id = "restaurant-1";
     sqlx::query!(
@@ -44,7 +48,7 @@ async fn test_menu_section_creation_and_retrieval() {
     // Create menu sections
     let section1_id = "section-1";
     let section2_id = "section-2";
-    
+
     sqlx::query!(
         "INSERT INTO menu_sections (id, restaurant_id, name, display_order) VALUES (?, ?, ?, ?)",
         section1_id,
@@ -80,10 +84,10 @@ async fn test_menu_section_creation_and_retrieval() {
     .expect("Failed to fetch menu sections");
 
     assert_eq!(sections.len(), 2);
-    
+
     // Convert to domain models and verify
     let section_models: Vec<MenuSection> = sections.into_iter().map(MenuSection::from).collect();
-    
+
     assert_eq!(section_models[0].name, "Appetizers");
     assert_eq!(section_models[0].display_order, 1);
     assert_eq!(section_models[1].name, "Main Course");
@@ -93,7 +97,7 @@ async fn test_menu_section_creation_and_retrieval() {
 #[tokio::test]
 async fn test_menu_item_creation_and_retrieval() {
     let pool = setup_test_db().await;
-    
+
     // Create a restaurant
     let restaurant_id = "restaurant-1";
     sqlx::query!(
@@ -162,14 +166,14 @@ async fn test_menu_item_creation_and_retrieval() {
     .expect("Failed to fetch menu items");
 
     assert_eq!(items.len(), 2);
-    
+
     // Convert to domain models and verify
     let item_models: Vec<MenuItem> = items.into_iter().map(MenuItem::from).collect();
-    
+
     assert_eq!(item_models[0].name, "Garlic Bread");
     assert_eq!(item_models[0].price, 5.99);
     assert_eq!(item_models[0].available, true);
-    
+
     assert_eq!(item_models[1].name, "Caesar Salad");
     assert_eq!(item_models[1].price, 8.50);
     assert_eq!(item_models[1].available, true);
@@ -178,7 +182,7 @@ async fn test_menu_item_creation_and_retrieval() {
 #[tokio::test]
 async fn test_complete_menu_structure() {
     let pool = setup_test_db().await;
-    
+
     // Create a restaurant
     let restaurant_id = "restaurant-1";
     sqlx::query!(
@@ -195,7 +199,7 @@ async fn test_complete_menu_structure() {
     // Create menu sections
     let section1_id = "section-1";
     let section2_id = "section-2";
-    
+
     sqlx::query!(
         "INSERT INTO menu_sections (id, restaurant_id, name, display_order) VALUES (?, ?, ?, ?)",
         section1_id,
@@ -264,7 +268,7 @@ async fn test_complete_menu_structure() {
 
     // For each section, fetch items
     let mut complete_menu = Vec::new();
-    
+
     for section in section_models {
         let items = sqlx::query_as::<_, MenuItemRow>(
             "SELECT id, section_id, name, description, price, available, display_order, created_at 
@@ -278,18 +282,18 @@ async fn test_complete_menu_structure() {
         .expect("Failed to fetch menu items");
 
         let item_models: Vec<MenuItem> = items.into_iter().map(MenuItem::from).collect();
-        
+
         complete_menu.push((section, item_models));
     }
 
     // Verify complete menu structure
     assert_eq!(complete_menu.len(), 2);
-    
+
     // Check first section (Appetizers)
     assert_eq!(complete_menu[0].0.name, "Appetizers");
     assert_eq!(complete_menu[0].1.len(), 1);
     assert_eq!(complete_menu[0].1[0].name, "Garlic Bread");
-    
+
     // Check second section (Main Course)
     assert_eq!(complete_menu[1].0.name, "Main Course");
     assert_eq!(complete_menu[1].1.len(), 1);

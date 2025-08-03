@@ -1,4 +1,7 @@
-use crate::models::{Claims, CreateMenuSectionRequest, PublicMenu, PublicRestaurantInfo, RestaurantMenu, MenuSectionWithItems, MenuItem, MenuSection};
+use crate::models::{
+    Claims, CreateMenuSectionRequest, MenuItem, MenuSection, MenuSectionWithItems, PublicMenu,
+    PublicRestaurantInfo, RestaurantMenu,
+};
 use actix_web::{web, HttpResponse, Result};
 use sqlx::{Pool, Sqlite};
 use uuid::Uuid;
@@ -175,7 +178,7 @@ pub async fn get_restaurant_menu(
 
     // Fetch menu items for all sections
     let mut sections_with_items = Vec::new();
-    
+
     for section in sections {
         let items_result = sqlx::query_as::<_, crate::models::MenuItemRow>(
             "SELECT id, section_id, name, description, price, available, display_order, created_at 
@@ -190,7 +193,11 @@ pub async fn get_restaurant_menu(
         let items = match items_result {
             Ok(rows) => rows.into_iter().map(MenuItem::from).collect(),
             Err(e) => {
-                log::error!("Database error fetching menu items for section {}: {}", section.id, e);
+                log::error!(
+                    "Database error fetching menu items for section {}: {}",
+                    section.id,
+                    e
+                );
                 return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                     "error": "Internal server error"
                 })));
