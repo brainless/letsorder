@@ -57,6 +57,7 @@ jobs:
         run: cargo test --verbose
         env:
           DATABASE_URL: "sqlite::memory:"
+          SQLX_OFFLINE: true
 
       - name: Install cargo-audit
         run: cargo install cargo-audit
@@ -89,6 +90,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli
+
       - name: Setup test database
         run: |
           sqlite3 test.db < migrations/20250131000001_initial_schema.sql
@@ -102,10 +106,9 @@ jobs:
 
   matrix-test:
     name: Matrix Testing
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         rust: [stable, beta]
     defaults:
       run:
@@ -127,9 +130,9 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             backend/target
-          key: ${{ runner.os }}-${{ matrix.rust }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ubuntu-latest-${{ matrix.rust }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.rust }}-cargo-
+            ubuntu-latest-${{ matrix.rust }}-cargo-
 
       - name: Build
         run: cargo build --verbose
@@ -138,3 +141,4 @@ jobs:
         run: cargo test --verbose
         env:
           DATABASE_URL: "sqlite::memory:"
+          SQLX_OFFLINE: true

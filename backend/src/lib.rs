@@ -1,6 +1,6 @@
+use actix_cors::Cors;
 use actix_web::{web, App, HttpResponse, HttpServer, Result};
 use actix_web_httpauth::middleware::HttpAuthentication;
-use actix_cors::Cors;
 use auth::JwtManager;
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -116,7 +116,20 @@ pub async fn health() -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().json(response))
 }
 
-pub fn create_app(pool: Pool<Sqlite>, jwt_manager: JwtManager) -> App<impl actix_web::dev::ServiceFactory<actix_web::dev::ServiceRequest, Config = (), Response = actix_web::dev::ServiceResponse<actix_web::body::EitherBody<actix_web::body::BoxBody>>, Error = actix_web::Error, InitError = ()>> {
+pub fn create_app(
+    pool: Pool<Sqlite>,
+    jwt_manager: JwtManager,
+) -> App<
+    impl actix_web::dev::ServiceFactory<
+        actix_web::dev::ServiceRequest,
+        Config = (),
+        Response = actix_web::dev::ServiceResponse<
+            actix_web::body::EitherBody<actix_web::body::BoxBody>,
+        >,
+        Error = actix_web::Error,
+        InitError = (),
+    >,
+> {
     let auth_middleware = HttpAuthentication::bearer(auth::jwt_validator);
 
     App::new()
@@ -125,7 +138,7 @@ pub fn create_app(pool: Pool<Sqlite>, jwt_manager: JwtManager) -> App<impl actix
                 .allowed_origin("http://localhost:3000")
                 .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
                 .allowed_headers(vec!["Content-Type", "Authorization"])
-                .max_age(3600)
+                .max_age(3600),
         )
         .app_data(web::Data::new(pool))
         .app_data(web::Data::new(jwt_manager))
@@ -175,6 +188,11 @@ pub fn create_app(pool: Pool<Sqlite>, jwt_manager: JwtManager) -> App<impl actix
                 .route(
                     "/restaurants/{id}/menu/sections",
                     web::get().to(menu_handlers::list_menu_sections),
+                )
+                // Menu management route
+                .route(
+                    "/restaurants/{id}/menu",
+                    web::get().to(menu_handlers::get_restaurant_menu),
                 )
                 // Table management routes
                 .route(
@@ -263,7 +281,7 @@ pub async fn run_server() -> std::io::Result<()> {
 
     // Seed database if empty (development only)
     if let Err(e) = seed_database_if_empty(&pool).await {
-        log::warn!("Failed to seed database: {}", e);
+        log::warn!("Failed to seed database: {e}");
     }
 
     // Initialize JWT manager

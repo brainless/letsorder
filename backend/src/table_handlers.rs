@@ -22,7 +22,7 @@ fn generate_unique_code() -> String {
 
 // Helper function to generate QR URL
 fn generate_qr_url(restaurant_id: &str, table_code: &str) -> String {
-    format!("/menu/{}/{}", restaurant_id, table_code)
+    format!("/menu/{restaurant_id}/{table_code}")
 }
 
 // Table CRUD Handlers
@@ -52,7 +52,7 @@ pub async fn create_table(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking menu permission: {}", e);
+            log::error!("Database error checking menu permission: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -78,7 +78,7 @@ pub async fn create_table(
                 attempts += 1;
             }
             Err(e) => {
-                log::error!("Database error checking unique code: {}", e);
+                log::error!("Database error checking unique code: {e}");
                 return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                     "error": "Internal server error"
                 })));
@@ -113,7 +113,7 @@ pub async fn create_table(
             })))
         }
         Err(e) => {
-            log::error!("Database error creating table: {}", e);
+            log::error!("Database error creating table: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to create table"
             })))
@@ -145,7 +145,7 @@ pub async fn list_tables(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking manager access: {}", e);
+            log::error!("Database error checking manager access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -184,7 +184,7 @@ pub async fn update_table(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking menu permission: {}", e);
+            log::error!("Database error checking menu permission: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -217,7 +217,7 @@ pub async fn update_table(
                 }
             }
             Err(e) => {
-                log::error!("Database error updating table: {}", e);
+                log::error!("Database error updating table: {e}");
                 Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                     "error": "Failed to update table"
                 })))
@@ -254,7 +254,7 @@ pub async fn delete_table(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking menu permission: {}", e);
+            log::error!("Database error checking menu permission: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -282,7 +282,7 @@ pub async fn delete_table(
             }
         }
         Err(e) => {
-            log::error!("Database error deleting table: {}", e);
+            log::error!("Database error deleting table: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to delete table"
             })))
@@ -297,7 +297,7 @@ pub async fn get_table_qr_url(
     path: web::Path<(String, String)>,
     claims: web::ReqData<Claims>,
 ) -> Result<HttpResponse> {
-    let (restaurant_id, table_id) = path.into_inner();
+    let (restaurant_id, _table_id) = path.into_inner();
 
     // Check if user is a manager of this restaurant
     let manager_check = sqlx::query!(
@@ -316,7 +316,7 @@ pub async fn get_table_qr_url(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking manager access: {}", e);
+            log::error!("Database error checking manager access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -357,7 +357,7 @@ pub async fn refresh_table_code(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking menu permission: {}", e);
+            log::error!("Database error checking menu permission: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -383,7 +383,7 @@ pub async fn refresh_table_code(
                 attempts += 1;
             }
             Err(e) => {
-                log::error!("Database error checking unique code: {}", e);
+                log::error!("Database error checking unique code: {e}");
                 return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                     "error": "Internal server error"
                 })));
@@ -424,7 +424,7 @@ pub async fn refresh_table_code(
             }
         }
         Err(e) => {
-            log::error!("Database error updating table code: {}", e);
+            log::error!("Database error updating table code: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to refresh table code"
             })))
@@ -457,7 +457,7 @@ pub async fn bulk_qr_codes(
             })));
         }
         Err(e) => {
-            log::error!("Database error checking manager access: {}", e);
+            log::error!("Database error checking manager access: {e}");
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Internal server error"
             })));
@@ -467,7 +467,7 @@ pub async fn bulk_qr_codes(
     let mut qr_codes = Vec::new();
 
     // Generate sample QR codes for now
-    for (i, table_id) in req.table_ids.iter().enumerate() {
+    for (i, _table_id) in req.table_ids.iter().enumerate() {
         let sample_code = format!("SAMPLE{:03}", i + 1);
         let qr_url = generate_qr_url(&restaurant_id, &sample_code);
         qr_codes.push(QrCodeResponse {
