@@ -1,7 +1,7 @@
 use crate::models::{
-    Claims, CreateMenuSectionRequest, CreateMenuItemFromSectionRequest, MenuItem, MenuSection, 
-    MenuSectionWithItems, PublicMenu, PublicRestaurantInfo, RestaurantMenu, UpdateMenuItemRequest, 
-    ReorderItemsRequest, ToggleAvailabilityRequest,
+    Claims, CreateMenuItemFromSectionRequest, CreateMenuSectionRequest, MenuItem, MenuSection,
+    MenuSectionWithItems, PublicMenu, PublicRestaurantInfo, ReorderItemsRequest, RestaurantMenu,
+    ToggleAvailabilityRequest, UpdateMenuItemRequest,
 };
 use actix_web::{web, HttpResponse, Result};
 use sqlx::{Pool, Sqlite};
@@ -434,7 +434,11 @@ pub async fn update_menu_item(
     }
 
     // Check if there are any fields to update
-    if req.name.is_none() && req.description.is_none() && req.price.is_none() && req.display_order.is_none() {
+    if req.name.is_none()
+        && req.description.is_none()
+        && req.price.is_none()
+        && req.display_order.is_none()
+    {
         return Ok(HttpResponse::BadRequest().json(serde_json::json!({
             "error": "No fields to update"
         })));
@@ -454,8 +458,13 @@ pub async fn update_menu_item(
                     // name, description, price
                     sqlx::query!(
                         "UPDATE menu_items SET name = ?, description = ?, price = ? WHERE id = ?",
-                        name, description, price, item_id
-                    ).execute(pool.get_ref()).await
+                        name,
+                        description,
+                        price,
+                        item_id
+                    )
+                    .execute(pool.get_ref())
+                    .await
                 }
             } else if let Some(ref display_order) = req.display_order {
                 // name, description, display_order
@@ -467,35 +476,51 @@ pub async fn update_menu_item(
                 // name, description
                 sqlx::query!(
                     "UPDATE menu_items SET name = ?, description = ? WHERE id = ?",
-                    name, description, item_id
-                ).execute(pool.get_ref()).await
+                    name,
+                    description,
+                    item_id
+                )
+                .execute(pool.get_ref())
+                .await
             }
         } else if let Some(ref price) = req.price {
             if let Some(ref display_order) = req.display_order {
                 // name, price, display_order
                 sqlx::query!(
                     "UPDATE menu_items SET name = ?, price = ?, display_order = ? WHERE id = ?",
-                    name, price, display_order, item_id
-                ).execute(pool.get_ref()).await
+                    name,
+                    price,
+                    display_order,
+                    item_id
+                )
+                .execute(pool.get_ref())
+                .await
             } else {
                 // name, price
                 sqlx::query!(
                     "UPDATE menu_items SET name = ?, price = ? WHERE id = ?",
-                    name, price, item_id
-                ).execute(pool.get_ref()).await
+                    name,
+                    price,
+                    item_id
+                )
+                .execute(pool.get_ref())
+                .await
             }
         } else if let Some(ref display_order) = req.display_order {
             // name, display_order
             sqlx::query!(
                 "UPDATE menu_items SET name = ?, display_order = ? WHERE id = ?",
-                name, display_order, item_id
-            ).execute(pool.get_ref()).await
+                name,
+                display_order,
+                item_id
+            )
+            .execute(pool.get_ref())
+            .await
         } else {
             // name only
-            sqlx::query!(
-                "UPDATE menu_items SET name = ? WHERE id = ?",
-                name, item_id
-            ).execute(pool.get_ref()).await
+            sqlx::query!("UPDATE menu_items SET name = ? WHERE id = ?", name, item_id)
+                .execute(pool.get_ref())
+                .await
         }
     } else if let Some(ref description) = req.description {
         if let Some(ref price) = req.price {
@@ -509,42 +534,63 @@ pub async fn update_menu_item(
                 // description, price
                 sqlx::query!(
                     "UPDATE menu_items SET description = ?, price = ? WHERE id = ?",
-                    description, price, item_id
-                ).execute(pool.get_ref()).await
+                    description,
+                    price,
+                    item_id
+                )
+                .execute(pool.get_ref())
+                .await
             }
         } else if let Some(ref display_order) = req.display_order {
             // description, display_order
             sqlx::query!(
                 "UPDATE menu_items SET description = ?, display_order = ? WHERE id = ?",
-                description, display_order, item_id
-            ).execute(pool.get_ref()).await
+                description,
+                display_order,
+                item_id
+            )
+            .execute(pool.get_ref())
+            .await
         } else {
             // description only
             sqlx::query!(
                 "UPDATE menu_items SET description = ? WHERE id = ?",
-                description, item_id
-            ).execute(pool.get_ref()).await
+                description,
+                item_id
+            )
+            .execute(pool.get_ref())
+            .await
         }
     } else if let Some(ref price) = req.price {
         if let Some(ref display_order) = req.display_order {
             // price, display_order
             sqlx::query!(
                 "UPDATE menu_items SET price = ?, display_order = ? WHERE id = ?",
-                price, display_order, item_id
-            ).execute(pool.get_ref()).await
+                price,
+                display_order,
+                item_id
+            )
+            .execute(pool.get_ref())
+            .await
         } else {
             // price only
             sqlx::query!(
                 "UPDATE menu_items SET price = ? WHERE id = ?",
-                price, item_id
-            ).execute(pool.get_ref()).await
+                price,
+                item_id
+            )
+            .execute(pool.get_ref())
+            .await
         }
     } else if let Some(ref display_order) = req.display_order {
         // display_order only
         sqlx::query!(
             "UPDATE menu_items SET display_order = ? WHERE id = ?",
-            display_order, item_id
-        ).execute(pool.get_ref()).await
+            display_order,
+            item_id
+        )
+        .execute(pool.get_ref())
+        .await
     } else {
         return Ok(HttpResponse::BadRequest().json(serde_json::json!({
             "error": "No fields to update"
@@ -629,12 +675,9 @@ pub async fn delete_menu_item(
         }
     }
 
-    let result = sqlx::query!(
-        "DELETE FROM menu_items WHERE id = ?",
-        item_id
-    )
-    .execute(pool.get_ref())
-    .await;
+    let result = sqlx::query!("DELETE FROM menu_items WHERE id = ?", item_id)
+        .execute(pool.get_ref())
+        .await;
 
     match result {
         Ok(result) => {
@@ -825,7 +868,11 @@ pub async fn reorder_menu_items(
         .await;
 
         if let Err(e) = result {
-            log::error!("Database error updating item order {}: {}", item_order.item_id, e);
+            log::error!(
+                "Database error updating item order {}: {}",
+                item_order.item_id,
+                e
+            );
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to update item orders"
             })));

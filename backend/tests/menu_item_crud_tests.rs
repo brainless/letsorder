@@ -1,4 +1,4 @@
-use backend::{init_database, auth::PasswordHasher};
+use backend::{auth::PasswordHasher, init_database};
 use sqlx::{Pool, Sqlite};
 use uuid::Uuid;
 
@@ -13,8 +13,9 @@ async fn create_test_user_and_restaurant(pool: &Pool<Sqlite>) -> (String, String
     let user_id = Uuid::new_v4().to_string();
     let restaurant_id = Uuid::new_v4().to_string();
     let section_id = Uuid::new_v4().to_string();
-    
-    let password_hash = PasswordHasher::hash_password("password123").expect("Failed to hash password");
+
+    let password_hash =
+        PasswordHasher::hash_password("password123").expect("Failed to hash password");
 
     // Create user
     sqlx::query!(
@@ -135,7 +136,7 @@ async fn test_update_menu_item() {
     // Update the item
     let new_name = "Updated Item";
     let new_price = 15.99;
-    
+
     let result = sqlx::query!(
         "UPDATE menu_items SET name = ?, price = ? WHERE id = ?",
         new_name,
@@ -194,12 +195,9 @@ async fn test_delete_menu_item() {
     assert_eq!(items_before.count, 1);
 
     // Delete the item
-    let result = sqlx::query!(
-        "DELETE FROM menu_items WHERE id = ?",
-        item_id
-    )
-    .execute(&pool)
-    .await;
+    let result = sqlx::query!("DELETE FROM menu_items WHERE id = ?", item_id)
+        .execute(&pool)
+        .await;
 
     assert!(result.is_ok());
     assert_eq!(result.unwrap().rows_affected(), 1);
@@ -249,13 +247,10 @@ async fn test_toggle_menu_item_availability() {
     assert_eq!(result.unwrap().rows_affected(), 1);
 
     // Verify it's now unavailable
-    let item = sqlx::query!(
-        "SELECT available FROM menu_items WHERE id = ?",
-        item_id
-    )
-    .fetch_one(&pool)
-    .await
-    .expect("Failed to fetch item");
+    let item = sqlx::query!("SELECT available FROM menu_items WHERE id = ?", item_id)
+        .fetch_one(&pool)
+        .await
+        .expect("Failed to fetch item");
     assert_eq!(item.available, false);
 
     // Toggle back to available
@@ -271,13 +266,10 @@ async fn test_toggle_menu_item_availability() {
     assert_eq!(result.unwrap().rows_affected(), 1);
 
     // Verify it's available again
-    let item = sqlx::query!(
-        "SELECT available FROM menu_items WHERE id = ?",
-        item_id
-    )
-    .fetch_one(&pool)
-    .await
-    .expect("Failed to fetch item");
+    let item = sqlx::query!("SELECT available FROM menu_items WHERE id = ?", item_id)
+        .fetch_one(&pool)
+        .await
+        .expect("Failed to fetch item");
     assert_eq!(item.available, true);
 }
 
@@ -376,7 +368,7 @@ async fn test_menu_item_display_order_auto_increment() {
 
     // Create first item (should get display_order = 1)
     let item1_id = Uuid::new_v4().to_string();
-    
+
     // Get next display order (should be 1)
     let max_order = sqlx::query!(
         "SELECT COALESCE(MAX(display_order), 0) as max_order FROM menu_items WHERE section_id = ?",
@@ -385,7 +377,7 @@ async fn test_menu_item_display_order_auto_increment() {
     .fetch_one(&pool)
     .await
     .expect("Failed to get max order");
-    
+
     let next_order = max_order.max_order + 1;
     assert_eq!(next_order, 1);
 
@@ -405,7 +397,7 @@ async fn test_menu_item_display_order_auto_increment() {
 
     // Create second item (should get display_order = 2)
     let item2_id = Uuid::new_v4().to_string();
-    
+
     let max_order = sqlx::query!(
         "SELECT COALESCE(MAX(display_order), 0) as max_order FROM menu_items WHERE section_id = ?",
         section_id
@@ -413,7 +405,7 @@ async fn test_menu_item_display_order_auto_increment() {
     .fetch_one(&pool)
     .await
     .expect("Failed to get max order");
-    
+
     let next_order = max_order.max_order + 1;
     assert_eq!(next_order, 2);
 
