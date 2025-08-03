@@ -297,7 +297,7 @@ pub async fn get_table_qr_url(
     path: web::Path<(String, String)>,
     claims: web::ReqData<Claims>,
 ) -> Result<HttpResponse> {
-    let (restaurant_id, table_id) = path.into_inner();
+    let (restaurant_id, _table_id) = path.into_inner();
 
     // Check if user is a manager of this restaurant
     let manager_check = sqlx::query!(
@@ -467,7 +467,7 @@ pub async fn bulk_qr_codes(
     let mut qr_codes = Vec::new();
 
     // Generate sample QR codes for now
-    for (i, table_id) in req.table_ids.iter().enumerate() {
+    for (i, _table_id) in req.table_ids.iter().enumerate() {
         let sample_code = format!("SAMPLE{:03}", i + 1);
         let qr_url = generate_qr_url(&restaurant_id, &sample_code);
         qr_codes.push(QrCodeResponse {

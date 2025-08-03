@@ -89,6 +89,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli
+
       - name: Setup test database
         run: |
           sqlite3 test.db < migrations/20250131000001_initial_schema.sql

@@ -1,4 +1,4 @@
-use sqlx::{Pool, Sqlite};
+// Remove unused imports
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {

@@ -42,7 +42,7 @@ fn generate_qr_url(restaurant_code: &str, table_code: &str) -> String {
 // Helper function to generate QR code as PNG base64
 fn generate_qr_code_png(url: &str) -> Result<String, Box<dyn std::error::Error>> {
     let code = QrCode::new(url)?;
-    let image = code
+    let _image = code
         .render::<qrcode::render::unicode::Dense1x2>()
         .min_dimensions(200, 200)
         .max_dimensions(400, 400)
