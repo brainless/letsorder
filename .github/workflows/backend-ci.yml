@@ -57,6 +57,7 @@ jobs:
         run: cargo test --verbose
         env:
           DATABASE_URL: "sqlite::memory:"
+          SQLX_OFFLINE: true
 
       - name: Install cargo-audit
         run: cargo install cargo-audit
@@ -140,3 +141,4 @@ jobs:
         run: cargo test --verbose
         env:
           DATABASE_URL: "sqlite::memory:"
+          SQLX_OFFLINE: true
