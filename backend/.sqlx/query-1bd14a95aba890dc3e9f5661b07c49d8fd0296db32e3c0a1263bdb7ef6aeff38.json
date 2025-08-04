@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT name, description, CAST(price as REAL) as price FROM menu_items WHERE id = ?",
+  "query": "SELECT name, description, price as \"price: f64\" FROM menu_items WHERE id = ?",
   "describe": {
     "columns": [
       {
@@ -14,9 +14,9 @@
         "type_info": "Text"
       },
       {
-        "name": "price",
+        "name": "price: f64",
         "ordinal": 2,
-        "type_info": "Float"
+        "type_info": "Null"
       }
     ],
     "parameters": {
@@ -28,5 +28,5 @@
       false
     ]
   },
-  "hash": "4ab2476808c012ec7f15b4032d238c441cbd4b1a613c120ba589f9ee2215b086"
+  "hash": "1bd14a95aba890dc3e9f5661b07c49d8fd0296db32e3c0a1263bdb7ef6aeff38"
 }

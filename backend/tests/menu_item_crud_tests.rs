@@ -97,7 +97,7 @@ async fn test_create_menu_item() {
 
     // Verify the item was created
     let items = sqlx::query!(
-        "SELECT name, description, CAST(price as REAL) as price, available, display_order FROM menu_items WHERE section_id = ?",
+        "SELECT name, description, price as \"price: f64\", available, display_order FROM menu_items WHERE section_id = ?",
         section_id
     )
     .fetch_all(&pool)
@@ -151,7 +151,7 @@ async fn test_update_menu_item() {
 
     // Verify the update
     let item = sqlx::query!(
-        "SELECT name, description, CAST(price as REAL) as price FROM menu_items WHERE id = ?",
+        "SELECT name, description, price as \"price: f64\" FROM menu_items WHERE id = ?",
         item_id
     )
     .fetch_one(&pool)

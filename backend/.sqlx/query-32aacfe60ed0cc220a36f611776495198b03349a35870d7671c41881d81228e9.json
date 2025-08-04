@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT name, description, CAST(price as REAL) as price, available, display_order FROM menu_items WHERE section_id = ?",
+  "query": "SELECT name, description, price as \"price: f64\", available, display_order FROM menu_items WHERE section_id = ?",
   "describe": {
     "columns": [
       {
@@ -14,9 +14,9 @@
         "type_info": "Text"
       },
       {
-        "name": "price",
+        "name": "price: f64",
         "ordinal": 2,
-        "type_info": "Float"
+        "type_info": "Null"
       },
       {
         "name": "available",
@@ -26,7 +26,7 @@
       {
         "name": "display_order",
         "ordinal": 4,
-        "type_info": "Int64"
+        "type_info": "Integer"
       }
     ],
     "parameters": {
@@ -40,5 +40,5 @@
       false
     ]
   },
-  "hash": "7172433c3ddeff2396cd5d04e991fff5cb945344bde602314e08afbc7cc2234c"
+  "hash": "32aacfe60ed0cc220a36f611776495198b03349a35870d7671c41881d81228e9"
 }
