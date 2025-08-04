@@ -1,7 +1,7 @@
 use crate::models::{
     Claims, CreateMenuItemFromSectionRequest, CreateMenuSectionRequest, MenuItem, MenuSection,
-    MenuSectionWithItems, PublicMenu, PublicRestaurantInfo, ReorderItemsRequest, RestaurantMenu,
-    ToggleAvailabilityRequest, UpdateMenuItemRequest,
+    MenuSectionWithItems, PublicMenu, PublicRestaurantInfo, ReorderItemsRequest,
+    ReorderSectionsRequest, RestaurantMenu, ToggleAvailabilityRequest, UpdateMenuItemRequest,
 };
 use actix_web::{web, HttpResponse, Result};
 use sqlx::{Pool, Sqlite};
@@ -882,5 +882,124 @@ pub async fn reorder_menu_items(
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "message": "Menu items reordered successfully",
         "updated_count": req.item_orders.len()
+    })))
+}
+
+pub async fn reorder_sections(
+    pool: web::Data<Pool<Sqlite>>,
+    claims: web::ReqData<Claims>,
+    req: web::Json<ReorderSectionsRequest>,
+) -> Result<HttpResponse> {
+    if req.section_orders.is_empty() {
+        return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "No sections to reorder"
+        })));
+    }
+
+    // Check each section individually to verify they exist and get restaurant IDs
+    let mut restaurant_ids = std::collections::HashSet::new();
+    for section_order in &req.section_orders {
+        let section_check = sqlx::query!(
+            "SELECT restaurant_id FROM menu_sections WHERE id = ?",
+            section_order.section_id
+        )
+        .fetch_optional(pool.get_ref())
+        .await;
+
+        match section_check {
+            Ok(Some(row)) => {
+                restaurant_ids.insert(row.restaurant_id);
+            }
+            Ok(None) => {
+                return Ok(HttpResponse::NotFound().json(serde_json::json!({
+                    "error": format!("Menu section not found: {}", section_order.section_id)
+                })));
+            }
+            Err(e) => {
+                log::error!(
+                    "Database error checking section {}: {}",
+                    section_order.section_id,
+                    e
+                );
+                return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                    "error": "Internal server error"
+                })));
+            }
+        }
+    }
+
+    // Check permissions for all restaurants
+    for restaurant_id in &restaurant_ids {
+        let permission_check = sqlx::query!(
+            "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND can_manage_menu = TRUE",
+            restaurant_id,
+            claims.sub
+        )
+        .fetch_one(pool.get_ref())
+        .await;
+
+        match permission_check {
+            Ok(row) if row.count > 0 => {} // User has menu permission
+            Ok(_) => {
+                return Ok(HttpResponse::Forbidden().json(serde_json::json!({
+                    "error": "Menu management permission required"
+                })));
+            }
+            Err(e) => {
+                log::error!("Database error checking menu permission: {e}");
+                return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                    "error": "Internal server error"
+                })));
+            }
+        }
+    }
+
+    // Start a transaction to ensure all updates succeed or fail together
+    let mut tx = match pool.begin().await {
+        Ok(tx) => tx,
+        Err(e) => {
+            log::error!("Database error starting transaction: {e}");
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            })));
+        }
+    };
+
+    // Update display orders within the transaction
+    for section_order in &req.section_orders {
+        let result = sqlx::query!(
+            "UPDATE menu_sections SET display_order = ? WHERE id = ?",
+            section_order.display_order,
+            section_order.section_id
+        )
+        .execute(&mut *tx)
+        .await;
+
+        if let Err(e) = result {
+            log::error!(
+                "Database error updating section order {}: {}",
+                section_order.section_id,
+                e
+            );
+            if let Err(rollback_err) = tx.rollback().await {
+                log::error!("Failed to rollback transaction: {}", rollback_err);
+            }
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to update section orders"
+            })));
+        }
+    }
+
+    // Commit the transaction
+    if let Err(e) = tx.commit().await {
+        log::error!("Database error committing transaction: {e}");
+        return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+            "error": "Failed to commit section reordering"
+        })));
+    }
+
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "message": "Menu sections reordered successfully",
+        "updated_count": req.section_orders.len()
     })))
 }
