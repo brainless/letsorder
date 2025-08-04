@@ -106,9 +106,9 @@ async fn test_create_menu_item() {
 
     assert_eq!(items.len(), 1);
     assert_eq!(items[0].name, item_name);
-    assert_eq!(items[0].description, Some(description.unwrap().to_string()));
+    assert_eq!(items[0].description, description.map(|s| s.to_string()));
     assert_eq!(items[0].price, price);
-    assert_eq!(items[0].available, true);
+    assert!(items[0].available);
     assert_eq!(items[0].display_order, 1);
 }
 
@@ -251,7 +251,7 @@ async fn test_toggle_menu_item_availability() {
         .fetch_one(&pool)
         .await
         .expect("Failed to fetch item");
-    assert_eq!(item.available, false);
+    assert!(!item.available);
 
     // Toggle back to available
     let result = sqlx::query!(
@@ -270,7 +270,7 @@ async fn test_toggle_menu_item_availability() {
         .fetch_one(&pool)
         .await
         .expect("Failed to fetch item");
-    assert_eq!(item.available, true);
+    assert!(item.available);
 }
 
 #[tokio::test]
