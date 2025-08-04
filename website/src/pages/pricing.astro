@@ -1,301 +1,231 @@
 ---
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Pricing - letsorder</title>
-    <meta name="description" content="Simple, transparent pricing for restaurants. $60/year for up to 100 tables. Start with a 30-day free trial." />
-  </head>
-  <body class="bg-white">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center">
-            <a href="/" class="text-2xl font-bold text-gray-900">letsorder</a>
+<Layout
+  title="Pricing - letsorder"
+  description="Simple, transparent pricing for restaurants. $60/year for up to 100 tables. Start with a 30-day free trial."
+>
+  <!-- Hero Section -->
+  <section class="bg-gray-50 py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+        Simple, Transparent Pricing
+      </h1>
+      <p class="text-xl text-gray-600 mb-8">
+        One plan that grows with your restaurant. No hidden fees, no surprises.
+      </p>
+    </div>
+  </section>
+
+  <!-- Pricing Table -->
+  <section class="py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-3 gap-8">
+
+        <!-- Free Trial -->
+        <div class="bg-white border-2 border-gray-200 rounded-lg p-8 text-center">
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">Free Trial</h3>
+          <div class="mb-6">
+            <span class="text-4xl font-bold text-gray-900">$0</span>
+            <span class="text-gray-600">/30 days</span>
           </div>
-          <div class="hidden md:block">
-            <div class="ml-10 flex items-baseline space-x-4">
-              <a href="/#features" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Features</a>
-              <a href="/pricing" class="text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Pricing</a>
-              <a href="/faq" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">FAQ</a>
-              <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Get Started</a>
-            </div>
+          <p class="text-gray-600 mb-8">Perfect for testing letsorder with your restaurant</p>
+
+          <ul class="text-left space-y-3 mb-8">
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Full access to all features
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Up to 100 tables/rooms
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Multiple manager accounts
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              QR code generation
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Real-time order management
+            </li>
+          </ul>
+
+          <a href="#" class="w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors inline-block">
+            Start Free Trial
+          </a>
+        </div>
+
+        <!-- Standard Plan -->
+        <div class="bg-white border-2 border-blue-500 rounded-lg p-8 text-center relative">
+          <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+            <span class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">Most Popular</span>
           </div>
+
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">Standard</h3>
+          <div class="mb-6">
+            <span class="text-4xl font-bold text-gray-900">$60</span>
+            <span class="text-gray-600">/year</span>
+          </div>
+          <p class="text-gray-600 mb-8">Everything you need for most restaurants</p>
+
+          <ul class="text-left space-y-3 mb-8">
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              All features included
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Up to 100 tables/rooms
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Unlimited menu items
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Multiple manager accounts
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              QR code generation & printing
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Real-time order management
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Email support
+            </li>
+          </ul>
+
+          <a href="#" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors inline-block">
+            Get Started
+          </a>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="bg-white border-2 border-gray-200 rounded-lg p-8 text-center">
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">Enterprise</h3>
+          <div class="mb-6">
+            <span class="text-4xl font-bold text-gray-900">Custom</span>
+          </div>
+          <p class="text-gray-600 mb-8">For larger venues with special requirements</p>
+
+          <ul class="text-left space-y-3 mb-8">
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              All Standard features
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              100+ tables/rooms
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Priority support
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Custom integrations
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Dedicated account manager
+            </li>
+          </ul>
+
+          <a href="#" class="w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors inline-block">
+            Contact Sales
+          </a>
         </div>
       </div>
-    </nav>
+    </div>
+  </section>
 
-    <!-- Hero Section -->
-    <section class="bg-gray-50 py-16">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-          Simple, Transparent Pricing
-        </h1>
-        <p class="text-xl text-gray-600 mb-8">
-          One plan that grows with your restaurant. No hidden fees, no surprises.
-        </p>
-      </div>
-    </section>
+  <!-- FAQ Section -->
+  <section class="py-16 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">Pricing FAQ</h2>
 
-    <!-- Pricing Table -->
-    <section class="py-16">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-3 gap-8">
-          
-          <!-- Free Trial -->
-          <div class="bg-white border-2 border-gray-200 rounded-lg p-8 text-center">
-            <h3 class="text-2xl font-bold text-gray-900 mb-4">Free Trial</h3>
-            <div class="mb-6">
-              <span class="text-4xl font-bold text-gray-900">$0</span>
-              <span class="text-gray-600">/30 days</span>
-            </div>
-            <p class="text-gray-600 mb-8">Perfect for testing letsorder with your restaurant</p>
-            
-            <ul class="text-left space-y-3 mb-8">
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Full access to all features
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Up to 100 tables/rooms
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Multiple manager accounts
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                QR code generation
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Real-time order management
-              </li>
-            </ul>
-            
-            <a href="#" class="w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors inline-block">
-              Start Free Trial
-            </a>
-          </div>
+      <div class="space-y-8">
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Is there really a 30-day free trial?</h3>
+          <p class="text-gray-600">Yes! You get full access to all features for 30 days with no credit card required. You can set up your restaurant, create menus, and test everything before deciding to subscribe.</p>
+        </div>
 
-          <!-- Standard Plan -->
-          <div class="bg-white border-2 border-blue-500 rounded-lg p-8 text-center relative">
-            <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <span class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">Most Popular</span>
-            </div>
-            
-            <h3 class="text-2xl font-bold text-gray-900 mb-4">Standard</h3>
-            <div class="mb-6">
-              <span class="text-4xl font-bold text-gray-900">$60</span>
-              <span class="text-gray-600">/year</span>
-            </div>
-            <p class="text-gray-600 mb-8">Everything you need for most restaurants</p>
-            
-            <ul class="text-left space-y-3 mb-8">
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                All features included
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Up to 100 tables/rooms
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Unlimited menu items
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Multiple manager accounts
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                QR code generation & printing
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Real-time order management
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Email support
-              </li>
-            </ul>
-            
-            <a href="#" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors inline-block">
-              Get Started
-            </a>
-          </div>
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">What happens after the free trial?</h3>
+          <p class="text-gray-600">After 30 days, you can choose to subscribe to our Standard plan for $60/year. If you don't subscribe, your account will be paused but your data will be preserved for 90 days.</p>
+        </div>
 
-          <!-- Enterprise -->
-          <div class="bg-white border-2 border-gray-200 rounded-lg p-8 text-center">
-            <h3 class="text-2xl font-bold text-gray-900 mb-4">Enterprise</h3>
-            <div class="mb-6">
-              <span class="text-4xl font-bold text-gray-900">Custom</span>
-            </div>
-            <p class="text-gray-600 mb-8">For larger venues with special requirements</p>
-            
-            <ul class="text-left space-y-3 mb-8">
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                All Standard features
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                100+ tables/rooms
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Priority support
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Custom integrations
-              </li>
-              <li class="flex items-center">
-                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Dedicated account manager
-              </li>
-            </ul>
-            
-            <a href="#" class="w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors inline-block">
-              Contact Sales
-            </a>
-          </div>
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Can I change plans later?</h3>
+          <p class="text-gray-600">Yes, you can upgrade to Enterprise at any time by contacting our sales team. We'll work with you to create a custom plan that fits your needs.</p>
+        </div>
+
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">What payment methods do you accept?</h3>
+          <p class="text-gray-600">We accept all major credit cards and bank transfers for annual payments. Payment is processed securely through our payment partners.</p>
+        </div>
+
+        <div class="bg-white rounded-lg p-6 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Is there a setup fee?</h3>
+          <p class="text-gray-600">No setup fees, no hidden costs. The price you see is exactly what you pay. We believe in transparent, simple pricing.</p>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- FAQ Section -->
-    <section class="py-16 bg-gray-50">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">Pricing FAQ</h2>
-        
-        <div class="space-y-8">
-          <div class="bg-white rounded-lg p-6 shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Is there really a 30-day free trial?</h3>
-            <p class="text-gray-600">Yes! You get full access to all features for 30 days with no credit card required. You can set up your restaurant, create menus, and test everything before deciding to subscribe.</p>
-          </div>
-
-          <div class="bg-white rounded-lg p-6 shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">What happens after the free trial?</h3>
-            <p class="text-gray-600">After 30 days, you can choose to subscribe to our Standard plan for $60/year. If you don't subscribe, your account will be paused but your data will be preserved for 90 days.</p>
-          </div>
-
-          <div class="bg-white rounded-lg p-6 shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Can I change plans later?</h3>
-            <p class="text-gray-600">Yes, you can upgrade to Enterprise at any time by contacting our sales team. We'll work with you to create a custom plan that fits your needs.</p>
-          </div>
-
-          <div class="bg-white rounded-lg p-6 shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">What payment methods do you accept?</h3>
-            <p class="text-gray-600">We accept all major credit cards and bank transfers for annual payments. Payment is processed securely through our payment partners.</p>
-          </div>
-
-          <div class="bg-white rounded-lg p-6 shadow-sm">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">Is there a setup fee?</h3>
-            <p class="text-gray-600">No setup fees, no hidden costs. The price you see is exactly what you pay. We believe in transparent, simple pricing.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="py-16 bg-blue-600 text-white">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-3xl font-bold mb-6">Ready to Get Started?</h2>
-        <p class="text-xl text-blue-100 mb-8">
-          Join restaurants already using letsorder to streamline their operations.
-        </p>
-        <a href="#" class="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors inline-block">
-          Start Your Free Trial
-        </a>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid md:grid-cols-4 gap-8">
-          <div>
-            <h3 class="text-xl font-bold mb-4">letsorder</h3>
-            <p class="text-gray-400">
-              Complete menu management and ordering solution for restaurants.
-            </p>
-          </div>
-          
-          <div>
-            <h4 class="font-semibold mb-4">Product</h4>
-            <ul class="space-y-2 text-gray-400">
-              <li><a href="/#features" class="hover:text-white">Features</a></li>
-              <li><a href="/pricing" class="hover:text-white">Pricing</a></li>
-              <li><a href="/faq" class="hover:text-white">FAQ</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 class="font-semibold mb-4">Support</h4>
-            <ul class="space-y-2 text-gray-400">
-              <li><a href="#" class="hover:text-white">Help Center</a></li>
-              <li><a href="#" class="hover:text-white">Contact Us</a></li>
-              <li><a href="#" class="hover:text-white">Documentation</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 class="font-semibold mb-4">Company</h4>
-            <ul class="space-y-2 text-gray-400">
-              <li><a href="#" class="hover:text-white">About</a></li>
-              <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
-              <li><a href="#" class="hover:text-white">Terms of Service</a></li>
-            </ul>
-          </div>
-        </div>
-        
-        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 letsorder. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
-  </body>
-</html>
+  <!-- CTA Section -->
+  <section class="py-16 bg-blue-600 text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl font-bold mb-6">Ready to Get Started?</h2>
+      <p class="text-xl text-blue-100 mb-8">
+        Join restaurants already using letsorder to streamline their operations.
+      </p>
+      <a href="#" class="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors inline-block">
+        Start Your Free Trial
+      </a>
+    </div>
+  </section>
+</Layout>
