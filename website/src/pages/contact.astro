@@ -1,0 +1,163 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Contact Us - letsorder"
+  description="Get in touch with the letsorder team. We're here to help with any questions you may have."
+>
+  <div class="bg-white py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <h1 class="text-4xl font-bold text-gray-900">Contact Us</h1>
+        <p class="mt-4 text-lg text-gray-600">
+          We'd love to hear from you. Please fill out the form below and we'll get back to you as soon as possible.
+        </p>
+      </div>
+
+      <div class="mt-12">
+        <form action="#" method="POST" class="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8">
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+            <div class="mt-1">
+<input type="text" name="name" id="name" autocomplete="name" required class="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border border-gray-200 rounded-md">
+            </div>
+          </div>
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <div class="mt-1">
+              <input id="email" name="email" type="email" autocomplete="email" required class="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border border-gray-200 rounded-md">
+            </div>
+          </div>
+          <div class="sm:col-span-2">
+            <label for="company" class="block text-sm font-medium text-gray-700">Company / Restaurant Name</label>
+            <div class="mt-1">
+              <input type="text" name="company" id="company" autocomplete="organization" class="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border border-gray-200 rounded-md">
+            </div>
+          </div>
+          <div class="sm:col-span-2">
+            <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
+            <div class="mt-1">
+              <select id="subject" name="subject" required class="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border border-gray-200 rounded-md">
+                <option>General Inquiry</option>
+                <option>Sales</option>
+                <option>Support</option>
+                <option>Partnership</option>
+              </select>
+            </div>
+          </div>
+          <div class="sm:col-span-2">
+            <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+            <div class="mt-1">
+              <textarea id="message" name="message" rows="4" required class="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border border-gray-200 rounded-md"></textarea>
+            </div>
+          </div>
+          <div class="sm:col-span-2">
+            <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="mt-16 text-center">
+        <h2 class="text-2xl font-bold text-gray-900">Other Ways to Reach Us</h2>
+        <p class="mt-4 text-lg text-gray-600">
+          You can also reach us by email or during our business hours.
+        </p>
+        <div class="mt-6 space-y-4">
+          <p class="text-lg text-gray-600">
+            <strong>Email:</strong> <a href="mailto:support@letsorder.com" class="text-blue-600 hover:underline">support@letsorder.com</a>
+          </p>
+          <p class="text-lg text-gray-600">
+            <strong>Business Hours:</strong> Monday - Friday, 9:00 AM - 5:00 PM (EST)
+          </p>
+          <p class="text-lg text-gray-600">
+            We typically respond to inquiries within 24 hours.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const form = document.querySelector('form');
+  const name = document.querySelector('#name') as HTMLInputElement;
+  const email = document.querySelector('#email') as HTMLInputElement;
+  const subject = document.querySelector('#subject') as HTMLSelectElement;
+  const message = document.querySelector('#message') as HTMLTextAreaElement;
+  const submitButton = document.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    let errors = 0;
+
+    // Clear previous errors
+    document.querySelectorAll('.error-message').forEach(el => el.remove());
+    [name, email, subject, message].forEach(el => el.classList.remove('border-red-500'));
+
+    if (name.value.length < 2) {
+      errors++;
+      showError(name, 'Name must be at least 2 characters long.');
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email.value)) {
+      errors++;
+      showError(email, 'Please enter a valid email address.');
+    }
+
+    if (subject.value === 'General Inquiry') {
+      // This is a placeholder, in a real scenario you might want to ensure a selection was made
+    }
+
+    if (message.value.length < 10) {
+      errors++;
+      showError(message, 'Message must be at least 10 characters long.');
+    }
+
+    if (errors === 0) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Submitting...';
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const isSuccess = Math.random() > 0.1; // 90% success rate
+
+      if (isSuccess) {
+        form.reset();
+        showSuccessMessage('Thank you for your message! We will get back to you shortly.');
+      } else {
+        showErrorMessage('Something went wrong. Please try again later.');
+      }
+
+      submitButton.disabled = false;
+      submitButton.textContent = 'Submit';
+    }
+  });
+
+  function showError(input, message) {
+    input.classList.add('border-red-500');
+    const error = document.createElement('p');
+    error.className = 'text-red-500 text-sm mt-1 error-message';
+    error.textContent = message;
+    input.parentElement.appendChild(error);
+  }
+
+  function showSuccessMessage(message) {
+    const successMessage = document.createElement('div');
+    successMessage.className = 'mt-4 p-4 bg-green-100 text-green-700 rounded-md';
+    successMessage.textContent = message;
+    form.insertAdjacentElement('beforebegin', successMessage);
+    setTimeout(() => successMessage.remove(), 5000);
+  }
+
+  function showErrorMessage(message) {
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'mt-4 p-4 bg-red-100 text-red-700 rounded-md';
+    errorMessage.textContent = message;
+    form.insertAdjacentElement('beforebegin', errorMessage);
+    setTimeout(() => errorMessage.remove(), 5000);
+  }
+</script>
