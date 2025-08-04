@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT COUNT(*) as count FROM users",
+  "query": "SELECT COUNT(*) as count FROM menu_items WHERE id = ?",
   "describe": {
     "columns": [
       {
@@ -10,11 +10,11 @@
       }
     ],
     "parameters": {
-      "Right": 0
+      "Right": 1
     },
     "nullable": [
       false
     ]
   },
-  "hash": "fd64104d130b93dd5fc9414b8710ad5183b647eaaff90decbce15e10d83c7538"
+  "hash": "44dbc8ad4dcaeccd3f2a6264946ffc54a92b6b7adc74d3d7f82dd3c648ec3e26"
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT COALESCE(MAX(display_order), 0) as max_order FROM menu_sections WHERE restaurant_id = ?",
+  "query": "SELECT COALESCE(MAX(display_order), 0) as max_order FROM menu_items WHERE section_id = ?",
   "describe": {
     "columns": [
       {
@@ -16,5 +16,5 @@
       false
     ]
   },
-  "hash": "15c885482977b98f2053b5bf6c9f37e6c0624aaaac93bbeaafe9f1fb4718f12d"
+  "hash": "68a1a0617edd6ed8ca75d5c59def41e47cb93a548c826efe37850af447976b83"
 }

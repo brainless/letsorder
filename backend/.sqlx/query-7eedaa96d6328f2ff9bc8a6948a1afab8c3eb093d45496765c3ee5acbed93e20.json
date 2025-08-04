@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT ms.restaurant_id FROM menu_items mi \n         JOIN menu_sections ms ON mi.section_id = ms.id \n         WHERE mi.id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "restaurant_id",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "7eedaa96d6328f2ff9bc8a6948a1afab8c3eb093d45496765c3ee5acbed93e20"
+}

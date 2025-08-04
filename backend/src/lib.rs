@@ -194,6 +194,27 @@ pub fn create_app(
                     "/restaurants/{id}/menu",
                     web::get().to(menu_handlers::get_restaurant_menu),
                 )
+                // Menu item CRUD routes
+                .route(
+                    "/sections/{id}/items",
+                    web::post().to(menu_handlers::create_menu_item),
+                )
+                .route(
+                    "/items/{id}",
+                    web::put().to(menu_handlers::update_menu_item),
+                )
+                .route(
+                    "/items/{id}",
+                    web::delete().to(menu_handlers::delete_menu_item),
+                )
+                .route(
+                    "/items/{id}/availability",
+                    web::put().to(menu_handlers::toggle_menu_item_availability),
+                )
+                .route(
+                    "/items/reorder",
+                    web::post().to(menu_handlers::reorder_menu_items),
+                )
                 // Table management routes
                 .route(
                     "/restaurants/{id}/tables",

@@ -186,6 +186,14 @@ pub struct CreateMenuItemRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateMenuItemFromSectionRequest {
+    pub name: String,
+    pub description: Option<String>,
+    pub price: f64,
+    pub display_order: Option<i32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateOrderRequest {
     pub table_code: String,
     pub items: Vec<CreateOrderItem>,
