@@ -189,6 +189,14 @@ pub fn create_app(
                     "/restaurants/{id}/menu/sections",
                     web::get().to(menu_handlers::list_menu_sections),
                 )
+                .route(
+                    "/sections/{id}",
+                    web::put().to(menu_handlers::update_menu_section),
+                )
+                .route(
+                    "/sections/{id}",
+                    web::delete().to(menu_handlers::delete_menu_section),
+                )
                 // Menu management route
                 .route(
                     "/restaurants/{id}/menu",
