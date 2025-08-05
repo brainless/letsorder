@@ -299,3 +299,135 @@ async fn test_complete_menu_structure() {
     assert_eq!(complete_menu[1].1.len(), 1);
     assert_eq!(complete_menu[1].1[0].name, "Pasta Carbonara");
 }
+
+#[tokio::test]
+async fn test_section_reordering() {
+    let pool = setup_test_db().await;
+
+    // Create a restaurant
+    let restaurant_id = "restaurant-1";
+    sqlx::query!(
+        "INSERT INTO restaurants (id, name, address, establishment_year) VALUES (?, ?, ?, ?)",
+        restaurant_id,
+        "Test Restaurant",
+        "123 Test St",
+        2024
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create test restaurant");
+
+    // Create menu sections
+    let section1_id = "section-1";
+    let section2_id = "section-2";
+    let section3_id = "section-3";
+
+    sqlx::query!(
+        "INSERT INTO menu_sections (id, restaurant_id, name, display_order) VALUES (?, ?, ?, ?)",
+        section1_id,
+        restaurant_id,
+        "Appetizers",
+        1
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create test section 1");
+
+    sqlx::query!(
+        "INSERT INTO menu_sections (id, restaurant_id, name, display_order) VALUES (?, ?, ?, ?)",
+        section2_id,
+        restaurant_id,
+        "Main Course",
+        2
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create test section 2");
+
+    sqlx::query!(
+        "INSERT INTO menu_sections (id, restaurant_id, name, display_order) VALUES (?, ?, ?, ?)",
+        section3_id,
+        restaurant_id,
+        "Desserts",
+        3
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to create test section 3");
+
+    // Verify initial order
+    let sections = sqlx::query_as::<_, MenuSectionRow>(
+        "SELECT id, restaurant_id, name, display_order, created_at 
+         FROM menu_sections 
+         WHERE restaurant_id = ? 
+         ORDER BY display_order ASC",
+    )
+    .bind(restaurant_id)
+    .fetch_all(&pool)
+    .await
+    .expect("Failed to fetch menu sections");
+
+    let section_models: Vec<MenuSection> = sections.into_iter().map(MenuSection::from).collect();
+
+    assert_eq!(section_models.len(), 3);
+    assert_eq!(section_models[0].name, "Appetizers");
+    assert_eq!(section_models[0].display_order, 1);
+    assert_eq!(section_models[1].name, "Main Course");
+    assert_eq!(section_models[1].display_order, 2);
+    assert_eq!(section_models[2].name, "Desserts");
+    assert_eq!(section_models[2].display_order, 3);
+
+    // Simulate reordering - move Desserts to first position
+    // New order: Desserts (1), Appetizers (2), Main Course (3)
+    sqlx::query!(
+        "UPDATE menu_sections SET display_order = ? WHERE id = ?",
+        1,
+        section3_id
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to update section 3 order");
+
+    sqlx::query!(
+        "UPDATE menu_sections SET display_order = ? WHERE id = ?",
+        2,
+        section1_id
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to update section 1 order");
+
+    sqlx::query!(
+        "UPDATE menu_sections SET display_order = ? WHERE id = ?",
+        3,
+        section2_id
+    )
+    .execute(&pool)
+    .await
+    .expect("Failed to update section 2 order");
+
+    // Verify new order
+    let reordered_sections = sqlx::query_as::<_, MenuSectionRow>(
+        "SELECT id, restaurant_id, name, display_order, created_at 
+         FROM menu_sections 
+         WHERE restaurant_id = ? 
+         ORDER BY display_order ASC",
+    )
+    .bind(restaurant_id)
+    .fetch_all(&pool)
+    .await
+    .expect("Failed to fetch reordered menu sections");
+
+    let reordered_models: Vec<MenuSection> = reordered_sections
+        .into_iter()
+        .map(MenuSection::from)
+        .collect();
+
+    assert_eq!(reordered_models.len(), 3);
+    assert_eq!(reordered_models[0].name, "Desserts");
+    assert_eq!(reordered_models[0].display_order, 1);
+    assert_eq!(reordered_models[1].name, "Appetizers");
+    assert_eq!(reordered_models[1].display_order, 2);
+    assert_eq!(reordered_models[2].name, "Main Course");
+    assert_eq!(reordered_models[2].display_order, 3);
+}

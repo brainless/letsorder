@@ -215,6 +215,10 @@ pub fn create_app(
                     "/items/reorder",
                     web::post().to(menu_handlers::reorder_menu_items),
                 )
+                .route(
+                    "/sections/reorder",
+                    web::post().to(menu_handlers::reorder_sections),
+                )
                 // Table management routes
                 .route(
                     "/restaurants/{id}/tables",
