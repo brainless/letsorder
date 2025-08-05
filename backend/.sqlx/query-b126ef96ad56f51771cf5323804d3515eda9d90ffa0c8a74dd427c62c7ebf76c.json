@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE tables SET name = ? WHERE id = ? AND restaurant_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "b126ef96ad56f51771cf5323804d3515eda9d90ffa0c8a74dd427c62c7ebf76c"
+}

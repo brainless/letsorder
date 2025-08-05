@@ -313,17 +313,15 @@ pub async fn delete_menu_section(
     };
 
     // First, delete all menu items in this section
-    let delete_items_result = sqlx::query!(
-        "DELETE FROM menu_items WHERE section_id = ?",
-        section_id
-    )
-    .execute(&mut *tx)
-    .await;
+    let delete_items_result =
+        sqlx::query!("DELETE FROM menu_items WHERE section_id = ?", section_id)
+            .execute(&mut *tx)
+            .await;
 
     if let Err(e) = delete_items_result {
         log::error!("Database error deleting menu items: {e}");
         if let Err(rollback_err) = tx.rollback().await {
-            log::error!("Failed to rollback transaction: {}", rollback_err);
+            log::error!("Failed to rollback transaction: {rollback_err}");
         }
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
             "error": "Failed to delete menu items"
@@ -331,12 +329,9 @@ pub async fn delete_menu_section(
     }
 
     // Then delete the section
-    let delete_section_result = sqlx::query!(
-        "DELETE FROM menu_sections WHERE id = ?",
-        section_id
-    )
-    .execute(&mut *tx)
-    .await;
+    let delete_section_result = sqlx::query!("DELETE FROM menu_sections WHERE id = ?", section_id)
+        .execute(&mut *tx)
+        .await;
 
     match delete_section_result {
         Ok(result) => {
@@ -354,7 +349,7 @@ pub async fn delete_menu_section(
                 })))
             } else {
                 if let Err(rollback_err) = tx.rollback().await {
-                    log::error!("Failed to rollback transaction: {}", rollback_err);
+                    log::error!("Failed to rollback transaction: {rollback_err}");
                 }
                 Ok(HttpResponse::NotFound().json(serde_json::json!({
                     "error": "Menu section not found"
@@ -364,7 +359,7 @@ pub async fn delete_menu_section(
         Err(e) => {
             log::error!("Database error deleting menu section: {e}");
             if let Err(rollback_err) = tx.rollback().await {
-                log::error!("Failed to rollback transaction: {}", rollback_err);
+                log::error!("Failed to rollback transaction: {rollback_err}");
             }
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to delete menu section"
@@ -1230,7 +1225,7 @@ pub async fn reorder_sections(
                 e
             );
             if let Err(rollback_err) = tx.rollback().await {
-                log::error!("Failed to rollback transaction: {}", rollback_err);
+                log::error!("Failed to rollback transaction: {rollback_err}");
             }
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to update section orders"

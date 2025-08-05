@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM menu_items WHERE section_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "02599250c2b7f38cfe9ccd5ecb15c9002544d7c0cf13dd11435af0f55989f612"
+}

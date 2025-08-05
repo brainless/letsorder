@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO menu_items (id, section_id, name, description, price, available, display_order)\n            VALUES (?, ?, ?, ?, ?, ?, ?)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "7ab02585d0a8a1b63376453f471ff560e1a947c24c03d90f6e4629bf8052de61"
+}

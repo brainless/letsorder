@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "f57c183499b24408c98468dffa6721b91399f9bd8ff935bf601de20c956da429"
+}

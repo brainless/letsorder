@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT COALESCE(MAX(display_order), 0) as max_order FROM menu_items WHERE section_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "max_order",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "68a1a0617edd6ed8ca75d5c59def41e47cb93a548c826efe37850af447976b83"
+}
