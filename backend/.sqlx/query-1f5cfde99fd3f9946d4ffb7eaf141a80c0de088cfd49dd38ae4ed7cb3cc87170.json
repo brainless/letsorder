@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO restaurants (id, name, address, establishment_year, google_maps_link) VALUES (?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": []
+  },
+  "hash": "1f5cfde99fd3f9946d4ffb7eaf141a80c0de088cfd49dd38ae4ed7cb3cc87170"
+}

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT COUNT(*) as count FROM manager_invites WHERE restaurant_id = ? AND email = ? AND expires_at > datetime('now')",
+  "describe": {
+    "columns": [
+      {
+        "name": "count",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "8f8acab88de758ad4debe1c15c7b1651a47670b340c20bcf350ef44b741ec4bb"
+}

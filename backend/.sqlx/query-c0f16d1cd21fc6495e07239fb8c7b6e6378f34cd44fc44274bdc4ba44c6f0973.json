@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO tables (id, restaurant_id, name, unique_code)\n        VALUES (?, ?, ?, ?)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "c0f16d1cd21fc6495e07239fb8c7b6e6378f34cd44fc44274bdc4ba44c6f0973"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE menu_items SET name = ?, description = ?, display_order = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "f349ae6ae1e4b01e9ff69774523dad71efefe17bae6965b74c1cbcc1c676998a"
+}

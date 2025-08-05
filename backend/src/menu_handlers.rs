@@ -2,6 +2,7 @@ use crate::models::{
     Claims, CreateMenuItemFromSectionRequest, CreateMenuSectionRequest, MenuItem, MenuSection,
     MenuSectionWithItems, PublicMenu, PublicRestaurantInfo, ReorderItemsRequest,
     ReorderSectionsRequest, RestaurantMenu, ToggleAvailabilityRequest, UpdateMenuItemRequest,
+    UpdateMenuSectionRequest,
 };
 use actix_web::{web, HttpResponse, Result};
 use sqlx::{Pool, Sqlite};
@@ -123,6 +124,248 @@ pub async fn list_menu_sections(
         "message": "Menu sections listed successfully",
         "restaurant_id": restaurant_id
     })))
+}
+
+pub async fn update_menu_section(
+    pool: web::Data<Pool<Sqlite>>,
+    path: web::Path<String>,
+    claims: web::ReqData<Claims>,
+    req: web::Json<UpdateMenuSectionRequest>,
+) -> Result<HttpResponse> {
+    let section_id = path.into_inner();
+
+    // First, check if the section exists and get the restaurant_id
+    let section_check = sqlx::query!(
+        "SELECT restaurant_id FROM menu_sections WHERE id = ?",
+        section_id
+    )
+    .fetch_optional(pool.get_ref())
+    .await;
+
+    let restaurant_id = match section_check {
+        Ok(Some(row)) => row.restaurant_id,
+        Ok(None) => {
+            return Ok(HttpResponse::NotFound().json(serde_json::json!({
+                "error": "Menu section not found"
+            })));
+        }
+        Err(e) => {
+            log::error!("Database error checking section: {e}");
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            })));
+        }
+    };
+
+    // Check if user has menu management permission for this restaurant
+    let permission_check = sqlx::query!(
+        "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND can_manage_menu = TRUE",
+        restaurant_id,
+        claims.sub
+    )
+    .fetch_one(pool.get_ref())
+    .await;
+
+    match permission_check {
+        Ok(row) if row.count > 0 => {} // User has menu permission
+        Ok(_) => {
+            return Ok(HttpResponse::Forbidden().json(serde_json::json!({
+                "error": "Menu management permission required"
+            })));
+        }
+        Err(e) => {
+            log::error!("Database error checking menu permission: {e}");
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            })));
+        }
+    }
+
+    // Check if there are any fields to update
+    if req.name.is_none() && req.display_order.is_none() {
+        return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "No fields to update"
+        })));
+    }
+
+    // Build dynamic query based on provided fields
+    let result = if let Some(ref name) = req.name {
+        if let Some(ref display_order) = req.display_order {
+            // Both name and display_order
+            sqlx::query!(
+                "UPDATE menu_sections SET name = ?, display_order = ? WHERE id = ?",
+                name,
+                display_order,
+                section_id
+            )
+            .execute(pool.get_ref())
+            .await
+        } else {
+            // Only name
+            sqlx::query!(
+                "UPDATE menu_sections SET name = ? WHERE id = ?",
+                name,
+                section_id
+            )
+            .execute(pool.get_ref())
+            .await
+        }
+    } else if let Some(ref display_order) = req.display_order {
+        // Only display_order
+        sqlx::query!(
+            "UPDATE menu_sections SET display_order = ? WHERE id = ?",
+            display_order,
+            section_id
+        )
+        .execute(pool.get_ref())
+        .await
+    } else {
+        return Ok(HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "No fields to update"
+        })));
+    };
+
+    match result {
+        Ok(result) => {
+            if result.rows_affected() > 0 {
+                Ok(HttpResponse::Ok().json(serde_json::json!({
+                    "message": "Menu section updated successfully",
+                    "section_id": section_id
+                })))
+            } else {
+                Ok(HttpResponse::NotFound().json(serde_json::json!({
+                    "error": "Menu section not found"
+                })))
+            }
+        }
+        Err(e) => {
+            log::error!("Database error updating menu section: {e}");
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to update menu section"
+            })))
+        }
+    }
+}
+
+pub async fn delete_menu_section(
+    pool: web::Data<Pool<Sqlite>>,
+    path: web::Path<String>,
+    claims: web::ReqData<Claims>,
+) -> Result<HttpResponse> {
+    let section_id = path.into_inner();
+
+    // First, check if the section exists and get the restaurant_id
+    let section_check = sqlx::query!(
+        "SELECT restaurant_id FROM menu_sections WHERE id = ?",
+        section_id
+    )
+    .fetch_optional(pool.get_ref())
+    .await;
+
+    let restaurant_id = match section_check {
+        Ok(Some(row)) => row.restaurant_id,
+        Ok(None) => {
+            return Ok(HttpResponse::NotFound().json(serde_json::json!({
+                "error": "Menu section not found"
+            })));
+        }
+        Err(e) => {
+            log::error!("Database error checking section: {e}");
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            })));
+        }
+    };
+
+    // Check if user has menu management permission for this restaurant
+    let permission_check = sqlx::query!(
+        "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ? AND can_manage_menu = TRUE",
+        restaurant_id,
+        claims.sub
+    )
+    .fetch_one(pool.get_ref())
+    .await;
+
+    match permission_check {
+        Ok(row) if row.count > 0 => {} // User has menu permission
+        Ok(_) => {
+            return Ok(HttpResponse::Forbidden().json(serde_json::json!({
+                "error": "Menu management permission required"
+            })));
+        }
+        Err(e) => {
+            log::error!("Database error checking menu permission: {e}");
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            })));
+        }
+    }
+
+    // Start a transaction to ensure both section and items are deleted together
+    let mut tx = match pool.begin().await {
+        Ok(tx) => tx,
+        Err(e) => {
+            log::error!("Database error starting transaction: {e}");
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            })));
+        }
+    };
+
+    // First, delete all menu items in this section
+    let delete_items_result =
+        sqlx::query!("DELETE FROM menu_items WHERE section_id = ?", section_id)
+            .execute(&mut *tx)
+            .await;
+
+    if let Err(e) = delete_items_result {
+        log::error!("Database error deleting menu items: {e}");
+        if let Err(rollback_err) = tx.rollback().await {
+            log::error!("Failed to rollback transaction: {rollback_err}");
+        }
+        return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+            "error": "Failed to delete menu items"
+        })));
+    }
+
+    // Then delete the section
+    let delete_section_result = sqlx::query!("DELETE FROM menu_sections WHERE id = ?", section_id)
+        .execute(&mut *tx)
+        .await;
+
+    match delete_section_result {
+        Ok(result) => {
+            if result.rows_affected() > 0 {
+                // Commit the transaction
+                if let Err(e) = tx.commit().await {
+                    log::error!("Database error committing transaction: {e}");
+                    return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                        "error": "Failed to commit section deletion"
+                    })));
+                }
+
+                Ok(HttpResponse::Ok().json(serde_json::json!({
+                    "message": "Menu section and all items deleted successfully"
+                })))
+            } else {
+                if let Err(rollback_err) = tx.rollback().await {
+                    log::error!("Failed to rollback transaction: {rollback_err}");
+                }
+                Ok(HttpResponse::NotFound().json(serde_json::json!({
+                    "error": "Menu section not found"
+                })))
+            }
+        }
+        Err(e) => {
+            log::error!("Database error deleting menu section: {e}");
+            if let Err(rollback_err) = tx.rollback().await {
+                log::error!("Failed to rollback transaction: {rollback_err}");
+            }
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to delete menu section"
+            })))
+        }
+    }
 }
 
 pub async fn get_restaurant_menu(
@@ -982,7 +1225,7 @@ pub async fn reorder_sections(
                 e
             );
             if let Err(rollback_err) = tx.rollback().await {
-                log::error!("Failed to rollback transaction: {}", rollback_err);
+                log::error!("Failed to rollback transaction: {rollback_err}");
             }
             return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to update section orders"
