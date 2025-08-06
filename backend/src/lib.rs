@@ -152,6 +152,8 @@ pub fn create_app(
             web::scope("/api")
                 .wrap(auth_middleware)
                 .route("/test", web::get().to(handlers::protected_test))
+                // User routes
+                .route("/user/restaurants", web::get().to(handlers::get_user_restaurants))
                 // Restaurant CRUD routes
                 .route("/restaurants", web::post().to(handlers::create_restaurant))
                 .route("/restaurants/{id}", web::get().to(handlers::get_restaurant))

@@ -997,3 +997,33 @@ pub async fn update_manager_permissions(
         }
     }
 }
+
+pub async fn get_user_restaurants(
+    pool: web::Data<Pool<Sqlite>>,
+    claims: web::ReqData<Claims>,
+) -> Result<HttpResponse> {
+    // Query restaurants where the user is a manager
+    let restaurant_rows = sqlx::query_as::<_, RestaurantRow>(
+        "SELECT r.id, r.name, r.address, r.establishment_year, r.google_maps_link, r.created_at 
+         FROM restaurants r 
+         JOIN restaurant_managers rm ON r.id = rm.restaurant_id 
+         WHERE rm.user_id = ?
+         ORDER BY r.created_at DESC"
+    )
+    .bind(&claims.sub)
+    .fetch_all(pool.get_ref())
+    .await;
+
+    match restaurant_rows {
+        Ok(rows) => {
+            let restaurants: Vec<Restaurant> = rows.into_iter().map(Restaurant::from).collect();
+            Ok(HttpResponse::Ok().json(restaurants))
+        }
+        Err(e) => {
+            log::error!("Database error fetching user restaurants: {e}");
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to fetch restaurants"
+            })))
+        }
+    }
+}

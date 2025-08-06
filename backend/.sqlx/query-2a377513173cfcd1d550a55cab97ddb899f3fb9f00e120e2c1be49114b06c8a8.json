@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, email, phone, password_hash FROM users WHERE email = ?",
+  "query": "SELECT id, restaurant_id, name, unique_code, created_at FROM tables WHERE restaurant_id = ? ORDER BY created_at DESC",
   "describe": {
     "columns": [
       {
@@ -9,19 +9,24 @@
         "type_info": "Text"
       },
       {
-        "name": "email",
+        "name": "restaurant_id",
         "ordinal": 1,
         "type_info": "Text"
       },
       {
-        "name": "phone",
+        "name": "name",
         "ordinal": 2,
         "type_info": "Text"
       },
       {
-        "name": "password_hash",
+        "name": "unique_code",
         "ordinal": 3,
         "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 4,
+        "type_info": "Datetime"
       }
     ],
     "parameters": {
@@ -30,9 +35,10 @@
     "nullable": [
       true,
       false,
-      true,
+      false,
+      false,
       false
     ]
   },
-  "hash": "bc7ef4b69251ed06ba5ed6d86c0baa37686af3c9e2726c662062c56ea2d0a9b2"
+  "hash": "2a377513173cfcd1d550a55cab97ddb899f3fb9f00e120e2c1be49114b06c8a8"
 }

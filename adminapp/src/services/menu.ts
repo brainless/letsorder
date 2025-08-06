@@ -71,7 +71,7 @@ export class MenuService {
     data: CreateMenuSectionRequest
   ): Promise<MenuSection> {
     const response = await fetch(
-      `${this.BASE_URL}/restaurants/${restaurantId}/sections`,
+      `${this.BASE_URL}/restaurants/${restaurantId}/menu/sections`,
       {
         method: 'POST',
         headers: this.getHeaders(),

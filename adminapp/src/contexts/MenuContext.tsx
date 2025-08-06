@@ -312,11 +312,21 @@ export const MenuProvider: ParentComponent<{ restaurantId?: string }> = (
   });
 
   const value: MenuContextType = {
-    sections: sections(),
-    isLoading: isLoading(),
-    error: error(),
-    selectedSection: selectedSection(),
-    selectedItem: selectedItem(),
+    get sections() {
+      return sections();
+    },
+    get isLoading() {
+      return isLoading();
+    },
+    get error() {
+      return error();
+    },
+    get selectedSection() {
+      return selectedSection();
+    },
+    get selectedItem() {
+      return selectedItem();
+    },
 
     loadMenu,
     createSection,

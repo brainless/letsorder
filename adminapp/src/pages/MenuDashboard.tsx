@@ -44,9 +44,23 @@ const MenuDashboardContent: Component = () => {
   const [draggedItemId, setDraggedItemId] = createSignal<string | null>(null);
   const [dragOverIndex, setDragOverIndex] = createSignal<number | null>(null);
 
-  // onMount(() => {
-  //   // TODO: Load restaurant details if needed
-  // });
+  onMount(async () => {
+    const restaurantId = params.restaurantId;
+    if (restaurantId) {
+      // Load restaurant details if not already loaded or if different restaurant
+      if (
+        !restaurant.currentRestaurant ||
+        restaurant.currentRestaurant.id !== restaurantId
+      ) {
+        // Load user restaurants to find the current one
+        await restaurant.loadUserRestaurants();
+        const currentRestaurant = restaurant.restaurants.find(r => r.id === restaurantId);
+        if (currentRestaurant) {
+          restaurant.setCurrentRestaurant(currentRestaurant);
+        }
+      }
+    }
+  });
 
   // Modal handlers
   const openCreateSectionModal = () => {

@@ -1,9 +1,13 @@
+use crate::auth::PasswordHasher;
 use sqlx::{Pool, Sqlite};
 use uuid::Uuid;
 
 pub async fn seed_database(pool: &Pool<Sqlite>) -> Result<(), sqlx::Error> {
-    // Create a test user
+    // Create a test user with password "password123"
     let user_id = Uuid::new_v4().to_string();
+    let password_hash = PasswordHasher::hash_password("password123")
+        .map_err(|e| sqlx::Error::Protocol(format!("Password hashing failed: {}", e)))?;
+    
     sqlx::query!(
         r#"
         INSERT INTO users (id, email, phone, password_hash)
@@ -12,7 +16,7 @@ pub async fn seed_database(pool: &Pool<Sqlite>) -> Result<(), sqlx::Error> {
         user_id,
         "manager@example.com",
         "+1234567890",
-        "$2b$12$dummy_hash_for_development_only"
+        password_hash
     )
     .execute(pool)
     .await?;
@@ -195,6 +199,7 @@ pub async fn seed_database(pool: &Pool<Sqlite>) -> Result<(), sqlx::Error> {
 
     println!("Database seeded successfully!");
     println!("Test user: manager@example.com");
+    println!("Test password: password123");
     println!("Test restaurant: Demo Restaurant");
     println!("Test tables: TBL001, TBL002");
 

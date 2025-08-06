@@ -171,7 +171,6 @@ pub struct CreateTableRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateMenuSectionRequest {
-    pub restaurant_id: String,
     pub name: String,
     pub display_order: Option<i32>,
 }

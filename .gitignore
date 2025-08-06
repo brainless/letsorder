@@ -10,3 +10,5 @@ Cargo.lock
 *.db
 *.sqlite
 *.sqlite3
+
+test_log.txt
