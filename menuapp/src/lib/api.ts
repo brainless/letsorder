@@ -22,6 +22,7 @@ export interface MenuData {
   restaurant: {
     name: string;
     code: string;
+    address?: string;
   };
   table: {
     code: string;
