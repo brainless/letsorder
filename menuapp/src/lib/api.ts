@@ -44,6 +44,31 @@ export interface OrderData {
   customer_phone?: string;
 }
 
+// Cart-specific interfaces
+export interface CartItem {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
+  specialRequests?: string;
+  sectionName?: string;
+}
+
+export interface CartState {
+  items: CartItem[];
+  restaurantCode: string;
+  tableCode: string;
+  totalItems: number;
+  totalPrice: number;
+  lastUpdated: number;
+}
+
+export interface CartAction {
+  type: 'ADD_ITEM' | 'UPDATE_QUANTITY' | 'REMOVE_ITEM' | 'UPDATE_SPECIAL_REQUESTS' | 'CLEAR_CART' | 'LOAD_CART';
+  payload?: any;
+}
+
 /**
  * Fetch menu data for a specific restaurant and table
  */

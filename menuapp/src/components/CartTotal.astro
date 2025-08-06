@@ -1,0 +1,335 @@
+---
+export interface Props {
+  showTaxInfo?: boolean;
+  showServiceCharge?: boolean;
+  taxRate?: number;
+  serviceChargeRate?: number;
+  className?: string;
+}
+
+const { 
+  showTaxInfo = false,
+  showServiceCharge = false,
+  taxRate = 0,
+  serviceChargeRate = 0,
+  className = ''
+} = Astro.props;
+---
+
+<div class={`cart-total p-4 ${className}`}>
+  <!-- Subtotal -->
+  <div class="flex justify-between items-center mb-2">
+    <span class="text-sm text-gray-600">Subtotal</span>
+    <span class="subtotal-amount font-medium text-gray-900">$0.00</span>
+  </div>
+
+  <!-- Service Charge (if enabled) -->
+  {showServiceCharge && serviceChargeRate > 0 && (
+    <div class="flex justify-between items-center mb-2">
+      <span class="text-sm text-gray-600">
+        Service Charge ({(serviceChargeRate * 100).toFixed(1)}%)
+      </span>
+      <span class="service-charge-amount font-medium text-gray-900">$0.00</span>
+    </div>
+  )}
+
+  <!-- Tax (if enabled) -->
+  {showTaxInfo && taxRate > 0 && (
+    <div class="flex justify-between items-center mb-2">
+      <span class="text-sm text-gray-600">
+        Tax ({(taxRate * 100).toFixed(1)}%)
+      </span>
+      <span class="tax-amount font-medium text-gray-900">$0.00</span>
+    </div>
+  )}
+
+  <!-- Divider -->
+  <div class="border-t border-gray-200 my-3"></div>
+
+  <!-- Total -->
+  <div class="flex justify-between items-center">
+    <span class="text-lg font-semibold text-gray-900">Total</span>
+    <span class="total-amount text-lg font-bold text-gray-900">$0.00</span>
+  </div>
+
+  <!-- Item Count Summary -->
+  <div class="mt-2 text-xs text-gray-500 text-center">
+    <span class="item-count-summary">0 items in cart</span>
+  </div>
+
+  <!-- Savings Display (if applicable) -->
+  <div class="savings-display hidden mt-2 text-center">
+    <span class="text-sm text-green-600 font-medium">
+      🎉 You saved <span class="savings-amount">$0.00</span> with deals!
+    </span>
+  </div>
+</div>
+
+<script>
+  import { getCartInstance, formatPrice, type CartService } from '../lib/cart.ts';
+  import type { CartState } from '../lib/api.ts';
+
+  class CartTotal {
+    private element: HTMLElement;
+    private cart: CartService;
+    private unsubscribe?: () => void;
+
+    // Configuration
+    private taxRate: number;
+    private serviceChargeRate: number;
+    private showTaxInfo: boolean;
+    private showServiceCharge: boolean;
+
+    // UI Elements
+    private subtotalAmount: HTMLElement;
+    private taxAmount: HTMLElement | null;
+    private serviceChargeAmount: HTMLElement | null;
+    private totalAmount: HTMLElement;
+    private itemCountSummary: HTMLElement;
+    private savingsDisplay: HTMLElement;
+    private savingsAmount: HTMLElement;
+
+    constructor(element: HTMLElement) {
+      this.element = element;
+      
+      // Read configuration from data attributes or use defaults
+      this.taxRate = parseFloat(element.dataset.taxRate || '0');
+      this.serviceChargeRate = parseFloat(element.dataset.serviceChargeRate || '0');
+      this.showTaxInfo = element.dataset.showTaxInfo === 'true';
+      this.showServiceCharge = element.dataset.showServiceCharge === 'true';
+
+      this.initializeElements();
+      this.initializeCart();
+      this.updateDisplay();
+    }
+
+    private initializeElements(): void {
+      this.subtotalAmount = this.element.querySelector('.subtotal-amount') as HTMLElement;
+      this.taxAmount = this.element.querySelector('.tax-amount');
+      this.serviceChargeAmount = this.element.querySelector('.service-charge-amount');
+      this.totalAmount = this.element.querySelector('.total-amount') as HTMLElement;
+      this.itemCountSummary = this.element.querySelector('.item-count-summary') as HTMLElement;
+      this.savingsDisplay = this.element.querySelector('.savings-display') as HTMLElement;
+      this.savingsAmount = this.element.querySelector('.savings-amount') as HTMLElement;
+    }
+
+    private initializeCart(): void {
+      // Get restaurant and table codes from URL
+      const urlPath = window.location.pathname;
+      const matches = urlPath.match(/\/m\/([^\/]+)\/([^\/]+)/);
+      
+      if (matches) {
+        const [, restaurantCode, tableCode] = matches;
+        this.cart = getCartInstance(restaurantCode, tableCode);
+        
+        // Subscribe to cart changes
+        this.unsubscribe = this.cart.subscribe((state) => {
+          this.updateDisplay();
+        });
+      } else {
+        console.error('Could not extract restaurant and table codes from URL');
+      }
+    }
+
+    private updateDisplay(): void {
+      if (!this.cart) return;
+
+      const state = this.cart.getState();
+      const calculations = this.calculateTotals(state);
+
+      // Update all amounts
+      this.updateAmounts(calculations);
+      this.updateItemCount(state.totalItems);
+      this.updateSavings(calculations.savings);
+    }
+
+    private calculateTotals(state: CartState) {
+      const subtotal = state.totalPrice;
+      const serviceCharge = this.showServiceCharge ? subtotal * this.serviceChargeRate : 0;
+      const taxableAmount = subtotal + serviceCharge;
+      const tax = this.showTaxInfo ? taxableAmount * this.taxRate : 0;
+      const total = subtotal + serviceCharge + tax;
+
+      // Calculate any potential savings (placeholder for future discount features)
+      const originalPrice = subtotal; // Could be higher if discounts were applied
+      const savings = originalPrice - subtotal;
+
+      return {
+        subtotal,
+        serviceCharge,
+        tax,
+        total,
+        savings,
+        itemCount: state.totalItems
+      };
+    }
+
+    private updateAmounts(calculations: {
+      subtotal: number;
+      serviceCharge: number;
+      tax: number;
+      total: number;
+      savings: number;
+    }): void {
+      // Subtotal
+      if (this.subtotalAmount) {
+        this.subtotalAmount.textContent = formatPrice(calculations.subtotal);
+      }
+
+      // Service charge
+      if (this.serviceChargeAmount && this.showServiceCharge) {
+        this.serviceChargeAmount.textContent = formatPrice(calculations.serviceCharge);
+      }
+
+      // Tax
+      if (this.taxAmount && this.showTaxInfo) {
+        this.taxAmount.textContent = formatPrice(calculations.tax);
+      }
+
+      // Total
+      if (this.totalAmount) {
+        this.totalAmount.textContent = formatPrice(calculations.total);
+        
+        // Add visual emphasis for non-zero totals
+        if (calculations.total > 0) {
+          this.totalAmount.classList.add('text-green-600');
+        } else {
+          this.totalAmount.classList.remove('text-green-600');
+        }
+      }
+    }
+
+    private updateItemCount(itemCount: number): void {
+      if (this.itemCountSummary) {
+        const text = itemCount === 0 
+          ? '0 items in cart' 
+          : `${itemCount} item${itemCount === 1 ? '' : 's'} in cart`;
+        this.itemCountSummary.textContent = text;
+      }
+    }
+
+    private updateSavings(savings: number): void {
+      if (!this.savingsDisplay || !this.savingsAmount) return;
+
+      if (savings > 0) {
+        this.savingsAmount.textContent = formatPrice(savings);
+        this.savingsDisplay.classList.remove('hidden');
+      } else {
+        this.savingsDisplay.classList.add('hidden');
+      }
+    }
+
+    // Public methods for external use
+    public getCurrentTotals() {
+      if (!this.cart) return null;
+      return this.calculateTotals(this.cart.getState());
+    }
+
+    public updateTaxRate(rate: number): void {
+      this.taxRate = rate;
+      this.updateDisplay();
+    }
+
+    public updateServiceChargeRate(rate: number): void {
+      this.serviceChargeRate = rate;
+      this.updateDisplay();
+    }
+
+    public destroy(): void {
+      if (this.unsubscribe) {
+        this.unsubscribe();
+      }
+    }
+  }
+
+  // Initialize CartTotal instances
+  function initializeCartTotals(): void {
+    const totals = document.querySelectorAll('.cart-total');
+    totals.forEach(total => {
+      try {
+        new CartTotal(total as HTMLElement);
+      } catch (error) {
+        console.error('Failed to initialize CartTotal:', error);
+      }
+    });
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeCartTotals);
+  } else {
+    initializeCartTotals();
+  }
+
+  // Re-initialize if new totals are added dynamically
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const element = node as Element;
+          if (element.classList?.contains('cart-total')) {
+            new CartTotal(element as HTMLElement);
+          } else {
+            const nestedTotals = element.querySelectorAll?.('.cart-total');
+            nestedTotals?.forEach(total => {
+              new CartTotal(total as HTMLElement);
+            });
+          }
+        }
+      });
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Export for external use
+  if (typeof window !== 'undefined') {
+    (window as any).CartTotal = CartTotal;
+  }
+</script>
+
+<style>
+  .cart-total {
+    min-width: 200px;
+  }
+
+  /* Smooth transitions for amount changes */
+  .subtotal-amount,
+  .service-charge-amount,
+  .tax-amount,
+  .total-amount {
+    transition: color 0.2s ease;
+  }
+
+  /* Highlight positive values */
+  .total-amount.text-green-600 {
+    color: rgb(34, 197, 94);
+  }
+
+  /* Animation for savings display */
+  .savings-display {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .cart-total {
+      font-size: 0.875rem;
+    }
+    
+    .total-amount {
+      font-size: 1rem;
+    }
+  }
+</style>

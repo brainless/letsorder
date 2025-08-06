@@ -1,0 +1,480 @@
+---
+export interface Props {
+  className?: string;
+  position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+}
+
+const { 
+  className = '',
+  position = 'bottom-right'
+} = Astro.props;
+
+const positionClasses = {
+  'bottom-right': 'fixed bottom-20 right-4 md:bottom-4 md:right-4',
+  'bottom-left': 'fixed bottom-20 left-4 md:bottom-4 md:left-4',
+  'top-right': 'fixed top-4 right-4',
+  'top-left': 'fixed top-4 left-4'
+};
+---
+
+<div 
+  class={`floating-cart-indicator ${positionClasses[position]} z-40 transition-all duration-300 ${className}`}
+  style="display: none;"
+>
+  <!-- Cart Button -->
+  <button 
+    type="button"
+    class="cart-toggle-btn relative bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group"
+    aria-label="View cart"
+    data-cart-open="false"
+  >
+    <!-- Cart Icon -->
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+    </svg>
+    
+    <!-- Item Count Badge -->
+    <div class="item-count-badge absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center transition-all duration-300 scale-0">
+      <span class="item-count">0</span>
+    </div>
+    
+    <!-- Pulse Animation for New Items -->
+    <div class="pulse-ring absolute inset-0 rounded-full border-2 border-blue-400 opacity-0"></div>
+  </button>
+
+  <!-- Mini Cart Popup -->
+  <div class="mini-cart-popup absolute bottom-16 right-0 mb-2 bg-white rounded-lg shadow-xl border border-gray-200 w-80 max-w-[calc(100vw-2rem)] transform scale-0 origin-bottom-right transition-all duration-300 max-h-96 overflow-hidden">
+    <!-- Mini Cart Header -->
+    <div class="p-3 border-b border-gray-200 flex items-center justify-between">
+      <h3 class="font-semibold text-gray-900">Your Order</h3>
+      <button 
+        type="button" 
+        class="close-mini-cart text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
+        aria-label="Close cart preview"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mini Cart Content -->
+    <div class="mini-cart-content">
+      <!-- Empty State -->
+      <div class="mini-cart-empty p-4 text-center text-gray-500">
+        <svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+        </svg>
+        <p class="text-sm">Your cart is empty</p>
+      </div>
+
+      <!-- Cart Items -->
+      <div class="mini-cart-items hidden max-h-48 overflow-y-auto">
+        <!-- Items will be populated dynamically -->
+      </div>
+
+      <!-- Mini Cart Total -->
+      <div class="mini-cart-total hidden border-t border-gray-200 p-3">
+        <div class="flex justify-between items-center mb-3">
+          <span class="font-semibold text-gray-900">Total:</span>
+          <span class="total-price font-bold text-lg text-gray-900">$0.00</span>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="space-y-2">
+          <button 
+            type="button"
+            class="view-full-cart w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            View Full Cart
+          </button>
+          <button 
+            type="button"
+            class="quick-checkout w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          >
+            Quick Checkout
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { getCartInstance, formatPrice, type CartService } from '../lib/cart.ts';
+  import type { CartState, CartItem } from '../lib/api.ts';
+
+  class FloatingCartIndicator {
+    private element: HTMLElement;
+    private cart: CartService;
+    private unsubscribe?: () => void;
+
+    // UI Elements
+    private toggleBtn: HTMLButtonElement;
+    private itemCountBadge: HTMLElement;
+    private itemCount: HTMLElement;
+    private pulseRing: HTMLElement;
+    private miniCartPopup: HTMLElement;
+    private miniCartEmpty: HTMLElement;
+    private miniCartItems: HTMLElement;
+    private miniCartTotal: HTMLElement;
+    private totalPrice: HTMLElement;
+    private closeMiniCart: HTMLButtonElement;
+    private viewFullCartBtn: HTMLButtonElement;
+    private quickCheckoutBtn: HTMLButtonElement;
+
+    // State
+    private isPopupOpen = false;
+    private hideTimeout?: number;
+
+    constructor(element: HTMLElement) {
+      this.element = element;
+      this.initializeElements();
+      this.initializeCart();
+      this.bindEvents();
+      this.updateDisplay();
+    }
+
+    private initializeElements(): void {
+      this.toggleBtn = this.element.querySelector('.cart-toggle-btn') as HTMLButtonElement;
+      this.itemCountBadge = this.element.querySelector('.item-count-badge') as HTMLElement;
+      this.itemCount = this.element.querySelector('.item-count') as HTMLElement;
+      this.pulseRing = this.element.querySelector('.pulse-ring') as HTMLElement;
+      this.miniCartPopup = this.element.querySelector('.mini-cart-popup') as HTMLElement;
+      this.miniCartEmpty = this.element.querySelector('.mini-cart-empty') as HTMLElement;
+      this.miniCartItems = this.element.querySelector('.mini-cart-items') as HTMLElement;
+      this.miniCartTotal = this.element.querySelector('.mini-cart-total') as HTMLElement;
+      this.totalPrice = this.element.querySelector('.total-price') as HTMLElement;
+      this.closeMiniCart = this.element.querySelector('.close-mini-cart') as HTMLButtonElement;
+      this.viewFullCartBtn = this.element.querySelector('.view-full-cart') as HTMLButtonElement;
+      this.quickCheckoutBtn = this.element.querySelector('.quick-checkout') as HTMLButtonElement;
+    }
+
+    private initializeCart(): void {
+      // Get restaurant and table codes from URL
+      const urlPath = window.location.pathname;
+      const matches = urlPath.match(/\/m\/([^\/]+)\/([^\/]+)/);
+      
+      if (matches) {
+        const [, restaurantCode, tableCode] = matches;
+        this.cart = getCartInstance(restaurantCode, tableCode);
+        
+        // Subscribe to cart changes
+        this.unsubscribe = this.cart.subscribe((state) => {
+          this.updateDisplay();
+        });
+      } else {
+        console.error('Could not extract restaurant and table codes from URL');
+      }
+    }
+
+    private bindEvents(): void {
+      // Toggle button
+      this.toggleBtn?.addEventListener('click', () => {
+        this.toggleMiniCart();
+      });
+
+      // Close mini cart
+      this.closeMiniCart?.addEventListener('click', () => {
+        this.closeMiniCartPopup();
+      });
+
+      // View full cart
+      this.viewFullCartBtn?.addEventListener('click', () => {
+        this.scrollToFullCart();
+      });
+
+      // Quick checkout
+      this.quickCheckoutBtn?.addEventListener('click', () => {
+        this.handleQuickCheckout();
+      });
+
+      // Hide popup when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!this.element.contains(e.target as Node) && this.isPopupOpen) {
+          this.closeMiniCartPopup();
+        }
+      });
+
+      // Hide popup on scroll (mobile)
+      let scrollTimeout: number;
+      window.addEventListener('scroll', () => {
+        if (this.isPopupOpen) {
+          clearTimeout(scrollTimeout);
+          scrollTimeout = window.setTimeout(() => {
+            this.closeMiniCartPopup();
+          }, 150);
+        }
+      });
+
+      // Keyboard support
+      this.toggleBtn?.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.isPopupOpen) {
+          this.closeMiniCartPopup();
+        }
+      });
+    }
+
+    private updateDisplay(): void {
+      if (!this.cart) return;
+
+      const state = this.cart.getState();
+      const isEmpty = this.cart.isEmpty();
+
+      // Show/hide the entire indicator based on cart contents
+      this.element.style.display = isEmpty ? 'none' : 'block';
+
+      if (!isEmpty) {
+        // Update item count badge
+        this.updateItemCount(state.totalItems);
+        
+        // Update mini cart content
+        this.updateMiniCartContent(state);
+        
+        // Show pulse animation for new items (if needed)
+        this.showPulseIfNeeded();
+      }
+    }
+
+    private updateItemCount(count: number): void {
+      if (this.itemCount) {
+        this.itemCount.textContent = count.toString();
+      }
+
+      if (this.itemCountBadge) {
+        if (count > 0) {
+          this.itemCountBadge.classList.remove('scale-0');
+          this.itemCountBadge.classList.add('scale-100');
+        } else {
+          this.itemCountBadge.classList.add('scale-0');
+          this.itemCountBadge.classList.remove('scale-100');
+        }
+      }
+    }
+
+    private updateMiniCartContent(state: CartState): void {
+      const isEmpty = state.items.length === 0;
+
+      if (isEmpty) {
+        this.miniCartEmpty?.classList.remove('hidden');
+        this.miniCartItems?.classList.add('hidden');
+        this.miniCartTotal?.classList.add('hidden');
+      } else {
+        this.miniCartEmpty?.classList.add('hidden');
+        this.miniCartItems?.classList.remove('hidden');
+        this.miniCartTotal?.classList.remove('hidden');
+
+        // Populate items
+        this.renderMiniCartItems(state.items);
+        
+        // Update total
+        if (this.totalPrice) {
+          this.totalPrice.textContent = formatPrice(state.totalPrice);
+        }
+      }
+    }
+
+    private renderMiniCartItems(items: CartItem[]): void {
+      if (!this.miniCartItems) return;
+
+      // Clear existing items
+      this.miniCartItems.innerHTML = '';
+
+      // Show maximum of 3 items, with "and X more" if needed
+      const maxItems = 3;
+      const itemsToShow = items.slice(0, maxItems);
+      const remainingCount = items.length - maxItems;
+
+      itemsToShow.forEach(item => {
+        const itemElement = this.createMiniCartItem(item);
+        this.miniCartItems.appendChild(itemElement);
+      });
+
+      // Add "and X more" if needed
+      if (remainingCount > 0) {
+        const moreElement = document.createElement('div');
+        moreElement.className = 'px-3 py-2 text-xs text-gray-500 text-center';
+        moreElement.textContent = `and ${remainingCount} more item${remainingCount === 1 ? '' : 's'}...`;
+        this.miniCartItems.appendChild(moreElement);
+      }
+    }
+
+    private createMiniCartItem(item: CartItem): HTMLElement {
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between px-3 py-2 border-b border-gray-100 last:border-b-0';
+
+      const itemTotal = item.price * item.quantity;
+
+      div.innerHTML = `
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-900 truncate">${item.name}</p>
+          <p class="text-xs text-gray-500">Qty: ${item.quantity}</p>
+        </div>
+        <div class="text-sm font-medium text-gray-900">
+          ${formatPrice(itemTotal)}
+        </div>
+      `;
+
+      return div;
+    }
+
+    private showPulseIfNeeded(): void {
+      // Add pulse animation to indicate new items
+      this.pulseRing?.classList.add('animate-pulse-ring');
+      setTimeout(() => {
+        this.pulseRing?.classList.remove('animate-pulse-ring');
+      }, 2000);
+    }
+
+    private toggleMiniCart(): void {
+      if (this.isPopupOpen) {
+        this.closeMiniCartPopup();
+      } else {
+        this.openMiniCartPopup();
+      }
+    }
+
+    private openMiniCartPopup(): void {
+      this.isPopupOpen = true;
+      this.toggleBtn.dataset.cartOpen = 'true';
+      this.miniCartPopup.classList.remove('scale-0');
+      this.miniCartPopup.classList.add('scale-100');
+      
+      // Update ARIA attributes
+      this.toggleBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    private closeMiniCartPopup(): void {
+      this.isPopupOpen = false;
+      this.toggleBtn.dataset.cartOpen = 'false';
+      this.miniCartPopup.classList.add('scale-0');
+      this.miniCartPopup.classList.remove('scale-100');
+      
+      // Update ARIA attributes
+      this.toggleBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    private scrollToFullCart(): void {
+      // Find the full cart summary on the page and scroll to it
+      const fullCart = document.querySelector('.cart-summary');
+      if (fullCart) {
+        fullCart.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        this.closeMiniCartPopup();
+      } else {
+        // If no full cart found, scroll to bottom where it typically is
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        this.closeMiniCartPopup();
+      }
+    }
+
+    private handleQuickCheckout(): void {
+      // Trigger checkout process
+      const checkoutBtn = document.querySelector('.checkout-btn') as HTMLButtonElement;
+      if (checkoutBtn && !checkoutBtn.disabled) {
+        this.scrollToFullCart();
+        setTimeout(() => {
+          checkoutBtn.click();
+        }, 500);
+      } else {
+        this.scrollToFullCart();
+      }
+      this.closeMiniCartPopup();
+    }
+
+    public destroy(): void {
+      if (this.unsubscribe) {
+        this.unsubscribe();
+      }
+    }
+  }
+
+  // Initialize FloatingCartIndicator instances
+  function initializeFloatingCartIndicators(): void {
+    const indicators = document.querySelectorAll('.floating-cart-indicator');
+    indicators.forEach(indicator => {
+      try {
+        new FloatingCartIndicator(indicator as HTMLElement);
+      } catch (error) {
+        console.error('Failed to initialize FloatingCartIndicator:', error);
+      }
+    });
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeFloatingCartIndicators);
+  } else {
+    initializeFloatingCartIndicators();
+  }
+</script>
+
+<style>
+  /* Pulse ring animation */
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+
+  .animate-pulse-ring {
+    animation: pulse-ring 1s ease-out;
+  }
+
+  /* Mini cart popup animations */
+  .mini-cart-popup {
+    transform-origin: bottom right;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .mini-cart-popup.scale-100 {
+    transform: scale(1);
+  }
+
+  .mini-cart-popup.scale-0 {
+    transform: scale(0);
+  }
+
+  /* Smooth transitions */
+  .floating-cart-indicator * {
+    transition: all 0.3s ease;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .mini-cart-popup {
+      width: calc(100vw - 2rem);
+      max-width: 320px;
+    }
+  }
+
+  /* Badge scaling animation */
+  .item-count-badge {
+    transition: transform 0.2s ease;
+  }
+
+  .item-count-badge.scale-0 {
+    transform: scale(0);
+  }
+
+  .item-count-badge.scale-100 {
+    transform: scale(1);
+  }
+
+  /* Hover effects */
+  .cart-toggle-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .cart-toggle-btn:active {
+    transform: translateY(0);
+  }
+</style>

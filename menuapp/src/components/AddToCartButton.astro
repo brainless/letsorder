@@ -1,0 +1,318 @@
+---
+export interface Props {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  sectionName?: string;
+  className?: string;
+}
+
+const { id, name, description, price, sectionName, className = '' } = Astro.props;
+---
+
+<div class={`add-to-cart-container ${className}`} data-item-id={id}>
+  <!-- Quantity selector (initially hidden) -->
+  <div class="quantity-selector hidden items-center space-x-2">
+    <button 
+      type="button"
+      class="quantity-btn decrease-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1 px-2 rounded-full w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+      aria-label={`Decrease quantity of ${name}`}
+      data-action="decrease"
+    >
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+      </svg>
+    </button>
+    
+    <span class="quantity-display font-medium text-gray-900 min-w-[2ch] text-center" role="status" aria-live="polite">
+      0
+    </span>
+    
+    <button 
+      type="button"
+      class="quantity-btn increase-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-full w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+      aria-label={`Increase quantity of ${name}`}
+      data-action="increase"
+    >
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Initial "Add" button -->
+  <button 
+    type="button"
+    class="add-btn bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1 px-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+    data-item-id={id}
+    data-item-name={name}
+    data-item-description={description}
+    data-item-price={price}
+    data-section-name={sectionName}
+    aria-label={`Add ${name} to cart`}
+  >
+    Add
+  </button>
+</div>
+
+<script>
+  import { getCartInstance, type CartService } from '../lib/cart.ts';
+  import type { MenuItem } from '../lib/api.ts';
+
+  class AddToCartButton {
+    private container: HTMLElement;
+    private addButton: HTMLButtonElement;
+    private quantitySelector: HTMLElement;
+    private quantityDisplay: HTMLElement;
+    private decreaseBtn: HTMLButtonElement;
+    private increaseBtn: HTMLButtonElement;
+    private cart: CartService;
+    private menuItem: MenuItem;
+    private sectionName?: string;
+    private unsubscribe?: () => void;
+
+    constructor(container: HTMLElement) {
+      this.container = container;
+      this.addButton = container.querySelector('.add-btn') as HTMLButtonElement;
+      this.quantitySelector = container.querySelector('.quantity-selector') as HTMLElement;
+      this.quantityDisplay = container.querySelector('.quantity-display') as HTMLElement;
+      this.decreaseBtn = container.querySelector('.decrease-btn') as HTMLButtonElement;
+      this.increaseBtn = container.querySelector('.increase-btn') as HTMLButtonElement;
+
+      if (!this.addButton || !this.quantitySelector || !this.quantityDisplay) {
+        console.error('Required elements not found for AddToCartButton');
+        return;
+      }
+
+      // Get menu item data from button attributes
+      const itemId = parseInt(this.addButton.dataset.itemId || '0');
+      const itemName = this.addButton.dataset.itemName || '';
+      const itemDescription = this.addButton.dataset.itemDescription || '';
+      const itemPrice = parseFloat(this.addButton.dataset.itemPrice || '0');
+      this.sectionName = this.addButton.dataset.sectionName;
+
+      this.menuItem = {
+        id: itemId,
+        name: itemName,
+        description: itemDescription,
+        price: itemPrice
+      };
+
+      // Initialize cart instance
+      this.initializeCart();
+      this.bindEvents();
+      this.updateDisplay();
+    }
+
+    private initializeCart(): void {
+      // Get restaurant and table codes from URL or global state
+      const urlPath = window.location.pathname;
+      const matches = urlPath.match(/\/m\/([^\/]+)\/([^\/]+)/);
+      
+      if (matches) {
+        const [, restaurantCode, tableCode] = matches;
+        this.cart = getCartInstance(restaurantCode, tableCode);
+        
+        // Subscribe to cart changes
+        this.unsubscribe = this.cart.subscribe(() => {
+          this.updateDisplay();
+        });
+      } else {
+        console.error('Could not extract restaurant and table codes from URL');
+      }
+    }
+
+    private bindEvents(): void {
+      if (!this.cart) return;
+
+      // Initial add button
+      this.addButton?.addEventListener('click', () => {
+        this.cart.addItem(this.menuItem, 1, this.sectionName);
+        this.showSuccessAnimation();
+      });
+
+      // Quantity controls
+      this.decreaseBtn?.addEventListener('click', () => {
+        const currentQuantity = this.cart.getItemQuantity(this.menuItem.id);
+        if (currentQuantity > 0) {
+          this.cart.updateQuantity(this.menuItem.id, currentQuantity - 1);
+        }
+      });
+
+      this.increaseBtn?.addEventListener('click', () => {
+        const currentQuantity = this.cart.getItemQuantity(this.menuItem.id);
+        this.cart.updateQuantity(this.menuItem.id, currentQuantity + 1);
+      });
+
+      // Keyboard support for quantity controls
+      this.decreaseBtn?.addEventListener('keydown', this.handleKeydown.bind(this));
+      this.increaseBtn?.addEventListener('keydown', this.handleKeydown.bind(this));
+    }
+
+    private handleKeydown(event: KeyboardEvent): void {
+      const target = event.target as HTMLElement;
+      
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        target.click();
+      }
+    }
+
+    private updateDisplay(): void {
+      if (!this.cart) return;
+
+      const quantity = this.cart.getItemQuantity(this.menuItem.id);
+      
+      if (quantity > 0) {
+        // Show quantity selector, hide add button
+        this.addButton.style.display = 'none';
+        this.quantitySelector.style.display = 'flex';
+        this.quantitySelector.classList.remove('hidden');
+        this.quantityDisplay.textContent = quantity.toString();
+        
+        // Update ARIA label for quantity display
+        this.quantityDisplay.setAttribute('aria-label', `${quantity} ${this.menuItem.name} in cart`);
+        
+        // Disable decrease button if quantity is 1
+        if (this.decreaseBtn) {
+          this.decreaseBtn.disabled = quantity <= 1;
+          this.decreaseBtn.classList.toggle('opacity-50', quantity <= 1);
+        }
+      } else {
+        // Show add button, hide quantity selector
+        this.addButton.style.display = 'inline-block';
+        this.quantitySelector.style.display = 'none';
+        this.quantitySelector.classList.add('hidden');
+      }
+    }
+
+    private showSuccessAnimation(): void {
+      // Simple success animation
+      this.addButton.classList.add('animate-pulse');
+      setTimeout(() => {
+        this.addButton.classList.remove('animate-pulse');
+      }, 300);
+
+      // Optional: Show toast notification
+      this.showToast(`Added ${this.menuItem.name} to cart`);
+    }
+
+    private showToast(message: string): void {
+      // Create and show a simple toast notification
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50 transition-opacity duration-300';
+      toast.textContent = message;
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      
+      document.body.appendChild(toast);
+      
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 300);
+      }, 3000);
+    }
+
+    public destroy(): void {
+      if (this.unsubscribe) {
+        this.unsubscribe();
+      }
+    }
+  }
+
+  // Initialize all AddToCartButton instances on the page
+  function initializeAddToCartButtons(): void {
+    const containers = document.querySelectorAll('.add-to-cart-container');
+    containers.forEach(container => {
+      try {
+        new AddToCartButton(container as HTMLElement);
+      } catch (error) {
+        console.error('Failed to initialize AddToCartButton:', error);
+      }
+    });
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAddToCartButtons);
+  } else {
+    initializeAddToCartButtons();
+  }
+
+  // Re-initialize if new buttons are added dynamically
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const element = node as Element;
+          if (element.classList?.contains('add-to-cart-container')) {
+            new AddToCartButton(element as HTMLElement);
+          } else {
+            // Check for nested containers
+            const nestedContainers = element.querySelectorAll?.('.add-to-cart-container');
+            nestedContainers?.forEach(container => {
+              new AddToCartButton(container as HTMLElement);
+            });
+          }
+        }
+      });
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+</script>
+
+<style>
+  .add-to-cart-container {
+    display: inline-block;
+  }
+
+  .quantity-selector {
+    display: none;
+  }
+
+  .quantity-selector.show {
+    display: flex;
+  }
+
+  .quantity-btn:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Smooth transitions */
+  .quantity-display {
+    transition: all 0.2s ease;
+  }
+
+  /* Animation classes */
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  .animate-pulse {
+    animation: pulse 0.3s ease-in-out;
+  }
+
+  /* Toast notification styles */
+  .toast {
+    transform: translateY(-100%);
+    opacity: 0;
+    animation: slideDown 0.3s ease-out forwards;
+  }
+
+  @keyframes slideDown {
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+</style>

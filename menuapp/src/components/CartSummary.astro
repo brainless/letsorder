@@ -1,0 +1,564 @@
+---
+import CartItem from './CartItem.astro';
+import CartTotal from './CartTotal.astro';
+
+export interface Props {
+  showSpecialRequests?: boolean;
+  showCheckoutButton?: boolean;
+  className?: string;
+  onCheckout?: () => void;
+}
+
+const { 
+  showSpecialRequests = true, 
+  showCheckoutButton = true, 
+  className = '',
+  onCheckout
+} = Astro.props;
+---
+
+<div class={`cart-summary bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
+  <!-- Cart Header -->
+  <div class="cart-header px-4 py-3 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-gray-900">Your Order</h2>
+      <div class="cart-status flex items-center space-x-2">
+        <span class="cart-item-count bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full hidden" role="status" aria-live="polite">
+          0 items
+        </span>
+        <button 
+          type="button" 
+          class="clear-cart-btn text-sm text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 rounded px-2 py-1 transition-colors hidden"
+          aria-label="Clear cart"
+        >
+          Clear all
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Content -->
+  <div class="cart-content">
+    <!-- Empty Cart State -->
+    <div class="empty-cart-state p-6 text-center" style="display: none;">
+      <svg class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+      </svg>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">Your cart is empty</h3>
+      <p class="text-gray-500 text-sm">Add items from the menu to get started.</p>
+    </div>
+
+    <!-- Cart Items -->
+    <div class="cart-items p-4 space-y-4" style="display: none;">
+      <!-- Cart items will be dynamically populated here -->
+    </div>
+
+    <!-- Cart Total -->
+    <div class="cart-total-container border-t border-gray-200" style="display: none;">
+      <CartTotal showTaxInfo={true} />
+    </div>
+
+    <!-- Checkout Section -->
+    {showCheckoutButton && (
+      <div class="checkout-section p-4 border-t border-gray-200" style="display: none;">
+        <!-- Customer Info (optional) -->
+        <div class="customer-info mb-4 hidden">
+          <h3 class="text-sm font-medium text-gray-900 mb-2">Contact Information (Optional)</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input
+              type="text"
+              id="customer-name"
+              class="customer-name-input block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Your name"
+              maxlength="100"
+              aria-label="Your name"
+            />
+            <input
+              type="tel"
+              id="customer-phone"
+              class="customer-phone-input block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Phone number"
+              maxlength="20"
+              aria-label="Phone number"
+            />
+          </div>
+        </div>
+
+        <!-- Checkout Button -->
+        <button 
+          type="button"
+          class="checkout-btn w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          disabled
+        >
+          <span class="checkout-btn-text">Place Order</span>
+          <span class="checkout-loading hidden">
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Placing order...
+          </span>
+        </button>
+
+        <!-- Order Instructions -->
+        <p class="text-xs text-gray-500 text-center mt-2">
+          Your order will be sent directly to the restaurant kitchen.
+        </p>
+      </div>
+    )}
+  </div>
+
+  <!-- Success Message (hidden by default) -->
+  <div class="order-success hidden p-6 text-center">
+    <div class="mb-4">
+      <svg class="h-12 w-12 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    </div>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">Order Placed Successfully!</h3>
+    <p class="text-sm text-gray-600 mb-4">
+      Your order has been sent to the kitchen. 
+      <span class="order-id font-medium"></span>
+    </p>
+    <button 
+      type="button" 
+      class="new-order-btn bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    >
+      Place Another Order
+    </button>
+  </div>
+</div>
+
+<script>
+  import { getCartInstance, formatPrice, type CartService } from '../lib/cart.ts';
+  import { createOrder, type OrderData } from '../lib/api.ts';
+  import type { CartState, CartItem as CartItemType } from '../lib/api.ts';
+
+  class CartSummary {
+    private element: HTMLElement;
+    private cart: CartService;
+    private unsubscribe?: () => void;
+
+    // UI Elements
+    private emptyState: HTMLElement;
+    private cartItems: HTMLElement;
+    private cartTotalContainer: HTMLElement;
+    private checkoutSection: HTMLElement;
+    private cartItemCount: HTMLElement;
+    private clearCartBtn: HTMLButtonElement;
+    private checkoutBtn: HTMLButtonElement;
+    private checkoutBtnText: HTMLElement;
+    private checkoutLoading: HTMLElement;
+    private customerNameInput: HTMLInputElement;
+    private customerPhoneInput: HTMLInputElement;
+    private orderSuccess: HTMLElement;
+    private orderIdElement: HTMLElement;
+    private newOrderBtn: HTMLButtonElement;
+
+    constructor(element: HTMLElement) {
+      this.element = element;
+      this.initializeElements();
+      this.initializeCart();
+      this.bindEvents();
+      this.updateDisplay();
+    }
+
+    private initializeElements(): void {
+      this.emptyState = this.element.querySelector('.empty-cart-state') as HTMLElement;
+      this.cartItems = this.element.querySelector('.cart-items') as HTMLElement;
+      this.cartTotalContainer = this.element.querySelector('.cart-total-container') as HTMLElement;
+      this.checkoutSection = this.element.querySelector('.checkout-section') as HTMLElement;
+      this.cartItemCount = this.element.querySelector('.cart-item-count') as HTMLElement;
+      this.clearCartBtn = this.element.querySelector('.clear-cart-btn') as HTMLButtonElement;
+      this.checkoutBtn = this.element.querySelector('.checkout-btn') as HTMLButtonElement;
+      this.checkoutBtnText = this.element.querySelector('.checkout-btn-text') as HTMLElement;
+      this.checkoutLoading = this.element.querySelector('.checkout-loading') as HTMLElement;
+      this.customerNameInput = this.element.querySelector('.customer-name-input') as HTMLInputElement;
+      this.customerPhoneInput = this.element.querySelector('.customer-phone-input') as HTMLInputElement;
+      this.orderSuccess = this.element.querySelector('.order-success') as HTMLElement;
+      this.orderIdElement = this.element.querySelector('.order-id') as HTMLElement;
+      this.newOrderBtn = this.element.querySelector('.new-order-btn') as HTMLButtonElement;
+    }
+
+    private initializeCart(): void {
+      // Get restaurant and table codes from URL
+      const urlPath = window.location.pathname;
+      const matches = urlPath.match(/\/m\/([^\/]+)\/([^\/]+)/);
+      
+      if (matches) {
+        const [, restaurantCode, tableCode] = matches;
+        this.cart = getCartInstance(restaurantCode, tableCode);
+        
+        // Subscribe to cart changes
+        this.unsubscribe = this.cart.subscribe((state) => {
+          this.updateDisplay();
+        });
+      } else {
+        console.error('Could not extract restaurant and table codes from URL');
+      }
+    }
+
+    private bindEvents(): void {
+      if (!this.cart) return;
+
+      // Clear cart button
+      this.clearCartBtn?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear your entire cart?')) {
+          this.cart.clearCart();
+        }
+      });
+
+      // Checkout button
+      this.checkoutBtn?.addEventListener('click', () => {
+        this.handleCheckout();
+      });
+
+      // New order button
+      this.newOrderBtn?.addEventListener('click', () => {
+        this.startNewOrder();
+      });
+
+      // Real-time validation of customer inputs
+      [this.customerNameInput, this.customerPhoneInput].forEach(input => {
+        input?.addEventListener('input', () => {
+          this.validateCheckoutForm();
+        });
+      });
+    }
+
+    private updateDisplay(): void {
+      if (!this.cart) return;
+
+      const state = this.cart.getState();
+      const isEmpty = this.cart.isEmpty();
+
+      // Show/hide sections based on cart state
+      if (isEmpty) {
+        this.showEmptyState();
+      } else {
+        this.showCartContent(state);
+      }
+
+      // Update cart item count
+      this.updateCartItemCount(state.totalItems);
+
+      // Update checkout button state
+      this.validateCheckoutForm();
+    }
+
+    private showEmptyState(): void {
+      this.emptyState.style.display = 'block';
+      this.cartItems.style.display = 'none';
+      this.cartTotalContainer.style.display = 'none';
+      this.checkoutSection.style.display = 'none';
+      this.cartItemCount.classList.add('hidden');
+      this.clearCartBtn.classList.add('hidden');
+    }
+
+    private showCartContent(state: CartState): void {
+      this.emptyState.style.display = 'none';
+      this.cartItems.style.display = 'block';
+      this.cartTotalContainer.style.display = 'block';
+      this.checkoutSection.style.display = 'block';
+      this.cartItemCount.classList.remove('hidden');
+      this.clearCartBtn.classList.remove('hidden');
+
+      // Render cart items
+      this.renderCartItems(state.items);
+    }
+
+    private renderCartItems(items: CartItemType[]): void {
+      if (!this.cartItems) return;
+
+      // Clear existing items
+      this.cartItems.innerHTML = '';
+
+      // Create cart item elements
+      items.forEach((item, index) => {
+        const cartItemElement = this.createCartItemElement(item, index === items.length - 1);
+        this.cartItems.appendChild(cartItemElement);
+      });
+    }
+
+    private createCartItemElement(item: CartItemType, isLast: boolean): HTMLElement {
+      const div = document.createElement('div');
+      div.className = `cart-item ${isLast ? '' : 'border-b border-gray-100 pb-4'}`;
+      div.dataset.itemId = item.id.toString();
+
+      const itemTotal = item.price * item.quantity;
+
+      div.innerHTML = `
+        <div class="flex items-start justify-between">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-2">
+              <h4 class="font-medium text-gray-900 truncate">${item.name}</h4>
+              ${item.sectionName ? `<span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">${item.sectionName}</span>` : ''}
+            </div>
+            ${item.description ? `<p class="text-sm text-gray-600 mt-1">${item.description}</p>` : ''}
+            ${item.specialRequests ? `
+              <div class="mt-2 text-sm text-gray-700 bg-yellow-50 p-2 rounded border-l-2 border-yellow-200">
+                <strong class="text-yellow-800">Special requests:</strong> ${item.specialRequests}
+              </div>
+            ` : ''}
+          </div>
+          <div class="ml-4 text-right flex-shrink-0">
+            <div class="text-sm text-gray-600">${formatPrice(item.price)} each</div>
+            <div class="font-semibold text-gray-900 mb-2 item-total">${formatPrice(itemTotal)}</div>
+            <div class="flex items-center space-x-2 mb-2">
+              <button 
+                type="button"
+                class="quantity-btn decrease-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1 px-2 rounded-full w-7 h-7 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                data-action="decrease"
+                data-item-id="${item.id}"
+                aria-label="Decrease quantity of ${item.name}"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                </svg>
+              </button>
+              <span class="quantity-display font-medium text-gray-900 min-w-[2ch] text-center">${item.quantity}</span>
+              <button 
+                type="button"
+                class="quantity-btn increase-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-full w-7 h-7 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                data-action="increase"
+                data-item-id="${item.id}"
+                aria-label="Increase quantity of ${item.name}"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+              </button>
+            </div>
+            <button 
+              type="button"
+              class="remove-btn text-xs text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 rounded px-2 py-1 transition-colors"
+              data-item-id="${item.id}"
+              aria-label="Remove ${item.name} from cart"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Bind events for this item
+      this.bindCartItemEvents(div);
+
+      return div;
+    }
+
+    private bindCartItemEvents(itemElement: HTMLElement): void {
+      const itemId = parseInt(itemElement.dataset.itemId || '0');
+
+      // Quantity controls
+      const decreaseBtn = itemElement.querySelector('.decrease-btn') as HTMLButtonElement;
+      const increaseBtn = itemElement.querySelector('.increase-btn') as HTMLButtonElement;
+      const removeBtn = itemElement.querySelector('.remove-btn') as HTMLButtonElement;
+
+      decreaseBtn?.addEventListener('click', () => {
+        const currentQuantity = this.cart.getItemQuantity(itemId);
+        if (currentQuantity > 1) {
+          this.cart.updateQuantity(itemId, currentQuantity - 1);
+        } else {
+          this.cart.removeItem(itemId);
+        }
+      });
+
+      increaseBtn?.addEventListener('click', () => {
+        const currentQuantity = this.cart.getItemQuantity(itemId);
+        this.cart.updateQuantity(itemId, currentQuantity + 1);
+      });
+
+      removeBtn?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to remove this item from your cart?')) {
+          this.cart.removeItem(itemId);
+        }
+      });
+    }
+
+    private updateCartItemCount(count: number): void {
+      if (this.cartItemCount) {
+        this.cartItemCount.textContent = `${count} item${count === 1 ? '' : 's'}`;
+      }
+    }
+
+    private validateCheckoutForm(): void {
+      if (!this.checkoutBtn) return;
+
+      const cartValid = !this.cart.isEmpty();
+      const validation = this.cart.validateCart();
+      
+      this.checkoutBtn.disabled = !cartValid || !validation.isValid;
+      
+      if (validation.isValid && cartValid) {
+        this.checkoutBtn.classList.remove('bg-gray-400');
+        this.checkoutBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+      } else {
+        this.checkoutBtn.classList.add('bg-gray-400');
+        this.checkoutBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+      }
+    }
+
+    private async handleCheckout(): Promise<void> {
+      if (!this.cart || this.cart.isEmpty()) return;
+
+      // Show loading state
+      this.setCheckoutLoading(true);
+
+      try {
+        // Get customer info
+        const customerName = this.customerNameInput?.value.trim() || undefined;
+        const customerPhone = this.customerPhoneInput?.value.trim() || undefined;
+
+        // Create order data
+        const orderData = this.cart.toOrderData(customerName, customerPhone);
+
+        // Submit order
+        const result = await createOrder(orderData);
+
+        // Clear cart and show success
+        this.cart.clearCart();
+        this.showOrderSuccess(result.order_id);
+
+      } catch (error) {
+        console.error('Failed to place order:', error);
+        this.showOrderError(error);
+      } finally {
+        this.setCheckoutLoading(false);
+      }
+    }
+
+    private setCheckoutLoading(loading: boolean): void {
+      if (!this.checkoutBtn || !this.checkoutBtnText || !this.checkoutLoading) return;
+
+      this.checkoutBtn.disabled = loading;
+      
+      if (loading) {
+        this.checkoutBtnText.classList.add('hidden');
+        this.checkoutLoading.classList.remove('hidden');
+      } else {
+        this.checkoutBtnText.classList.remove('hidden');
+        this.checkoutLoading.classList.add('hidden');
+      }
+    }
+
+    private showOrderSuccess(orderId: string): void {
+      // Hide cart content
+      this.element.querySelector('.cart-content')?.classList.add('hidden');
+      
+      // Show success message
+      this.orderSuccess?.classList.remove('hidden');
+      
+      if (this.orderIdElement) {
+        this.orderIdElement.textContent = `Order #${orderId}`;
+      }
+    }
+
+    private startNewOrder(): void {
+      // Hide success message
+      this.orderSuccess?.classList.add('hidden');
+      
+      // Show cart content
+      this.element.querySelector('.cart-content')?.classList.remove('hidden');
+      
+      // Clear form
+      if (this.customerNameInput) this.customerNameInput.value = '';
+      if (this.customerPhoneInput) this.customerPhoneInput.value = '';
+      
+      // Scroll to top of menu
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    private showOrderError(error: any): void {
+      const message = error?.message || 'Failed to place order. Please try again.';
+      
+      // Show error toast
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-3 rounded-md shadow-lg z-50 max-w-sm';
+      toast.innerHTML = `
+        <div class="flex items-center">
+          <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div>
+            <p class="font-medium">Order Failed</p>
+            <p class="text-sm opacity-90">${message}</p>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(toast);
+      
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 300);
+      }, 5000);
+    }
+
+    public destroy(): void {
+      if (this.unsubscribe) {
+        this.unsubscribe();
+      }
+    }
+  }
+
+  // Initialize CartSummary instances
+  function initializeCartSummaries(): void {
+    const summaries = document.querySelectorAll('.cart-summary');
+    summaries.forEach(summary => {
+      try {
+        new CartSummary(summary as HTMLElement);
+      } catch (error) {
+        console.error('Failed to initialize CartSummary:', error);
+      }
+    });
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeCartSummaries);
+  } else {
+    initializeCartSummaries();
+  }
+</script>
+
+<style>
+  .cart-summary {
+    min-height: 200px;
+  }
+
+  .cart-items {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .cart-item {
+    transition: background-color 0.2s ease;
+  }
+
+  .cart-item:hover {
+    background-color: rgba(249, 250, 251, 0.5);
+  }
+
+  .quantity-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* Smooth transitions for state changes */
+  .cart-summary > * {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  /* Loading animation */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+</style>
