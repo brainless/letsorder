@@ -135,7 +135,7 @@ export const TableProvider: ParentComponent = (props) => {
     try {
       const restaurantTables =
         await TableService.getRestaurantTables(restaurantId);
-      setTables(restaurantTables);
+      setTables(Array.isArray(restaurantTables) ? restaurantTables : []);
     } catch (err) {
       handleError(err);
     } finally {
@@ -152,7 +152,7 @@ export const TableProvider: ParentComponent = (props) => {
 
     try {
       const newTable = await TableService.createTable(restaurantId, data);
-      setTables((prev) => [...prev, newTable]);
+      setTables((prev) => [...(Array.isArray(prev) ? prev : []), newTable]);
       return newTable;
     } catch (err) {
       handleError(err);

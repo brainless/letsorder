@@ -19,10 +19,20 @@ function OrderDashboard() {
   const restaurantId = () => params.restaurantId;
 
   // Load restaurant details
-  createEffect(() => {
+  createEffect(async () => {
     const id = restaurantId();
     if (id) {
-      restaurants.loadUserRestaurants();
+      // Load restaurant details if not already loaded or if different restaurant
+      if (
+        !restaurants.currentRestaurant ||
+        restaurants.currentRestaurant.id !== id
+      ) {
+        await restaurants.loadUserRestaurants();
+        const currentRestaurant = restaurants.restaurants.find(r => r.id === id);
+        if (currentRestaurant) {
+          restaurants.setCurrentRestaurant(currentRestaurant);
+        }
+      }
     }
   });
 
