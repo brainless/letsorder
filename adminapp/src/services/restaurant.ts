@@ -48,20 +48,11 @@ export class RestaurantService {
   }
 
   // Get user's restaurants
-  // TODO: Backend endpoint /user/restaurants needs to be implemented
   static async getUserRestaurants(): Promise<Restaurant[]> {
     const response = await fetch(`${this.BASE_URL}/user/restaurants`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
-
-    // Handle 404 gracefully for missing endpoint
-    if (response.status === 404) {
-      console.warn(
-        'GET /user/restaurants endpoint not implemented yet - returning empty array'
-      );
-      return [];
-    }
 
     return this.handleResponse<Restaurant[]>(response);
   }
