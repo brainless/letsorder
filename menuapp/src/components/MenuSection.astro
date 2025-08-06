@@ -1,0 +1,52 @@
+---
+import MenuItem from './MenuItem.astro';
+import type { MenuSection } from '../lib/api';
+
+export interface Props {
+  section: MenuSection;
+  className?: string;
+}
+
+const { section, className = '' } = Astro.props;
+---
+
+<section 
+  class={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 menu-section ${className}`}
+  data-section-id={section.id}
+  role="region"
+  aria-labelledby={`section-title-${section.id}`}
+>
+  <h2 
+    class="text-xl font-semibold text-gray-900 mb-4 section-title" 
+    id={`section-title-${section.id}`}
+  >
+    {section.name}
+  </h2>
+  
+  {section.items && section.items.length > 0 ? (
+    <div class="space-y-4" role="list" aria-label={`${section.name} items`}>
+      {section.items.map((item) => (
+        <div 
+          role="listitem" 
+          class="menu-item-wrapper" 
+          data-item-name={item.name.toLowerCase()} 
+          data-item-description={item.description?.toLowerCase() || ''}
+        >
+          <MenuItem 
+            id={item.id}
+            name={item.name}
+            description={item.description}
+            price={item.price}
+          />
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div class="text-center py-8">
+      <svg class="h-10 w-10 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      <p class="text-gray-500 text-sm italic">No items available in this section</p>
+    </div>
+  )}
+</section>

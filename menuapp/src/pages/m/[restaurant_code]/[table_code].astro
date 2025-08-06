@@ -1,24 +1,26 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import MenuDisplay from '../../../components/MenuDisplay.astro';
+import { fetchMenu, type MenuData } from '../../../lib/api';
 
 export async function getStaticPaths() {
-  // For now, return an empty array to allow build completion
-  // In a real implementation, this would fetch all restaurant/table combinations
-  // or use server-side rendering instead
+  // For static builds, return empty array to allow build completion
+  // In production, this would be handled by server-side rendering
   return [];
 }
 
 const { restaurant_code, table_code } = Astro.params;
 
-// TODO: Fetch menu data from API endpoint: GET /menu/{restaurant_code}/{table_code}
-const menuData = {
+// Default fallback data for development and static builds
+const fallbackMenuData: MenuData = {
   restaurant: {
     name: "Sample Restaurant",
-    code: restaurant_code
+    code: restaurant_code || 'sample',
+    address: "123 Sample Street, Sample City"
   },
   table: {
-    code: table_code,
-    name: `Table ${table_code}`
+    code: table_code || 'table1',
+    name: `Table ${table_code || 'Sample'}`
   },
   sections: [
     {
@@ -60,56 +62,51 @@ const menuData = {
   ]
 };
 
+// Try to fetch real menu data, fall back to sample data on error
+let menuData: MenuData = fallbackMenuData;
+let hasApiError = false;
+
+if (restaurant_code && table_code) {
+  try {
+    menuData = await fetchMenu(restaurant_code, table_code);
+  } catch (error) {
+    console.error('Failed to fetch menu data:', error);
+    hasApiError = true;
+    // Use fallback data
+  }
+}
+
 const pageTitle = `${menuData.restaurant.name} - ${menuData.table.name}`;
 ---
 
 <Layout title={pageTitle}>
-  <div class="space-y-6">
-    <header class="text-center">
-      <h1 class="text-2xl font-bold text-gray-900 mb-1">{menuData.restaurant.name}</h1>
-      <p class="text-gray-600 text-sm mb-2">{menuData.table.name}</p>
-      <p class="text-gray-500 text-xs">Restaurant: {restaurant_code} | Table: {table_code}</p>
-    </header>
+  {hasApiError && (
+    <div class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4" role="alert">
+      <div class="flex items-center">
+        <svg class="h-5 w-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+        <p class="text-yellow-700 font-medium">Using sample menu data</p>
+      </div>
+      <p class="text-yellow-600 text-sm mt-1">Could not connect to the menu server. Displaying sample data for demonstration.</p>
+    </div>
+  )}
 
-    <!-- Menu Sections -->
-    {menuData.sections.map(section => (
-      <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">{section.name}</h2>
-        <div class="space-y-3">
-          {section.items.map(item => (
-            <div class="border-b border-gray-100 pb-3 last:border-b-0">
-              <div class="flex justify-between items-start">
-                <div class="flex-1">
-                  <h3 class="font-medium text-gray-900">{item.name}</h3>
-                  <p class="text-sm text-gray-600 mt-1">{item.description}</p>
-                </div>
-                <div class="ml-4 text-right">
-                  <p class="font-semibold text-gray-900">${item.price}</p>
-                  <button class="mt-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1 px-3 rounded-md transition-colors">
-                    Add
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    ))}
+  <MenuDisplay menuData={menuData} />
 
-    <!-- Order Summary (Fixed at bottom on mobile) -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:relative md:border-t-0 md:bg-transparent md:p-0">
-      <div class="max-w-md mx-auto">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:shadow-sm">
-          <h2 class="text-lg font-semibold mb-3">Your Order</h2>
-          <p class="text-gray-500 text-center py-2">No items in cart</p>
-          <button class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md mt-3 transition-colors" disabled>
-            Place Order
-          </button>
-        </div>
+  <!-- Order Summary (Fixed at bottom on mobile) -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:relative md:border-t-0 md:bg-transparent md:p-0 mt-8">
+    <div class="max-w-md mx-auto">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:shadow-sm">
+        <h2 class="text-lg font-semibold mb-3">Your Order</h2>
+        <p class="text-gray-500 text-center py-2">No items in cart</p>
+        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md mt-3 transition-colors" disabled>
+          Place Order
+        </button>
       </div>
     </div>
-
-    <!-- Spacer for fixed order summary on mobile -->
-    <div class="h-32 md:hidden"></div>
   </div>
+
+  <!-- Spacer for fixed order summary on mobile -->
+  <div class="h-32 md:hidden"></div>
 </Layout>
