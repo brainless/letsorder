@@ -6,6 +6,7 @@ import {
   ParentComponent,
 } from 'solid-js';
 import { RestaurantService } from '../services/restaurant';
+import { useAuth } from './AuthContext';
 import type {
   Restaurant,
   CreateRestaurantRequest,
@@ -49,6 +50,7 @@ const RestaurantContext = createContext<RestaurantContextType | undefined>(
 );
 
 export const RestaurantProvider: ParentComponent = (props) => {
+  const auth = useAuth();
   const [restaurants, setRestaurants] = createSignal<Restaurant[]>([]);
   const [currentRestaurant, setCurrentRestaurant] =
     createSignal<Restaurant | null>(null);
@@ -56,9 +58,11 @@ export const RestaurantProvider: ParentComponent = (props) => {
   const [isLoading, setIsLoading] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
 
-  // Load user's restaurants on mount
+  // Load user's restaurants only when authenticated
   createEffect(() => {
-    loadUserRestaurants();
+    if (auth.isAuthenticated && !auth.isLoading) {
+      loadUserRestaurants();
+    }
   });
 
   const clearError = () => {

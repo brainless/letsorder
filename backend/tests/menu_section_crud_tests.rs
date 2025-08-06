@@ -61,7 +61,7 @@ async fn create_test_restaurant_and_user(pool: &Pool<Sqlite>) -> (String, String
         "INSERT INTO restaurant_managers (restaurant_id, user_id, role, can_manage_menu) VALUES (?, ?, ?, ?)",
         restaurant_id,
         user_id,
-        "owner",
+        "super_admin",
         true
     )
     .execute(pool)
