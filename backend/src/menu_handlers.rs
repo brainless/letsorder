@@ -73,11 +73,31 @@ pub async fn create_menu_section(
 
     match result {
         Ok(_) => {
-            // Return success response
-            Ok(HttpResponse::Created().json(serde_json::json!({
-                "message": "Menu section created successfully",
-                "section_id": section_id
-            })))
+            // Fetch the created section to return complete data
+            let created_section = sqlx::query!(
+                "SELECT id, restaurant_id, name, display_order, created_at FROM menu_sections WHERE id = ?",
+                section_id
+            )
+            .fetch_one(pool.get_ref())
+            .await;
+
+            match created_section {
+                Ok(section_row) => {
+                    Ok(HttpResponse::Created().json(serde_json::json!({
+                        "id": section_row.id,
+                        "restaurant_id": section_row.restaurant_id,
+                        "name": section_row.name,
+                        "display_order": section_row.display_order,
+                        "created_at": section_row.created_at
+                    })))
+                }
+                Err(e) => {
+                    log::error!("Database error fetching created section: {e}");
+                    Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                        "error": "Failed to fetch created section"
+                    })))
+                }
+            }
         }
         Err(e) => {
             log::error!("Database error creating menu section: {e}");
@@ -119,11 +139,38 @@ pub async fn list_menu_sections(
         }
     }
 
-    // Return simple response for now
-    Ok(HttpResponse::Ok().json(serde_json::json!({
-        "message": "Menu sections listed successfully",
-        "restaurant_id": restaurant_id
-    })))
+    // Fetch menu sections for this restaurant
+    let sections = sqlx::query!(
+        "SELECT id, restaurant_id, name, display_order, created_at FROM menu_sections WHERE restaurant_id = ? ORDER BY display_order ASC",
+        restaurant_id
+    )
+    .fetch_all(pool.get_ref())
+    .await;
+
+    match sections {
+        Ok(section_rows) => {
+            let sections_json: Vec<serde_json::Value> = section_rows
+                .into_iter()
+                .map(|row| {
+                    serde_json::json!({
+                        "id": row.id,
+                        "restaurant_id": row.restaurant_id,
+                        "name": row.name,
+                        "display_order": row.display_order,
+                        "created_at": row.created_at
+                    })
+                })
+                .collect();
+
+            Ok(HttpResponse::Ok().json(sections_json))
+        }
+        Err(e) => {
+            log::error!("Database error fetching menu sections: {e}");
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to fetch menu sections"
+            })))
+        }
+    }
 }
 
 pub async fn update_menu_section(

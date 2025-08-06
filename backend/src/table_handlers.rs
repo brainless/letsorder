@@ -105,12 +105,31 @@ pub async fn create_table(
 
     match result {
         Ok(_) => {
-            // Return success response with table info
-            Ok(HttpResponse::Created().json(serde_json::json!({
-                "message": "Table created successfully",
-                "table_id": table_id,
-                "unique_code": unique_code
-            })))
+            // Fetch the created table to return complete data
+            let created_table = sqlx::query!(
+                "SELECT id, restaurant_id, name, unique_code, created_at FROM tables WHERE id = ?",
+                table_id
+            )
+            .fetch_one(pool.get_ref())
+            .await;
+
+            match created_table {
+                Ok(table_row) => {
+                    Ok(HttpResponse::Created().json(serde_json::json!({
+                        "id": table_row.id,
+                        "restaurant_id": table_row.restaurant_id,
+                        "name": table_row.name,
+                        "unique_code": table_row.unique_code,
+                        "created_at": table_row.created_at
+                    })))
+                }
+                Err(e) => {
+                    log::error!("Database error fetching created table: {e}");
+                    Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                        "error": "Failed to fetch created table"
+                    })))
+                }
+            }
         }
         Err(e) => {
             log::error!("Database error creating table: {e}");
@@ -152,11 +171,38 @@ pub async fn list_tables(
         }
     }
 
-    // Return simple response for now
-    Ok(HttpResponse::Ok().json(serde_json::json!({
-        "message": "Tables listed successfully",
-        "restaurant_id": restaurant_id
-    })))
+    // Fetch tables for this restaurant
+    let tables = sqlx::query!(
+        "SELECT id, restaurant_id, name, unique_code, created_at FROM tables WHERE restaurant_id = ? ORDER BY created_at DESC",
+        restaurant_id
+    )
+    .fetch_all(pool.get_ref())
+    .await;
+
+    match tables {
+        Ok(table_rows) => {
+            let tables_json: Vec<serde_json::Value> = table_rows
+                .into_iter()
+                .map(|row| {
+                    serde_json::json!({
+                        "id": row.id,
+                        "restaurant_id": row.restaurant_id,
+                        "name": row.name,
+                        "unique_code": row.unique_code,
+                        "created_at": row.created_at
+                    })
+                })
+                .collect();
+
+            Ok(HttpResponse::Ok().json(tables_json))
+        }
+        Err(e) => {
+            log::error!("Database error fetching tables: {e}");
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to fetch tables"
+            })))
+        }
+    }
 }
 
 pub async fn update_table(
