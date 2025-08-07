@@ -136,6 +136,7 @@ pub fn create_app(
         .wrap(
             Cors::default()
                 .allowed_origin("http://localhost:3000")
+                .allowed_origin("http://localhost:4321")
                 .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
                 .allowed_headers(vec!["Content-Type", "Authorization"])
                 .max_age(3600),
