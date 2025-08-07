@@ -294,6 +294,7 @@ pub fn create_app(
         )
         // Public order routes (no auth required)
         .route("/orders", web::post().to(order_handlers::create_order))
+        .route("/debug/orders", web::post().to(order_handlers::debug_order_payload))
         .route(
             "/orders/{order_id}",
             web::get().to(order_handlers::get_order),
