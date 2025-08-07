@@ -109,6 +109,7 @@ export class CartService {
 
   // Public methods
   public addItem(menuItem: MenuItem, quantity: number = 1, sectionName?: string): void {
+    console.log('[CART DEBUG] Adding item to cart:', { name: menuItem.name, id: menuItem.id, idType: typeof menuItem.id });
     const existingItem = this.state.items.find(item => item.id === menuItem.id);
     
     if (existingItem) {
@@ -123,6 +124,7 @@ export class CartService {
         sectionName,
         specialRequests: ''
       };
+      console.log('[CART DEBUG] Created cart item:', { name: cartItem.name, id: cartItem.id, idType: typeof cartItem.id });
       this.state.items.push(cartItem);
     }
     
