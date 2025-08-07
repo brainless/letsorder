@@ -114,6 +114,16 @@ export async function createOrder(
   orderData: OrderData,
 ): Promise<{ order_id: string }> {
   try {
+    // Debug: first send to debug endpoint
+    console.log('Debug: sending order data:', JSON.stringify(orderData, null, 2));
+    await fetch(`${API_URL}/debug/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(orderData),
+    });
+    
     const response = await fetch(`${API_URL}/orders`, {
       method: "POST",
       headers: {
