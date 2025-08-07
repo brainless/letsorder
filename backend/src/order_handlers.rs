@@ -11,6 +11,7 @@ pub async fn create_order(
     pool: web::Data<Pool<Sqlite>>,
     req: web::Json<CreateOrderRequest>,
 ) -> Result<HttpResponse> {
+    log::debug!("Received order request: {:?}", req);
     // Find table by unique code
     let table_row = sqlx::query_as::<_, TableRow>(
         "SELECT id, restaurant_id, name, unique_code, created_at FROM tables WHERE unique_code = ?",
@@ -39,6 +40,7 @@ pub async fn create_order(
     let mut total_amount = 0.0;
 
     for item in &req.items {
+        log::debug!("Looking for menu item ID: {} in restaurant: {}", item.menu_item_id, table.restaurant_id);
         let menu_item_row = sqlx::query_as::<_, MenuItemRow>(
             "SELECT mi.id, mi.section_id, mi.name, mi.description, mi.price, mi.available, mi.display_order, mi.created_at 
              FROM menu_items mi 
