@@ -7,14 +7,14 @@ const API_VERSION = import.meta.env.PUBLIC_API_VERSION || "";
 const API_URL = API_VERSION ? `${API_BASE_URL}/${API_VERSION}` : API_BASE_URL;
 
 export interface MenuItem {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: number;
 }
 
 export interface MenuSection {
-  id: number;
+  id: string;
   name: string;
   items: MenuItem[];
 }
@@ -46,7 +46,7 @@ export interface OrderData {
 
 // Cart-specific interfaces
 export interface CartItem {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: number;

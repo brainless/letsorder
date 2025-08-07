@@ -131,7 +131,7 @@ export class CartService {
     this.notifyListeners();
   }
 
-  public updateQuantity(itemId: number, quantity: number): void {
+  public updateQuantity(itemId: string, quantity: number): void {
     if (quantity <= 0) {
       this.removeItem(itemId);
       return;
@@ -146,14 +146,14 @@ export class CartService {
     }
   }
 
-  public removeItem(itemId: number): void {
+  public removeItem(itemId: string): void {
     this.state.items = this.state.items.filter(item => item.id !== itemId);
     this.updateTotals();
     this.saveToStorage();
     this.notifyListeners();
   }
 
-  public updateSpecialRequests(itemId: number, specialRequests: string): void {
+  public updateSpecialRequests(itemId: string, specialRequests: string): void {
     const item = this.state.items.find(item => item.id === itemId);
     if (item) {
       item.specialRequests = specialRequests;
@@ -173,11 +173,11 @@ export class CartService {
     return { ...this.state };
   }
 
-  public getItem(itemId: number): CartItem | undefined {
+  public getItem(itemId: string): CartItem | undefined {
     return this.state.items.find(item => item.id === itemId);
   }
 
-  public getItemQuantity(itemId: number): number {
+  public getItemQuantity(itemId: string): number {
     const item = this.getItem(itemId);
     return item ? item.quantity : 0;
   }
@@ -211,7 +211,7 @@ export class CartService {
     return {
       table_code: this.state.tableCode,
       items: this.state.items.map(item => ({
-        menu_item_id: item.id.toString(),
+        menu_item_id: item.id,
         quantity: item.quantity,
         special_requests: item.specialRequests || undefined
       })),

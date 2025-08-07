@@ -301,7 +301,7 @@ const {
     private createCartItemElement(item: CartItemType, isLast: boolean): HTMLElement {
       const div = document.createElement('div');
       div.className = `cart-item ${isLast ? '' : 'border-b border-gray-100 pb-4'}`;
-      div.dataset.itemId = item.id.toString();
+      div.dataset.itemId = item.id;
 
       const itemTotal = item.price * item.quantity;
 
@@ -366,7 +366,7 @@ const {
     }
 
     private bindCartItemEvents(itemElement: HTMLElement): void {
-      const itemId = parseInt(itemElement.dataset.itemId || '0');
+      const itemId = itemElement.dataset.itemId || '';
 
       // Quantity controls
       const decreaseBtn = itemElement.querySelector('.decrease-btn') as HTMLButtonElement;
