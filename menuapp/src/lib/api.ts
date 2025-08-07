@@ -83,26 +83,18 @@ export async function fetchMenu(
   tableCode: string,
 ): Promise<MenuData> {
   const apiUrl = `${API_URL}/menu/${restaurantCode}/${tableCode}`;
-  console.log('[API DEBUG] API_BASE_URL:', API_BASE_URL);
-  console.log('[API DEBUG] API_VERSION:', API_VERSION);
-  console.log('[API DEBUG] API_URL:', API_URL);
-  console.log('[API DEBUG] Full fetch URL:', apiUrl);
   
   try {
-    console.log('[API DEBUG] Making fetch request to:', apiUrl);
     const response = await fetch(apiUrl);
-    console.log('[API DEBUG] Response status:', response.status);
-    console.log('[API DEBUG] Response ok:', response.ok);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch menu: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('[API DEBUG] Response data:', data);
     return data;
   } catch (error) {
-    console.error('[API DEBUG] Error fetching menu:', error);
+    console.error('Error fetching menu:', error);
     throw error;
   }
 }
@@ -114,16 +106,6 @@ export async function createOrder(
   orderData: OrderData,
 ): Promise<{ order_id: string }> {
   try {
-    // Debug: first send to debug endpoint
-    console.log('Debug: sending order data:', JSON.stringify(orderData, null, 2));
-    await fetch(`${API_URL}/debug/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(orderData),
-    });
-    
     const response = await fetch(`${API_URL}/orders`, {
       method: "POST",
       headers: {

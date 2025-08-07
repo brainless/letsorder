@@ -1,6 +1,6 @@
 ---
 export interface Props {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: number;
@@ -86,7 +86,7 @@ const { id, name, description, price, sectionName, className = '' } = Astro.prop
       }
 
       // Get menu item data from button attributes
-      const itemId = parseInt(this.addButton.dataset.itemId || '0');
+      const itemId = this.addButton.dataset.itemId || '';
       const itemName = this.addButton.dataset.itemName || '';
       const itemDescription = this.addButton.dataset.itemDescription || '';
       const itemPrice = parseFloat(this.addButton.dataset.itemPrice || '0');
