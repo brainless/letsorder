@@ -33,16 +33,15 @@ export interface MenuData {
 }
 
 export interface OrderItem {
-  menu_item_id: number;
+  menu_item_id: string;
   quantity: number;
+  special_requests?: string;
 }
 
 export interface OrderData {
-  restaurant_code: string;
   table_code: string;
   items: OrderItem[];
   customer_name?: string;
-  customer_phone?: string;
 }
 
 // Cart-specific interfaces

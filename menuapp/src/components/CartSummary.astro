@@ -430,10 +430,9 @@ const {
       try {
         // Get customer info
         const customerName = this.customerNameInput?.value.trim() || undefined;
-        const customerPhone = this.customerPhoneInput?.value.trim() || undefined;
 
         // Create order data
-        const orderData = this.cart.toOrderData(customerName, customerPhone);
+        const orderData = this.cart.toOrderData(customerName);
 
         // Submit order
         const result = await createOrder(orderData);

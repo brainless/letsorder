@@ -209,15 +209,13 @@ export class CartService {
   // Convert cart to order format
   public toOrderData(customerName?: string, customerPhone?: string) {
     return {
-      restaurant_code: this.state.restaurantCode,
       table_code: this.state.tableCode,
       items: this.state.items.map(item => ({
-        menu_item_id: item.id,
+        menu_item_id: item.id.toString(),
         quantity: item.quantity,
         special_requests: item.specialRequests || undefined
       })),
-      customer_name: customerName,
-      customer_phone: customerPhone
+      customer_name: customerName
     };
   }
 

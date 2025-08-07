@@ -452,9 +452,8 @@ const pageTitle = `Checkout - ${menuData.restaurant.name}`;
 
       try {
         const customerName = this.customerNameInput?.value.trim() || undefined;
-        const customerPhone = this.customerPhoneInput?.value.trim() || undefined;
 
-        const orderData = this.cart.toOrderData(customerName, customerPhone);
+        const orderData = this.cart.toOrderData(customerName);
         const result = await createOrder(orderData);
 
         this.cart.clearCart();
