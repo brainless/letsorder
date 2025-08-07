@@ -1,6 +1,8 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import MenuDisplay from '../../../components/MenuDisplay.astro';
+import CartSummary from '../../../components/CartSummary.astro';
+import FloatingCartIndicator from '../../../components/FloatingCartIndicator.astro';
 import { fetchMenu, type MenuData } from '../../../lib/api';
 
 export async function getStaticPaths() {
@@ -10,6 +12,10 @@ export async function getStaticPaths() {
 }
 
 const { restaurant_code, table_code } = Astro.params;
+
+console.log('[MENU DEBUG] Route accessed with params:', { restaurant_code, table_code });
+console.log('[MENU DEBUG] Full Astro.params:', Astro.params);
+console.log('[MENU DEBUG] Astro.url:', Astro.url.toString());
 
 // Default fallback data for development and static builds
 const fallbackMenuData: MenuData = {
@@ -67,13 +73,32 @@ let menuData: MenuData = fallbackMenuData;
 let hasApiError = false;
 
 if (restaurant_code && table_code) {
+  console.log('[MENU DEBUG] Attempting to fetch menu for:', { restaurant_code, table_code });
   try {
-    menuData = await fetchMenu(restaurant_code, table_code);
+    const apiResponse = await fetchMenu(restaurant_code, table_code);
+    console.log('[MENU DEBUG] Successfully fetched menu data:', apiResponse);
+    
+    // Transform API response to match expected MenuData interface
+    menuData = {
+      restaurant: {
+        name: apiResponse.restaurant.name,
+        code: restaurant_code,
+        address: apiResponse.restaurant.address
+      },
+      table: {
+        code: table_code,
+        name: `Table ${table_code}`
+      },
+      sections: apiResponse.sections || []
+    };
+    console.log('[MENU DEBUG] Transformed menu data:', menuData);
   } catch (error) {
-    console.error('Failed to fetch menu data:', error);
+    console.error('[MENU DEBUG] Failed to fetch menu data:', error);
     hasApiError = true;
     // Use fallback data
   }
+} else {
+  console.log('[MENU DEBUG] Missing params - using fallback data');
 }
 
 const pageTitle = `${menuData.restaurant.name} - ${menuData.table.name}`;
@@ -94,19 +119,20 @@ const pageTitle = `${menuData.restaurant.name} - ${menuData.table.name}`;
 
   <MenuDisplay menuData={menuData} />
 
-  <!-- Order Summary (Fixed at bottom on mobile) -->
-  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:relative md:border-t-0 md:bg-transparent md:p-0 mt-8">
+  <!-- Cart Summary (Fixed at bottom on mobile, inline on desktop) -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:relative md:border-t-0 md:bg-transparent md:p-0 mt-8 z-30">
     <div class="max-w-md mx-auto">
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:shadow-sm">
-        <h2 class="text-lg font-semibold mb-3">Your Order</h2>
-        <p class="text-gray-500 text-center py-2">No items in cart</p>
-        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md mt-3 transition-colors" disabled>
-          Place Order
-        </button>
-      </div>
+      <CartSummary 
+        showSpecialRequests={true}
+        showCheckoutButton={true}
+        className="md:shadow-sm"
+      />
     </div>
   </div>
 
-  <!-- Spacer for fixed order summary on mobile -->
+  <!-- Floating Cart Indicator (shows when cart has items) -->
+  <FloatingCartIndicator position="bottom-right" />
+
+  <!-- Spacer for fixed cart summary on mobile -->
   <div class="h-32 md:hidden"></div>
 </Layout>
