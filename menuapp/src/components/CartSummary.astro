@@ -84,21 +84,32 @@ const {
           </div>
         </div>
 
-        <!-- Checkout Button -->
-        <button 
-          type="button"
-          class="checkout-btn w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-          disabled
-        >
-          <span class="checkout-btn-text">Place Order</span>
-          <span class="checkout-loading hidden">
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Placing order...
-          </span>
-        </button>
+        <!-- Checkout Buttons -->
+        <div class="space-y-2">
+          <!-- Review Order Button (Primary) -->
+          <a 
+            href="#"
+            class="review-order-btn block w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-center"
+          >
+            Review & Place Order
+          </a>
+          
+          <!-- Quick Order Button (Secondary) -->
+          <button 
+            type="button"
+            class="checkout-btn w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-sm"
+            disabled
+          >
+            <span class="checkout-btn-text">Quick Order</span>
+            <span class="checkout-loading hidden">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Placing order...
+            </span>
+          </button>
+        </div>
 
         <!-- Order Instructions -->
         <p class="text-xs text-gray-500 text-center mt-2">
@@ -146,6 +157,7 @@ const {
     private checkoutSection: HTMLElement;
     private cartItemCount: HTMLElement;
     private clearCartBtn: HTMLButtonElement;
+    private reviewOrderBtn: HTMLAnchorElement;
     private checkoutBtn: HTMLButtonElement;
     private checkoutBtnText: HTMLElement;
     private checkoutLoading: HTMLElement;
@@ -170,6 +182,7 @@ const {
       this.checkoutSection = this.element.querySelector('.checkout-section') as HTMLElement;
       this.cartItemCount = this.element.querySelector('.cart-item-count') as HTMLElement;
       this.clearCartBtn = this.element.querySelector('.clear-cart-btn') as HTMLButtonElement;
+      this.reviewOrderBtn = this.element.querySelector('.review-order-btn') as HTMLAnchorElement;
       this.checkoutBtn = this.element.querySelector('.checkout-btn') as HTMLButtonElement;
       this.checkoutBtnText = this.element.querySelector('.checkout-btn-text') as HTMLElement;
       this.checkoutLoading = this.element.querySelector('.checkout-loading') as HTMLElement;
@@ -188,6 +201,11 @@ const {
       if (matches) {
         const [, restaurantCode, tableCode] = matches;
         this.cart = getCartInstance(restaurantCode, tableCode);
+        
+        // Update review order button URL
+        if (this.reviewOrderBtn) {
+          this.reviewOrderBtn.href = `/m/${restaurantCode}/${tableCode}/checkout`;
+        }
         
         // Subscribe to cart changes
         this.unsubscribe = this.cart.subscribe((state) => {
@@ -383,7 +401,7 @@ const {
     }
 
     private validateCheckoutForm(): void {
-      if (!this.checkoutBtn) return;
+      if (!this.checkoutBtn || !this.reviewOrderBtn) return;
 
       const cartValid = !this.cart.isEmpty();
       const validation = this.cart.validateCart();
@@ -393,9 +411,13 @@ const {
       if (validation.isValid && cartValid) {
         this.checkoutBtn.classList.remove('bg-gray-400');
         this.checkoutBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+        this.reviewOrderBtn.classList.remove('bg-gray-400', 'pointer-events-none');
+        this.reviewOrderBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
       } else {
         this.checkoutBtn.classList.add('bg-gray-400');
         this.checkoutBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+        this.reviewOrderBtn.classList.add('bg-gray-400', 'pointer-events-none');
+        this.reviewOrderBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
       }
     }
 
