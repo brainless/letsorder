@@ -77,6 +77,7 @@ if (restaurant_code && table_code) {
   try {
     const apiResponse = await fetchMenu(restaurant_code, table_code);
     console.log('[MENU DEBUG] Successfully fetched menu data:', apiResponse);
+    console.log('[MENU DEBUG] Sample item IDs from API:', apiResponse.sections?.[0]?.items?.map(item => ({ name: item.name, id: item.id, idType: typeof item.id })));
     
     // Transform API response to match expected MenuData interface
     menuData = {
@@ -92,10 +93,12 @@ if (restaurant_code && table_code) {
       sections: apiResponse.sections || []
     };
     console.log('[MENU DEBUG] Transformed menu data:', menuData);
+    console.log('[MENU DEBUG] Final item IDs:', menuData.sections?.[0]?.items?.map(item => ({ name: item.name, id: item.id, idType: typeof item.id })));
   } catch (error) {
     console.error('[MENU DEBUG] Failed to fetch menu data:', error);
     hasApiError = true;
     // Use fallback data
+    console.log('[MENU DEBUG] Using fallback data due to error');
   }
 } else {
   console.log('[MENU DEBUG] Missing params - using fallback data');

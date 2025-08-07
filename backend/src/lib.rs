@@ -136,6 +136,7 @@ pub fn create_app(
         .wrap(
             Cors::default()
                 .allowed_origin("http://localhost:3000")
+                .allowed_origin("http://localhost:4321")
                 .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
                 .allowed_headers(vec!["Content-Type", "Authorization"])
                 .max_age(3600),
@@ -293,6 +294,7 @@ pub fn create_app(
         )
         // Public order routes (no auth required)
         .route("/orders", web::post().to(order_handlers::create_order))
+        .route("/debug/orders", web::post().to(order_handlers::debug_order_payload))
         .route(
             "/orders/{order_id}",
             web::get().to(order_handlers::get_order),

@@ -7,14 +7,14 @@ const API_VERSION = import.meta.env.PUBLIC_API_VERSION || "";
 const API_URL = API_VERSION ? `${API_BASE_URL}/${API_VERSION}` : API_BASE_URL;
 
 export interface MenuItem {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: number;
 }
 
 export interface MenuSection {
-  id: number;
+  id: string;
   name: string;
   items: MenuItem[];
 }
@@ -33,21 +33,20 @@ export interface MenuData {
 }
 
 export interface OrderItem {
-  menu_item_id: number;
+  menu_item_id: string;
   quantity: number;
+  special_requests?: string;
 }
 
 export interface OrderData {
-  restaurant_code: string;
   table_code: string;
   items: OrderItem[];
   customer_name?: string;
-  customer_phone?: string;
 }
 
 // Cart-specific interfaces
 export interface CartItem {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: number;
@@ -84,26 +83,18 @@ export async function fetchMenu(
   tableCode: string,
 ): Promise<MenuData> {
   const apiUrl = `${API_URL}/menu/${restaurantCode}/${tableCode}`;
-  console.log('[API DEBUG] API_BASE_URL:', API_BASE_URL);
-  console.log('[API DEBUG] API_VERSION:', API_VERSION);
-  console.log('[API DEBUG] API_URL:', API_URL);
-  console.log('[API DEBUG] Full fetch URL:', apiUrl);
   
   try {
-    console.log('[API DEBUG] Making fetch request to:', apiUrl);
     const response = await fetch(apiUrl);
-    console.log('[API DEBUG] Response status:', response.status);
-    console.log('[API DEBUG] Response ok:', response.ok);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch menu: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('[API DEBUG] Response data:', data);
     return data;
   } catch (error) {
-    console.error('[API DEBUG] Error fetching menu:', error);
+    console.error('Error fetching menu:', error);
     throw error;
   }
 }

@@ -7,10 +7,27 @@ use chrono::Utc;
 use sqlx::{Pool, Row, Sqlite};
 use uuid::Uuid;
 
+// Debug endpoint to capture raw JSON
+pub async fn debug_order_payload(
+    payload: web::Bytes,
+) -> Result<HttpResponse> {
+    let payload_str = String::from_utf8_lossy(&payload);
+    log::debug!("Raw order payload: {}", payload_str);
+    
+    // Try to parse as serde_json::Value to see structure
+    match serde_json::from_slice::<serde_json::Value>(&payload) {
+        Ok(json) => log::debug!("Parsed JSON structure: {:#}", json),
+        Err(e) => log::error!("JSON parsing error: {}", e),
+    }
+    
+    Ok(HttpResponse::Ok().json(serde_json::json!({"debug": "payload logged"})))
+}
+
 pub async fn create_order(
     pool: web::Data<Pool<Sqlite>>,
     req: web::Json<CreateOrderRequest>,
 ) -> Result<HttpResponse> {
+    log::debug!("Successfully deserialized order request: {:?}", req);
     // Find table by unique code
     let table_row = sqlx::query_as::<_, TableRow>(
         "SELECT id, restaurant_id, name, unique_code, created_at FROM tables WHERE unique_code = ?",
@@ -39,6 +56,7 @@ pub async fn create_order(
     let mut total_amount = 0.0;
 
     for item in &req.items {
+        log::debug!("Looking for menu item ID: {} in restaurant: {}", item.menu_item_id, table.restaurant_id);
         let menu_item_row = sqlx::query_as::<_, MenuItemRow>(
             "SELECT mi.id, mi.section_id, mi.name, mi.description, mi.price, mi.available, mi.display_order, mi.created_at 
              FROM menu_items mi 
