@@ -1,9 +1,10 @@
 // API utility module for menu app
 
-const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:8080';
-const API_VERSION = import.meta.env.PUBLIC_API_VERSION || 'v1';
+const API_BASE_URL =
+  import.meta.env.PUBLIC_API_BASE_URL || "http://localhost:8080";
+const API_VERSION = import.meta.env.PUBLIC_API_VERSION || "";
 
-const API_URL = `${API_BASE_URL}/${API_VERSION}`;
+const API_URL = API_VERSION ? `${API_BASE_URL}/${API_VERSION}` : API_BASE_URL;
 
 export interface MenuItem {
   id: number;
@@ -65,22 +66,44 @@ export interface CartState {
 }
 
 export interface CartAction {
-  type: 'ADD_ITEM' | 'UPDATE_QUANTITY' | 'REMOVE_ITEM' | 'UPDATE_SPECIAL_REQUESTS' | 'CLEAR_CART' | 'LOAD_CART';
+  type:
+    | "ADD_ITEM"
+    | "UPDATE_QUANTITY"
+    | "REMOVE_ITEM"
+    | "UPDATE_SPECIAL_REQUESTS"
+    | "CLEAR_CART"
+    | "LOAD_CART";
   payload?: any;
 }
 
 /**
  * Fetch menu data for a specific restaurant and table
  */
-export async function fetchMenu(restaurantCode: string, tableCode: string): Promise<MenuData> {
+export async function fetchMenu(
+  restaurantCode: string,
+  tableCode: string,
+): Promise<MenuData> {
+  const apiUrl = `${API_URL}/menu/${restaurantCode}/${tableCode}`;
+  console.log('[API DEBUG] API_BASE_URL:', API_BASE_URL);
+  console.log('[API DEBUG] API_VERSION:', API_VERSION);
+  console.log('[API DEBUG] API_URL:', API_URL);
+  console.log('[API DEBUG] Full fetch URL:', apiUrl);
+  
   try {
-    const response = await fetch(`${API_URL}/menu/${restaurantCode}/${tableCode}`);
+    console.log('[API DEBUG] Making fetch request to:', apiUrl);
+    const response = await fetch(apiUrl);
+    console.log('[API DEBUG] Response status:', response.status);
+    console.log('[API DEBUG] Response ok:', response.ok);
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch menu: ${response.status}`);
     }
-    return await response.json();
+    
+    const data = await response.json();
+    console.log('[API DEBUG] Response data:', data);
+    return data;
   } catch (error) {
-    console.error('Error fetching menu:', error);
+    console.error('[API DEBUG] Error fetching menu:', error);
     throw error;
   }
 }
@@ -88,23 +111,25 @@ export async function fetchMenu(restaurantCode: string, tableCode: string): Prom
 /**
  * Create a new order
  */
-export async function createOrder(orderData: OrderData): Promise<{ order_id: string }> {
+export async function createOrder(
+  orderData: OrderData,
+): Promise<{ order_id: string }> {
   try {
     const response = await fetch(`${API_URL}/orders`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(orderData),
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to create order: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
-    console.error('Error creating order:', error);
+    console.error("Error creating order:", error);
     throw error;
   }
 }
@@ -120,7 +145,7 @@ export async function getOrder(orderId: string): Promise<any> {
     }
     return await response.json();
   } catch (error) {
-    console.error('Error fetching order:', error);
+    console.error("Error fetching order:", error);
     throw error;
   }
 }

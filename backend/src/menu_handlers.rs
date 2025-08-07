@@ -548,13 +548,66 @@ pub async fn get_public_menu(
         }
     };
 
-    // Return simple public menu response for now
+    // Fetch menu sections for this restaurant
+    let sections_result = sqlx::query_as::<_, crate::models::MenuSectionRow>(
+        "SELECT id, restaurant_id, name, display_order, created_at 
+         FROM menu_sections 
+         WHERE restaurant_id = ? 
+         ORDER BY display_order ASC",
+    )
+    .bind(restaurant_code.clone())
+    .fetch_all(pool.get_ref())
+    .await;
+
+    let sections = match sections_result {
+        Ok(rows) => rows.into_iter().map(MenuSection::from).collect::<Vec<_>>(),
+        Err(e) => {
+            log::error!("Database error fetching menu sections: {e}");
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            })));
+        }
+    };
+
+    // Fetch menu items for all sections
+    let mut sections_with_items = Vec::new();
+    for section in sections {
+        let items_result = sqlx::query_as::<_, crate::models::MenuItemRow>(
+            "SELECT id, section_id, name, description, price, available, display_order, created_at 
+             FROM menu_items 
+             WHERE section_id = ? AND available = TRUE
+             ORDER BY display_order ASC",
+        )
+        .bind(&section.id)
+        .fetch_all(pool.get_ref())
+        .await;
+
+        let items = match items_result {
+            Ok(rows) => rows.into_iter().map(|row| crate::models::PublicMenuItem {
+                id: row.id.unwrap_or_default(),
+                name: row.name.unwrap_or_default(),
+                description: row.description,
+                price: row.price.unwrap_or(0.0),
+            }).collect::<Vec<_>>(),
+            Err(e) => {
+                log::error!("Database error fetching menu items for section {}: {e}", section.id);
+                continue; // Skip this section on error
+            }
+        };
+
+        sections_with_items.push(crate::models::PublicMenuSection {
+            id: section.id,
+            name: section.name,
+            items,
+        });
+    }
+
     let public_menu = PublicMenu {
         restaurant: PublicRestaurantInfo {
             name: restaurant_name,
             address: restaurant_address,
         },
-        sections: vec![], // Empty for now
+        sections: sections_with_items,
     };
 
     Ok(HttpResponse::Ok().json(public_menu))

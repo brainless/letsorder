@@ -13,6 +13,10 @@ export async function getStaticPaths() {
 
 const { restaurant_code, table_code } = Astro.params;
 
+console.log('[MENU DEBUG] Route accessed with params:', { restaurant_code, table_code });
+console.log('[MENU DEBUG] Full Astro.params:', Astro.params);
+console.log('[MENU DEBUG] Astro.url:', Astro.url.toString());
+
 // Default fallback data for development and static builds
 const fallbackMenuData: MenuData = {
   restaurant: {
@@ -69,13 +73,32 @@ let menuData: MenuData = fallbackMenuData;
 let hasApiError = false;
 
 if (restaurant_code && table_code) {
+  console.log('[MENU DEBUG] Attempting to fetch menu for:', { restaurant_code, table_code });
   try {
-    menuData = await fetchMenu(restaurant_code, table_code);
+    const apiResponse = await fetchMenu(restaurant_code, table_code);
+    console.log('[MENU DEBUG] Successfully fetched menu data:', apiResponse);
+    
+    // Transform API response to match expected MenuData interface
+    menuData = {
+      restaurant: {
+        name: apiResponse.restaurant.name,
+        code: restaurant_code,
+        address: apiResponse.restaurant.address
+      },
+      table: {
+        code: table_code,
+        name: `Table ${table_code}`
+      },
+      sections: apiResponse.sections || []
+    };
+    console.log('[MENU DEBUG] Transformed menu data:', menuData);
   } catch (error) {
-    console.error('Failed to fetch menu data:', error);
+    console.error('[MENU DEBUG] Failed to fetch menu data:', error);
     hasApiError = true;
     // Use fallback data
   }
+} else {
+  console.log('[MENU DEBUG] Missing params - using fallback data');
 }
 
 const pageTitle = `${menuData.restaurant.name} - ${menuData.table.name}`;
