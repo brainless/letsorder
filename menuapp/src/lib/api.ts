@@ -2,7 +2,8 @@
 import type { 
   MenuData, 
   OrderData, 
-  CreateOrderResult 
+  CreateOrderResult,
+  OrderDetails
 } from '../types/menu';
 
 const API_BASE_URL =
@@ -64,13 +65,17 @@ export async function createOrder(
 /**
  * Get order details by order ID
  */
-export async function getOrder(orderId: string): Promise<any> {
+export async function getOrder(orderId: string): Promise<OrderDetails> {
   try {
     const response = await fetch(`${API_URL}/orders/${orderId}`);
     if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Order not found');
+      }
       throw new Error(`Failed to fetch order: ${response.status}`);
     }
-    return await response.json();
+    const data = await response.json();
+    return data as OrderDetails;
   } catch (error) {
     console.error("Error fetching order:", error);
     throw error;

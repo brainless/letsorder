@@ -1,0 +1,212 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getOrder } from '../../lib/api';
+import type { OrderDetails } from '../../types/menu';
+
+export async function getStaticPaths() {
+  // For dynamic routes, we return an empty array since we can't pre-generate all possible order IDs
+  return [];
+}
+
+const { orderId } = Astro.params;
+
+if (!orderId) {
+  return Astro.redirect('/404');
+}
+
+let order: OrderDetails | null = null;
+let error: string | null = null;
+
+try {
+  order = await getOrder(orderId);
+} catch (e) {
+  error = e instanceof Error ? e.message : 'Failed to load order';
+  console.error('Error loading order:', e);
+}
+
+// Format date helper
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+// Format price helper
+function formatPrice(price: number): string {
+  return `$${price.toFixed(2)}`;
+}
+
+// Get status display info
+function getStatusInfo(status: string) {
+  const statusMap = {
+    'pending': { label: 'Order Received', color: 'bg-yellow-100 text-yellow-800', icon: '⏳' },
+    'confirmed': { label: 'Confirmed', color: 'bg-blue-100 text-blue-800', icon: '✓' },
+    'preparing': { label: 'Preparing', color: 'bg-orange-100 text-orange-800', icon: '👨‍🍳' },
+    'ready': { label: 'Ready for Pickup', color: 'bg-green-100 text-green-800', icon: '🔔' },
+    'delivered': { label: 'Delivered', color: 'bg-green-100 text-green-800', icon: '✅' },
+    'cancelled': { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: '❌' }
+  };
+  return statusMap[status as keyof typeof statusMap] || statusMap.pending;
+}
+---
+
+<Layout title={order ? `Order #${order.id.slice(-8)}` : 'Order Status'}>
+  <main class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      {error ? (
+        <!-- Error State -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+          <div class="mb-4">
+            <svg class="h-16 w-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h1>
+          <p class="text-gray-600 mb-6">{error}</p>
+          <p class="text-sm text-gray-500">
+            Please check your order ID and try again, or contact the restaurant if you believe this is an error.
+          </p>
+        </div>
+      ) : order && (
+        <!-- Order Details -->
+        <div class="space-y-6">
+          <!-- Header -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h1 class="text-2xl font-bold text-gray-900">
+                  Order #{order.id.slice(-8)}
+                </h1>
+                <p class="text-gray-600">
+                  Placed on {formatDate(order.created_at)}
+                </p>
+              </div>
+              <div class="text-right">
+                {(() => {
+                  const statusInfo = getStatusInfo(order.status);
+                  return (
+                    <span class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color}`}>
+                      <span class="mr-1">{statusInfo.icon}</span>
+                      {statusInfo.label}
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+            
+            <!-- Restaurant and Table Info -->
+            <div class="border-t pt-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 class="text-sm font-medium text-gray-500">Restaurant</h3>
+                  <p class="text-gray-900">{order.restaurant_name}</p>
+                </div>
+                <div>
+                  <h3 class="text-sm font-medium text-gray-500">Table</h3>
+                  <p class="text-gray-900">{order.table_name}</p>
+                </div>
+                {order.customer_name && (
+                  <div class="md:col-span-2">
+                    <h3 class="text-sm font-medium text-gray-500">Customer Name</h3>
+                    <p class="text-gray-900">{order.customer_name}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Items -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Order Items</h2>
+            <div class="space-y-4">
+              {order.items.map((item) => (
+                <div class="flex justify-between items-start py-3 border-b border-gray-100 last:border-b-0">
+                  <div class="flex-1">
+                    <h3 class="font-medium text-gray-900">{item.menu_item_name}</h3>
+                    {item.special_requests && (
+                      <p class="text-sm text-gray-600 mt-1">
+                        <span class="font-medium">Special requests:</span> {item.special_requests}
+                      </p>
+                    )}
+                  </div>
+                  <div class="text-right ml-4">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-gray-600">×{item.quantity}</span>
+                      <span class="font-medium text-gray-900">
+                        {formatPrice(item.price * item.quantity)}
+                      </span>
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      {formatPrice(item.price)} each
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <!-- Total -->
+            <div class="border-t pt-4 mt-4">
+              <div class="flex justify-between items-center">
+                <span class="text-lg font-semibold text-gray-900">Total</span>
+                <span class="text-xl font-bold text-gray-900">
+                  {formatPrice(order.total_amount)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button 
+                onclick="window.print()" 
+                class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              >
+                🖨️ Print Order
+              </button>
+              <button 
+                onclick="navigator.share ? navigator.share({title: 'Order Status', url: window.location.href}) : navigator.clipboard.writeText(window.location.href).then(() => alert('Link copied to clipboard!'))"
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                📱 Share Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </main>
+</Layout>
+
+<style>
+  /* Print styles */
+  @media print {
+    body {
+      background: white !important;
+    }
+    
+    .bg-gray-50 {
+      background: white !important;
+    }
+    
+    .shadow-sm,
+    .border {
+      box-shadow: none !important;
+      border: 1px solid #e5e7eb !important;
+    }
+    
+    button {
+      display: none !important;
+    }
+    
+    .space-y-6 > * + * {
+      margin-top: 1rem !important;
+    }
+  }
+</style>
+</Layout>

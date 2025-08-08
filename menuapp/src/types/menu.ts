@@ -3,7 +3,9 @@ import {
   PublicMenuSection, 
   PublicMenuItem, 
   OrderItem as GeneratedOrderItem,
-  CreateOrderResponse 
+  CreateOrderResponse,
+  OrderResponse,
+  OrderItemResponse
 } from './api';
 
 // Convert null to undefined for better frontend compatibility
@@ -61,3 +63,12 @@ export interface CartAction {
 
 // API response types
 export type CreateOrderResult = CreateOrderResponse;
+
+// Order status types
+export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+
+export interface OrderDetails extends Omit<OrderResponse, 'status'> {
+  status: OrderStatus;
+}
+
+export type OrderItemDetails = OrderItemResponse;
