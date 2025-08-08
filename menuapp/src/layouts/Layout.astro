@@ -15,13 +15,42 @@ const { title, description = 'Guest menu ordering app' } = Astro.props;
 		<meta charset="UTF-8" />
 		<meta name="description" content={description} />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		
+		<!-- Performance optimizations -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link rel="dns-prefetch" href="//api.letsorder.example.com" />
+		
+		<!-- Critical CSS and fonts -->
+		<link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin />
+		
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
+		
+		<!-- PWA and mobile optimizations -->
+		<meta name="theme-color" content="#1f2937" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+		<meta name="apple-mobile-web-app-title" content="Menu" />
+		
+		<!-- Performance hints -->
+		<meta name="format-detection" content="telephone=no" />
+		
 		<title>{title}</title>
 	</head>
 	<body class="min-h-screen bg-gray-50 text-gray-900 font-sans">
 		<main class="container mx-auto px-4 py-6 max-w-md">
 			<slot />
 		</main>
+		
+		<!-- Register service worker -->
+		<script>
+			if ('serviceWorker' in navigator) {
+				navigator.serviceWorker.register('/sw.js').catch(() => {
+					// Service worker registration failed, ignore silently
+				});
+			}
+		</script>
 	</body>
 </html>
