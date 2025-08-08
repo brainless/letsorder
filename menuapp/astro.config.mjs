@@ -31,8 +31,10 @@ export default defineConfig({
     prefetchAll: true,
     defaultStrategy: 'hover'
   },
-  experimental: {
-    clientPrerender: true,
-    directRenderScript: true
+  image: {
+    // Enable image optimization
+    service: {
+      entrypoint: 'astro/assets/services/sharp'
+    }
   }
 });

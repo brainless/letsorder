@@ -142,11 +142,14 @@ const pageTitle = `${menuData.restaurant.name} - ${menuData.table.name}`;
 
   <!-- Load optimized menu display script -->
   <script>
-    import('../../../scripts/menu-display.js').then(() => {
-      // Menu display is automatically initialized for pages with [data-menu-display]
+    Promise.all([
+      import('../../../scripts/menu-display.js'),
+      import('../../../scripts/performance-monitor.js')
+    ]).then(() => {
+      // Menu display and performance monitoring are automatically initialized
     }).catch(() => {
-      // Graceful fallback if script fails to load
-      console.warn('Menu display script failed to load');
+      // Graceful fallback if scripts fail to load
+      console.warn('Failed to load performance scripts');
     });
   </script>
 </Layout>
