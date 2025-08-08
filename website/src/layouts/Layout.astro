@@ -22,16 +22,38 @@ const { title, description } = Astro.props;
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
-            <h1 class="text-2xl font-bold text-gray-900">letsorder</h1>
+            <a href="/" class="text-2xl font-bold text-gray-900 hover:text-primary-600 transition-colors">letsorder</a>
           </div>
+          
+          <!-- Desktop Navigation -->
           <div class="hidden md:block">
             <div class="ml-10 flex items-baseline space-x-4">
-              <a href="/features" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Features</a>
-              <a href="/pricing" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Pricing</a>
-              <a href="/faq" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">FAQ</a>
-              <a href="/live-demo" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Live Demo</a>
-              <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Get Started</a>
+              <a href="/features" class="text-gray-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Features</a>
+              <a href="/pricing" class="text-gray-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Pricing</a>
+              <a href="/faq" class="text-gray-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">FAQ</a>
+              <a href="/live-demo" class="text-gray-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Live Demo</a>
+              <a href="#" class="bg-primary-400 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-500 transition-colors">Get Started</a>
             </div>
+          </div>
+          
+          <!-- Mobile Menu Button -->
+          <div class="md:hidden">
+            <button id="mobile-menu-toggle" class="text-gray-600 hover:text-primary-600 p-2">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
+          <div class="px-2 pt-2 pb-3 space-y-1">
+            <a href="/features" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">Features</a>
+            <a href="/pricing" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">Pricing</a>
+            <a href="/faq" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">FAQ</a>
+            <a href="/live-demo" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">Live Demo</a>
+            <a href="#" class="block mx-3 mt-2 bg-primary-400 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-500 text-center">Get Started</a>
           </div>
         </div>
       </div>
@@ -52,10 +74,10 @@ const { title, description } = Astro.props;
               See how letsorder can help you improve efficiency and enhance customer experience.
             </p>
             <div class="flex flex-col sm:flex-row lg:flex-col gap-4">
-              <a href="/live-demo" class="border-2 border-white text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-white hover:text-blue-600 transition-colors">
+              <a href="/live-demo" class="border-2 border-white text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-white hover:text-primary-600 transition-colors">
                 Live Demo
               </a>
-              <a href="#" class="bg-blue-600 text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-blue-700 transition-colors">
+              <a href="#" class="bg-primary-400 text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-primary-500 transition-colors">
                 Get Started for Free
               </a>
             </div>
@@ -96,5 +118,68 @@ const { title, description } = Astro.props;
         </div>
       </div>
     </footer>
+    
+    <!-- Mobile Menu Script -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuToggle && mobileMenu) {
+          mobileMenuToggle.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+          });
+        }
+        
+        // Carousel functionality
+        const carouselContainer = document.getElementById('carousel-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const dots = document.querySelectorAll('.carousel-dot');
+        
+        if (carouselContainer && prevBtn && nextBtn) {
+          let currentSlide = 0;
+          const totalSlides = 3;
+          
+          function updateCarousel() {
+            const translateX = -currentSlide * 100;
+            carouselContainer.style.transform = `translateX(${translateX}%)`;
+            
+            // Update dots
+            dots.forEach((dot, index) => {
+              if (index === currentSlide) {
+                dot.className = 'carousel-dot w-3 h-3 bg-primary-400 rounded-full';
+              } else {
+                dot.className = 'carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-primary-300';
+              }
+            });
+          }
+          
+          function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateCarousel();
+          }
+          
+          function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateCarousel();
+          }
+          
+          nextBtn.addEventListener('click', nextSlide);
+          prevBtn.addEventListener('click', prevSlide);
+          
+          // Dot navigation
+          dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+              currentSlide = index;
+              updateCarousel();
+            });
+          });
+          
+          // Auto-advance carousel
+          setInterval(nextSlide, 5000);
+        }
+      });
+    </script>
   </body>
 </html>
