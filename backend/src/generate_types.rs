@@ -31,8 +31,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     fs::remove_dir_all(&temp_dir)?;
 
     // Ensure directories exist
-    let admin_types_dir = "../admin/src/types";
-    let menu_types_dir = "../menu/src/types";
+    let admin_types_dir = "../adminapp/src/types";
+    let menu_types_dir = "../menuapp/src/types";
 
     if let Err(_) = fs::metadata(admin_types_dir) {
         fs::create_dir_all(admin_types_dir)?;
@@ -45,12 +45,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Write to admin app
     let admin_path = Path::new(admin_types_dir).join("api.ts");
     fs::write(&admin_path, &all_types)?;
-    println!("Generated TypeScript types for admin app: {}", admin_path.display());
+    println!("Generated TypeScript types for adminapp: {}", admin_path.display());
 
     // Write to menu app  
     let menu_path = Path::new(menu_types_dir).join("api.ts");
     fs::write(&menu_path, &all_types)?;
-    println!("Generated TypeScript types for menu app: {}", menu_path.display());
+    println!("Generated TypeScript types for menuapp: {}", menu_path.display());
 
     println!("TypeScript type generation completed successfully!");
     Ok(())
