@@ -41,3 +41,34 @@ Restaurant → Manager → Table → MenuSection → MenuItem → Order
 - Settings in `settings.ini` or `local.settings.ini`
 - No Docker, plain SSH deployment
 - CloudFlare for web apps, VPS for backend
+
+## TypeScript Type Generation
+The backend uses `ts-rs` to automatically generate TypeScript types from Rust structs, ensuring type safety between backend and frontend applications.
+
+### Generating Types
+Run the type generation command from the backend directory:
+```bash
+cd backend
+SQLX_OFFLINE=true cargo run --bin generate_types
+```
+
+This will:
+- Export all API-facing Rust structs to TypeScript types
+- Generate `admin/src/types/api.ts` for the admin app
+- Generate `menu/src/types/api.ts` for the menu app
+
+### Adding New Types
+When adding new API structs in Rust:
+1. Add `TS` to the derive macro: `#[derive(..., TS)]`
+2. Add the export annotation: `#[ts(export)]`
+3. Run the generation script to update frontend types
+
+Example:
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct MyApiType {
+    pub id: String,
+    pub name: String,
+}
+```

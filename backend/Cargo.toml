@@ -7,6 +7,10 @@ edition = "2021"
 name = "setup_db"
 path = "src/setup_db.rs"
 
+[[bin]]
+name = "generate_types"
+path = "src/generate_types.rs"
+
 [dependencies]
 actix-web = "4.4"
 actix-cors = "0.7"
@@ -27,6 +31,7 @@ uuid = { version = "1.0", features = ["v4", "serde"] }
 qrcode = "0.14"
 image = "0.24"
 base64 = "0.21"
+ts-rs = { version = "8.1", features = ["serde-compat", "uuid-impl", "chrono-impl"] }
 
 [dev-dependencies]
 tokio-test = "0.4"

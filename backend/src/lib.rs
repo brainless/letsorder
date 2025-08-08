@@ -5,6 +5,7 @@ use auth::JwtManager;
 use log::info;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
+use ts_rs::TS;
 
 pub mod auth;
 pub mod handlers;
@@ -78,8 +79,9 @@ impl Default for Settings {
     }
 }
 
-#[derive(Serialize)]
-struct HealthResponse {
+#[derive(Serialize, TS)]
+#[ts(export)]
+pub struct HealthResponse {
     status: String,
     timestamp: String,
 }

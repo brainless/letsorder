@@ -4,6 +4,7 @@ use base64::{engine::general_purpose, Engine as _};
 use qrcode::QrCode;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Sqlite};
+use ts_rs::TS;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateQrCodeRequest {
@@ -11,7 +12,8 @@ pub struct GenerateQrCodeRequest {
     pub format: Option<String>, // "png" or "svg", defaults to "png"
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct QrCodeImageResponse {
     pub table_id: String,
     pub table_name: String,
@@ -21,7 +23,8 @@ pub struct QrCodeImageResponse {
     pub format: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct PrintSheetResponse {
     pub restaurant_name: String,
     pub qr_codes: Vec<QrCodeImageResponse>,
