@@ -54,8 +54,8 @@ SQLX_OFFLINE=true cargo run --bin generate_types
 
 This will:
 - Export all API-facing Rust structs to TypeScript types
-- Generate `admin/src/types/api.ts` for the admin app
-- Generate `menu/src/types/api.ts` for the menu app
+- Generate `adminapp/src/types/api.ts` for the admin app
+- Generate `menuapp/src/types/api.ts` for the menu app
 
 ### Adding New Types
 When adding new API structs in Rust:
