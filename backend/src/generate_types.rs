@@ -1,0 +1,57 @@
+use std::fs;
+use std::path::{Path, PathBuf};
+use ts_rs::TS;
+use backend::models::*;
+use backend::qr_handlers::*;
+use backend::HealthResponse;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Generating TypeScript types from Rust structs...");
+
+    // Create temporary directory for exports
+    let temp_dir = std::env::temp_dir().join("ts_exports");
+    fs::create_dir_all(&temp_dir)?;
+
+    // Export all types to temporary directory
+    MenuItem::export_all_to(&temp_dir)?;
+
+    // Read all generated files
+    let mut all_types = String::new();
+    for entry in fs::read_dir(&temp_dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.extension().map_or(false, |ext| ext == "ts") {
+            let content = fs::read_to_string(&path)?;
+            all_types.push_str(&content);
+            all_types.push_str("\n\n");
+        }
+    }
+
+    // Clean up temp directory
+    fs::remove_dir_all(&temp_dir)?;
+
+    // Ensure directories exist
+    let admin_types_dir = "../admin/src/types";
+    let menu_types_dir = "../menu/src/types";
+
+    if let Err(_) = fs::metadata(admin_types_dir) {
+        fs::create_dir_all(admin_types_dir)?;
+    }
+
+    if let Err(_) = fs::metadata(menu_types_dir) {
+        fs::create_dir_all(menu_types_dir)?;
+    }
+
+    // Write to admin app
+    let admin_path = Path::new(admin_types_dir).join("api.ts");
+    fs::write(&admin_path, &all_types)?;
+    println!("Generated TypeScript types for admin app: {}", admin_path.display());
+
+    // Write to menu app  
+    let menu_path = Path::new(menu_types_dir).join("api.ts");
+    fs::write(&menu_path, &all_types)?;
+    println!("Generated TypeScript types for menu app: {}", menu_path.display());
+
+    println!("TypeScript type generation completed successfully!");
+    Ok(())
+}
