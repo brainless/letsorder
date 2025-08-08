@@ -39,7 +39,7 @@ describe('Order API Functions', () => {
       const result = await getOrder('order-123')
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8080/orders/order-123'
+        'http://localhost:8080/v1/orders/order-123'
       )
       expect(result).toEqual(mockOrderData)
     })
