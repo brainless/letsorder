@@ -1,5 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import OrderStatusBadge from '../../components/OrderStatusBadge.astro';
+import OrderItemsList from '../../components/OrderItemsList.astro';
 import { getOrder } from '../../lib/api';
 import type { OrderDetails } from '../../types/menu';
 
@@ -35,24 +37,6 @@ function formatDate(dateString: string): string {
     minute: '2-digit'
   });
 }
-
-// Format price helper
-function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`;
-}
-
-// Get status display info
-function getStatusInfo(status: string) {
-  const statusMap = {
-    'pending': { label: 'Order Received', color: 'bg-yellow-100 text-yellow-800', icon: '⏳' },
-    'confirmed': { label: 'Confirmed', color: 'bg-blue-100 text-blue-800', icon: '✓' },
-    'preparing': { label: 'Preparing', color: 'bg-orange-100 text-orange-800', icon: '👨‍🍳' },
-    'ready': { label: 'Ready for Pickup', color: 'bg-green-100 text-green-800', icon: '🔔' },
-    'delivered': { label: 'Delivered', color: 'bg-green-100 text-green-800', icon: '✅' },
-    'cancelled': { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: '❌' }
-  };
-  return statusMap[status as keyof typeof statusMap] || statusMap.pending;
-}
 ---
 
 <Layout title={order ? `Order #${order.id.slice(-8)}` : 'Order Status'}>
@@ -87,15 +71,7 @@ function getStatusInfo(status: string) {
                 </p>
               </div>
               <div class="text-right">
-                {(() => {
-                  const statusInfo = getStatusInfo(order.status);
-                  return (
-                    <span class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color}`}>
-                      <span class="mr-1">{statusInfo.icon}</span>
-                      {statusInfo.label}
-                    </span>
-                  );
-                })()}
+                <OrderStatusBadge status={order.status} />
               </div>
             </div>
             
@@ -123,41 +99,7 @@ function getStatusInfo(status: string) {
           <!-- Order Items -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Order Items</h2>
-            <div class="space-y-4">
-              {order.items.map((item) => (
-                <div class="flex justify-between items-start py-3 border-b border-gray-100 last:border-b-0">
-                  <div class="flex-1">
-                    <h3 class="font-medium text-gray-900">{item.menu_item_name}</h3>
-                    {item.special_requests && (
-                      <p class="text-sm text-gray-600 mt-1">
-                        <span class="font-medium">Special requests:</span> {item.special_requests}
-                      </p>
-                    )}
-                  </div>
-                  <div class="text-right ml-4">
-                    <div class="flex items-center space-x-2">
-                      <span class="text-gray-600">×{item.quantity}</span>
-                      <span class="font-medium text-gray-900">
-                        {formatPrice(item.price * item.quantity)}
-                      </span>
-                    </div>
-                    <div class="text-xs text-gray-500">
-                      {formatPrice(item.price)} each
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <!-- Total -->
-            <div class="border-t pt-4 mt-4">
-              <div class="flex justify-between items-center">
-                <span class="text-lg font-semibold text-gray-900">Total</span>
-                <span class="text-xl font-bold text-gray-900">
-                  {formatPrice(order.total_amount)}
-                </span>
-              </div>
-            </div>
+            <OrderItemsList items={order.items} totalAmount={order.total_amount} />
           </div>
 
           <!-- Actions -->
