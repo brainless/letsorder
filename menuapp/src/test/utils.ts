@@ -1,28 +1,23 @@
-import type { MenuData } from '../lib/api'
+import type { MenuData } from '../types/menu'
 
 export const mockMenuData: MenuData = {
   restaurant: {
     name: "Test Restaurant",
-    code: "test123",
     address: "123 Test Street, Test City"
-  },
-  table: {
-    code: "table1",
-    name: "Table 1"
   },
   sections: [
     {
-      id: 1,
+      id: "section-1",
       name: "Appetizers",
       items: [
         {
-          id: 1,
+          id: "item-1",
           name: "Caesar Salad",
           description: "Fresh romaine lettuce with parmesan and croutons",
           price: 12.99
         },
         {
-          id: 2,
+          id: "item-2",
           name: "Garlic Bread",
           description: "Toasted bread with garlic butter",
           price: 8.99
@@ -30,17 +25,17 @@ export const mockMenuData: MenuData = {
       ]
     },
     {
-      id: 2,
+      id: "section-2",
       name: "Main Courses",
       items: [
         {
-          id: 3,
+          id: "item-3",
           name: "Grilled Salmon",
           description: "Fresh Atlantic salmon with seasonal vegetables",
           price: 24.99
         },
         {
-          id: 4,
+          id: "item-4",
           name: "Beef Steak",
           description: "Prime ribeye with mashed potatoes",
           price: 32.99
@@ -53,12 +48,7 @@ export const mockMenuData: MenuData = {
 export const emptyMenuData: MenuData = {
   restaurant: {
     name: "Empty Restaurant",
-    code: "empty123",
     address: "456 Empty Street, Empty City"
-  },
-  table: {
-    code: "table2",
-    name: "Table 2"
   },
   sections: []
 }

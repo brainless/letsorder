@@ -1,79 +1,15 @@
 // API utility module for menu app
+import type { 
+  MenuData, 
+  OrderData, 
+  CreateOrderResult 
+} from '../types/menu';
 
 const API_BASE_URL =
   import.meta.env.PUBLIC_API_BASE_URL || "http://localhost:8080";
 const API_VERSION = import.meta.env.PUBLIC_API_VERSION || "";
 
 const API_URL = API_VERSION ? `${API_BASE_URL}/${API_VERSION}` : API_BASE_URL;
-
-export interface MenuItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-}
-
-export interface MenuSection {
-  id: string;
-  name: string;
-  items: MenuItem[];
-}
-
-export interface MenuData {
-  restaurant: {
-    name: string;
-    code: string;
-    address?: string;
-  };
-  table: {
-    code: string;
-    name: string;
-  };
-  sections: MenuSection[];
-}
-
-export interface OrderItem {
-  menu_item_id: string;
-  quantity: number;
-  special_requests?: string;
-}
-
-export interface OrderData {
-  table_code: string;
-  items: OrderItem[];
-  customer_name?: string;
-}
-
-// Cart-specific interfaces
-export interface CartItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  quantity: number;
-  specialRequests?: string;
-  sectionName?: string;
-}
-
-export interface CartState {
-  items: CartItem[];
-  restaurantCode: string;
-  tableCode: string;
-  totalItems: number;
-  totalPrice: number;
-  lastUpdated: number;
-}
-
-export interface CartAction {
-  type:
-    | "ADD_ITEM"
-    | "UPDATE_QUANTITY"
-    | "REMOVE_ITEM"
-    | "UPDATE_SPECIAL_REQUESTS"
-    | "CLEAR_CART"
-    | "LOAD_CART";
-  payload?: any;
-}
 
 /**
  * Fetch menu data for a specific restaurant and table
@@ -104,7 +40,7 @@ export async function fetchMenu(
  */
 export async function createOrder(
   orderData: OrderData,
-): Promise<{ order_id: string }> {
+): Promise<CreateOrderResult> {
   try {
     const response = await fetch(`${API_URL}/orders`, {
       method: "POST",

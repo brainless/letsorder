@@ -142,8 +142,8 @@ const {
 
 <script>
   import { getCartInstance, formatPrice, type CartService } from '../lib/cart.ts';
-  import { createOrder, type OrderData } from '../lib/api.ts';
-  import type { CartState, CartItem as CartItemType } from '../lib/api.ts';
+  import { createOrder } from '../lib/api.ts';
+  import type { OrderData, CartState, CartItem as CartItemType } from '../types/menu.ts';
 
   class CartSummary {
     private element: HTMLElement;

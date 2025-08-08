@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
-import { fetchMenu, type MenuData } from '../../../../lib/api';
+import { fetchMenu } from '../../../../lib/api';
+import type { MenuData } from '../../../../types/menu';
 
 export async function getStaticPaths() {
   return [];
@@ -225,7 +226,7 @@ const pageTitle = `Checkout - ${menuData.restaurant.name}`;
 <script>
   import { getCartInstance, formatPrice, type CartService } from '../../../../lib/cart.ts';
   import { createOrder } from '../../../../lib/api.ts';
-  import type { CartState, CartItem } from '../../../../lib/api.ts';
+  import type { CartState, CartItem } from '../../../../types/menu.ts';
 
   class OrderReview {
     private cart: CartService;

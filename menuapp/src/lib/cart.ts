@@ -1,5 +1,5 @@
 // Cart management system with localStorage persistence
-import type { CartItem, CartState, CartAction, MenuItem } from './api';
+import type { CartItem, CartState, CartAction, MenuItem } from '../types/menu';
 
 export class CartService {
   private static readonly STORAGE_KEY = 'letsorder_cart';
