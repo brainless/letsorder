@@ -1,6 +1,7 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use ts_rs::TS;
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct User {
@@ -32,7 +33,8 @@ impl From<UserRow> for User {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, TS)]
+#[ts(export)]
 pub struct Restaurant {
     pub id: String,
     pub name: String,
@@ -74,7 +76,8 @@ pub struct RestaurantManager {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, TS)]
+#[ts(export)]
 pub struct Table {
     pub id: String,
     pub restaurant_id: String,
@@ -83,7 +86,8 @@ pub struct Table {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, TS)]
+#[ts(export)]
 pub struct MenuSection {
     pub id: String,
     pub restaurant_id: String,
@@ -92,7 +96,8 @@ pub struct MenuSection {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, TS)]
+#[ts(export)]
 pub struct MenuItem {
     pub id: String,
     pub section_id: String,
@@ -104,7 +109,8 @@ pub struct MenuItem {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, TS)]
+#[ts(export)]
 pub struct Order {
     pub id: String,
     pub table_id: String,
@@ -140,7 +146,8 @@ impl From<OrderRow> for Order {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct OrderItem {
     pub menu_item_id: String,
     pub quantity: i32,
@@ -219,13 +226,15 @@ pub struct LoginRequest {
     pub password: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct AuthResponse {
     pub token: String,
     pub user: UserResponse,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct UserResponse {
     pub id: String,
     pub email: String,
@@ -366,26 +375,30 @@ pub struct ToggleAvailabilityRequest {
     pub available: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct PublicMenu {
     pub restaurant: PublicRestaurantInfo,
     pub sections: Vec<PublicMenuSection>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct PublicRestaurantInfo {
     pub name: String,
     pub address: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct PublicMenuSection {
     pub id: String,
     pub name: String,
     pub items: Vec<PublicMenuItem>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct PublicMenuItem {
     pub id: String,
     pub name: String,
@@ -448,13 +461,15 @@ impl From<MenuItemRow> for MenuItem {
 }
 
 // Restaurant menu response types
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct RestaurantMenu {
     pub restaurant_id: String,
     pub sections: Vec<MenuSectionWithItems>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct MenuSectionWithItems {
     pub id: String,
     pub restaurant_id: String,
@@ -469,7 +484,8 @@ pub struct UpdateTableRequest {
     pub name: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct QrCodeResponse {
     pub qr_url: String,
     pub table_name: String,
@@ -493,7 +509,8 @@ pub struct RefreshCodeResponse {
     pub qr_url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct OrderResponse {
     pub id: String,
     pub table_id: String,
@@ -506,7 +523,8 @@ pub struct OrderResponse {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct OrderItemResponse {
     pub menu_item_id: String,
     pub menu_item_name: String,
@@ -515,7 +533,8 @@ pub struct OrderItemResponse {
     pub special_requests: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct CreateOrderResponse {
     pub order_id: String,
     pub total_amount: f64,
