@@ -1,0 +1,51 @@
+---
+import type { OrderItemDetails } from '../types/menu';
+
+export interface Props {
+  items: OrderItemDetails[];
+  totalAmount: number;
+}
+
+const { items, totalAmount } = Astro.props;
+
+// Format price helper
+function formatPrice(price: number): string {
+  return `$${price.toFixed(2)}`;
+}
+---
+
+<div class="space-y-4">
+  {items.map((item) => (
+    <div class="flex justify-between items-start py-3 border-b border-gray-100 last:border-b-0">
+      <div class="flex-1">
+        <h3 class="font-medium text-gray-900">{item.menu_item_name}</h3>
+        {item.special_requests && (
+          <p class="text-sm text-gray-600 mt-1">
+            <span class="font-medium">Special requests:</span> {item.special_requests}
+          </p>
+        )}
+      </div>
+      <div class="text-right ml-4">
+        <div class="flex items-center space-x-2">
+          <span class="text-gray-600">×{item.quantity}</span>
+          <span class="font-medium text-gray-900">
+            {formatPrice(item.price * item.quantity)}
+          </span>
+        </div>
+        <div class="text-xs text-gray-500">
+          {formatPrice(item.price)} each
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
+<!-- Total -->
+<div class="border-t pt-4 mt-4">
+  <div class="flex justify-between items-center">
+    <span class="text-lg font-semibold text-gray-900">Total</span>
+    <span class="text-xl font-bold text-gray-900">
+      {formatPrice(totalAmount)}
+    </span>
+  </div>
+</div>

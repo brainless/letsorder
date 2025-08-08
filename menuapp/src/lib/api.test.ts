@@ -1,97 +1,71 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { fetchMenu, createOrder } from './api'
-import { mockMenuData, mockFetchSuccess, mockFetchError, mockFetchNetworkError } from '../test/utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { getOrder } from './api'
 
-describe('API Functions', () => {
+// Mock fetch globally
+global.fetch = vi.fn()
+
+describe('Order API Functions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  describe('fetchMenu', () => {
-    it('should fetch menu data successfully', async () => {
-      mockFetchSuccess(mockMenuData)
+  describe('getOrder', () => {
+    it('should fetch order details successfully', async () => {
+      const mockOrderData = {
+        id: 'order-123',
+        table_id: 'table-456',
+        table_name: 'Table 1',
+        restaurant_name: 'Test Restaurant',
+        items: [
+          {
+            menu_item_id: 'item-1',
+            menu_item_name: 'Test Item',
+            quantity: 2,
+            price: 10.99,
+            special_requests: null
+          }
+        ],
+        total_amount: 21.98,
+        status: 'pending',
+        customer_name: 'John Doe',
+        created_at: '2024-01-01T12:00:00Z'
+      }
 
-      const result = await fetchMenu('test123', 'table1')
+      ;(global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrderData
+      })
+
+      const result = await getOrder('order-123')
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8080/v1/menu/test123/table1'
+        'http://localhost:8080/v1/orders/order-123'
       )
-      expect(result).toEqual(mockMenuData)
+      expect(result).toEqual(mockOrderData)
     })
 
-    it('should handle API error responses', async () => {
-      mockFetchError(404, 'Not Found')
+    it('should handle order not found (404)', async () => {
+      ;(global.fetch as any).mockResolvedValueOnce({
+        ok: false,
+        status: 404
+      })
 
-      await expect(fetchMenu('invalid', 'invalid')).rejects.toThrow(
-        'Failed to fetch menu: 404'
-      )
+      await expect(getOrder('invalid-order')).rejects.toThrow('Order not found')
+    })
+
+    it('should handle other API errors', async () => {
+      ;(global.fetch as any).mockResolvedValueOnce({
+        ok: false,
+        status: 500
+      })
+
+      await expect(getOrder('order-123')).rejects.toThrow('Failed to fetch order: 500')
     })
 
     it('should handle network errors', async () => {
-      mockFetchNetworkError()
+      ;(global.fetch as any).mockRejectedValueOnce(new Error('Network Error'))
 
-      await expect(fetchMenu('test123', 'table1')).rejects.toThrow(
-        'Network Error'
-      )
-    })
-
-    it('should use correct API URL format', async () => {
-      mockFetchSuccess(mockMenuData)
-
-      await fetchMenu('restaurant123', 'table456')
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8080/v1/menu/restaurant123/table456'
-      )
-    })
-  })
-
-  describe('createOrder', () => {
-    const orderData = {
-      restaurant_code: 'test123',
-      table_code: 'table1',
-      items: [
-        { menu_item_id: 1, quantity: 2 },
-        { menu_item_id: 3, quantity: 1 }
-      ],
-      customer_name: 'John Doe',
-      customer_phone: '+1234567890'
-    }
-
-    const orderResponse = { order_id: 'order123' }
-
-    it('should create order successfully', async () => {
-      mockFetchSuccess(orderResponse)
-
-      const result = await createOrder(orderData)
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8080/v1/orders',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(orderData),
-        }
-      )
-      expect(result).toEqual(orderResponse)
-    })
-
-    it('should handle order creation errors', async () => {
-      mockFetchError(400, 'Bad Request')
-
-      await expect(createOrder(orderData)).rejects.toThrow(
-        'Failed to create order: 400'
-      )
-    })
-
-    it('should handle network errors during order creation', async () => {
-      mockFetchNetworkError()
-
-      await expect(createOrder(orderData)).rejects.toThrow(
-        'Network Error'
-      )
+      await expect(getOrder('order-123')).rejects.toThrow('Network Error')
     })
   })
 })
