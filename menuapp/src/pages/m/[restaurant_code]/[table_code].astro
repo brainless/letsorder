@@ -139,4 +139,14 @@ const pageTitle = `${menuData.restaurant.name} - ${menuData.table.name}`;
 
   <!-- Spacer for fixed cart summary on mobile -->
   <div class="h-32 md:hidden"></div>
+
+  <!-- Load optimized menu display script -->
+  <script>
+    import('../../../scripts/menu-display.js').then(() => {
+      // Menu display is automatically initialized for pages with [data-menu-display]
+    }).catch(() => {
+      // Graceful fallback if script fails to load
+      console.warn('Menu display script failed to load');
+    });
+  </script>
 </Layout>
