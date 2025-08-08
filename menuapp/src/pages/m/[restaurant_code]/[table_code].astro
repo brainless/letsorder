@@ -3,7 +3,8 @@ import Layout from '../../../layouts/Layout.astro';
 import MenuDisplay from '../../../components/MenuDisplay.astro';
 import CartSummary from '../../../components/CartSummary.astro';
 import FloatingCartIndicator from '../../../components/FloatingCartIndicator.astro';
-import { fetchMenu, type MenuData } from '../../../lib/api';
+import { fetchMenu } from '../../../lib/api';
+import type { MenuData } from '../../../types/menu';
 
 export async function getStaticPaths() {
   // For static builds, return empty array to allow build completion

@@ -1,4 +1,4 @@
-import type { MenuData } from '../lib/api'
+import type { MenuData } from '../types/menu'
 
 export const mockMenuData: MenuData = {
   restaurant: {

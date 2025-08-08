@@ -1,11 +1,8 @@
 ---
 import AddToCartButton from './AddToCartButton.astro';
+import type { MenuItem } from '../types/menu';
 
-export interface Props {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
+export interface Props extends MenuItem {
   sectionName?: string;
   onAdd?: () => void;
 }
