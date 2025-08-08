@@ -1,7 +1,14 @@
 import { Restaurant as GeneratedRestaurant } from './api';
 
-// Use generated types
-export type Restaurant = GeneratedRestaurant;
+// Use generated types with selective null to undefined conversion for optional fields only
+export type Restaurant = {
+  id: string;
+  name: string;
+  address?: string;
+  establishment_year?: number;
+  google_maps_link?: string;
+  created_at: string;
+};
 
 export interface CreateRestaurantRequest {
   name: string;

@@ -1,8 +1,17 @@
-import { UserResponse, AuthResponse as GeneratedAuthResponse } from './api';
+import { UserResponse as GeneratedUserResponse, AuthResponse as GeneratedAuthResponse } from './api';
 
-// Use generated types
-export type User = UserResponse;
-export type AuthResponse = GeneratedAuthResponse;
+// Use generated types with selective null to undefined conversion for optional fields only
+export type User = {
+  id: string;
+  email: string;
+  phone?: string;
+  created_at: string;
+};
+
+export type AuthResponse = {
+  token: string;
+  user: User;
+};
 
 export interface LoginRequest {
   email: string;

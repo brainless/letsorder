@@ -1,4 +1,4 @@
-import { OrderResponse, OrderItemResponse } from './api';
+import { OrderResponse as GeneratedOrderResponse, OrderItemResponse } from './api';
 
 export type OrderStatus =
   | 'pending'
@@ -10,9 +10,12 @@ export type OrderStatus =
 
 // Use generated types with proper status typing
 export type OrderItem = OrderItemResponse;
-export interface Order extends Omit<OrderResponse, 'status'> {
+export interface Order extends Omit<GeneratedOrderResponse, 'status'> {
   status: OrderStatus;
 }
+
+// Re-export the generated type for services that need it
+export type OrderResponse = GeneratedOrderResponse;
 
 export interface UpdateOrderStatusRequest {
   status: OrderStatus;

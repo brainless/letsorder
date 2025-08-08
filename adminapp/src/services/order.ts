@@ -6,6 +6,7 @@ import type {
   OrderStatus,
   UpdateOrderStatusRequest,
 } from '../types/order';
+import type { OrderItemResponse } from '../types/api';
 
 const API_BASE = config.apiUrl;
 
@@ -34,7 +35,7 @@ export class OrderService {
       table_id: orderResponse.table_id,
       table_name: orderResponse.table_name,
       restaurant_name: orderResponse.restaurant_name,
-      items: orderResponse.items.map((item) => ({
+      items: orderResponse.items.map((item: OrderItemResponse) => ({
         menu_item_id: item.menu_item_id,
         menu_item_name: item.menu_item_name,
         quantity: item.quantity,

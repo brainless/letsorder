@@ -1,0 +1,15 @@
+
+> adminapp@1.0.0 build
+> tsc && vite build
+
+vite v7.0.6 building for production...
+transforming...
+✓ 191 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.61 kB │ gzip:  0.34 kB
+dist/assets/index-BV3gUHop.css   32.00 kB │ gzip:  5.97 kB
+dist/assets/ui-CbRxMlAB.js       23.04 kB │ gzip:  8.13 kB
+dist/assets/vendor-BGchzX78.js   32.42 kB │ gzip: 12.48 kB
+dist/assets/index-Cv7JvuVS.js   137.95 kB │ gzip: 29.18 kB
+✓ built in 4.60s
