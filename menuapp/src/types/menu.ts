@@ -6,10 +6,21 @@ import {
   CreateOrderResponse 
 } from './api';
 
-// Use generated types for API contracts
-export type MenuItem = PublicMenuItem;
-export type MenuSection = PublicMenuSection;
-export type MenuData = PublicMenu;
+// Convert null to undefined for better frontend compatibility
+type NullToUndefined<T> = {
+  [K in keyof T]: T[K] extends null ? undefined : T[K] extends null | infer U ? U | undefined : T[K];
+};
+
+// Use generated types with null converted to undefined for optional fields
+export type MenuItem = NullToUndefined<PublicMenuItem>;
+export type MenuSection = {
+  id: string;
+  name: string;
+  items: MenuItem[];
+};
+
+// Use the actual backend API response structure
+export type MenuData = NullToUndefined<PublicMenu>;
 
 // Order types - use generated types
 export type OrderItem = GeneratedOrderItem;
