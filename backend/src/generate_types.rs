@@ -1,9 +1,25 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use ts_rs::TS;
 use backend::models::*;
 use backend::qr_handlers::*;
 use backend::HealthResponse;
+
+fn process_ts_content(content: &str) -> String {
+    // Remove import statements and extra headers since we're consolidating everything into one file
+    let lines: Vec<&str> = content.lines().collect();
+    let mut processed_lines = Vec::new();
+    
+    for line in lines {
+        // Skip import lines that reference other files (but keep export statements)
+        if line.starts_with("import type") || line.starts_with("import ") {
+            continue;
+        }
+        processed_lines.push(line);
+    }
+    
+    processed_lines.join("\n")
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Generating TypeScript types from Rust structs...");
@@ -35,14 +51,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     PrintSheetResponse::export_all_to(&temp_dir)?;
     HealthResponse::export_all_to(&temp_dir)?;
 
-    // Read all generated files
+    // Read all generated files and process them
     let mut all_types = String::new();
     for entry in fs::read_dir(&temp_dir)? {
         let entry = entry?;
         let path = entry.path();
         if path.extension().map_or(false, |ext| ext == "ts") {
             let content = fs::read_to_string(&path)?;
-            all_types.push_str(&content);
+            
+            // Process content to remove import statements since we're consolidating into one file
+            let processed_content = process_ts_content(&content);
+            all_types.push_str(&processed_content);
             all_types.push_str("\n\n");
         }
     }
