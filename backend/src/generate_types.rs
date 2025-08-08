@@ -12,8 +12,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let temp_dir = std::env::temp_dir().join("ts_exports");
     fs::create_dir_all(&temp_dir)?;
 
-    // Export all types to temporary directory
+    // Export all types to temporary directory - we need to export each annotated type
     MenuItem::export_all_to(&temp_dir)?;
+    MenuSection::export_all_to(&temp_dir)?;
+    Restaurant::export_all_to(&temp_dir)?;
+    Table::export_all_to(&temp_dir)?;
+    Order::export_all_to(&temp_dir)?;
+    OrderItem::export_all_to(&temp_dir)?;
+    PublicMenu::export_all_to(&temp_dir)?;
+    PublicMenuSection::export_all_to(&temp_dir)?;
+    PublicMenuItem::export_all_to(&temp_dir)?;
+    PublicRestaurantInfo::export_all_to(&temp_dir)?;
+    RestaurantMenu::export_all_to(&temp_dir)?;
+    MenuSectionWithItems::export_all_to(&temp_dir)?;
+    OrderResponse::export_all_to(&temp_dir)?;
+    OrderItemResponse::export_all_to(&temp_dir)?;
+    CreateOrderResponse::export_all_to(&temp_dir)?;
+    AuthResponse::export_all_to(&temp_dir)?;
+    UserResponse::export_all_to(&temp_dir)?;
+    QrCodeResponse::export_all_to(&temp_dir)?;
+    QrCodeImageResponse::export_all_to(&temp_dir)?;
+    PrintSheetResponse::export_all_to(&temp_dir)?;
+    HealthResponse::export_all_to(&temp_dir)?;
 
     // Read all generated files
     let mut all_types = String::new();
