@@ -1,0 +1,349 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Admin Features - letsorder"
+  description="Explore the powerful admin features of letsorder, designed to streamline your restaurant management operations."
+>
+  <!-- Admin Features Hero -->
+  <section class="bg-gradient-to-r from-primary-400 to-primary-600 text-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold mb-6">
+        Admin Dashboard Features
+      </h1>
+      <p class="text-xl text-pink-100 max-w-3xl mx-auto">
+        A comprehensive suite of tools to manage your restaurant efficiently, from menu updates to order tracking.
+      </p>
+    </div>
+  </section>
+
+  <!-- Screenshots Carousel -->
+  <section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="relative">
+        <div id="admin-carousel" class="overflow-hidden rounded-lg">
+          <div class="flex transition-transform duration-500 ease-in-out" id="admin-carousel-container">
+            <!-- Admin Dashboard Screenshot -->
+            <div class="w-full flex-shrink-0 px-4">
+              <div class="bg-gray-100 rounded-lg aspect-[9/16] max-w-sm mx-auto flex items-center justify-center">
+                <div class="text-center p-8">
+                  <div class="w-20 h-20 bg-primary-400 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900 mb-2">Dashboard Overview</h3>
+                  <p class="text-sm text-gray-600">Complete restaurant management at your fingertips</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Menu Management Screenshot -->
+            <div class="w-full flex-shrink-0 px-4">
+              <div class="bg-gray-100 rounded-lg aspect-[9/16] max-w-sm mx-auto flex items-center justify-center">
+                <div class="text-center p-8">
+                  <div class="w-20 h-20 bg-secondary-400 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900 mb-2">Menu Management</h3>
+                  <p class="text-sm text-gray-600">Create and organize menus with drag-and-drop</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- QR Codes Screenshot -->
+            <div class="w-full flex-shrink-0 px-4">
+              <div class="bg-gray-100 rounded-lg aspect-[9/16] max-w-sm mx-auto flex items-center justify-center">
+                <div class="text-center p-8">
+                  <div class="w-20 h-20 bg-accent-400 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900 mb-2">QR Code Generation</h3>
+                  <p class="text-sm text-gray-600">Generate and manage table QR codes</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Orders Screenshot -->
+            <div class="w-full flex-shrink-0 px-4">
+              <div class="bg-gray-100 rounded-lg aspect-[9/16] max-w-sm mx-auto flex items-center justify-center">
+                <div class="text-center p-8">
+                  <div class="w-20 h-20 bg-primary-500 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900 mb-2">Order Management</h3>
+                  <p class="text-sm text-gray-600">Track and manage orders in real-time</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <button id="admin-prev-btn" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full p-2 text-gray-600 hover:text-primary-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        <button id="admin-next-btn" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full p-2 text-gray-600 hover:text-primary-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+        
+        <!-- Dots Indicator -->
+        <div class="flex justify-center mt-6 space-x-2">
+          <button class="admin-carousel-dot w-3 h-3 bg-primary-400 rounded-full" data-slide="0"></button>
+          <button class="admin-carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-primary-300" data-slide="1"></button>
+          <button class="admin-carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-primary-300" data-slide="2"></button>
+          <button class="admin-carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-primary-300" data-slide="3"></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Admin Features Details -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid gap-12">
+        <!-- Restaurant Management -->
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <h3 class="text-3xl font-semibold text-gray-900 mb-4">Restaurant Management</h3>
+            <ul class="text-gray-600 space-y-3 text-lg">
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Register and manage multiple restaurant profiles
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Update details like name, address, and Google Maps link
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Requires at least 2 managers for enhanced security
+              </li>
+            </ul>
+          </div>
+          <div class="bg-primary-50 rounded-lg p-8 text-center">
+            <div class="w-24 h-40 bg-white rounded-lg mx-auto shadow-sm flex items-center justify-center">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-primary-400 rounded-lg mx-auto mb-2"></div>
+                <div class="text-xs text-gray-600">Restaurant Dashboard</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Menu Management -->
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div class="lg:order-2">
+            <h3 class="text-3xl font-semibold text-gray-900 mb-4">Dynamic Menu Management</h3>
+            <ul class="text-gray-600 space-y-3 text-lg">
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Create and organize menu sections and items
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Drag-and-drop reordering for easy updates
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Toggle item availability in real-time
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Bulk operations for efficient management
+              </li>
+            </ul>
+          </div>
+          <div class="bg-secondary-50 rounded-lg p-8 text-center lg:order-1">
+            <div class="w-24 h-40 bg-white rounded-lg mx-auto shadow-sm flex items-center justify-center">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-secondary-400 rounded-lg mx-auto mb-2"></div>
+                <div class="text-xs text-gray-600">Menu Editor</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Code & Table Management -->
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <h3 class="text-3xl font-semibold text-gray-900 mb-4">Table & QR Code Management</h3>
+            <ul class="text-gray-600 space-y-3 text-lg">
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-accent-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Create and manage tables or rooms
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-accent-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Generate unique QR codes for each table
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-accent-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Bulk QR code generation and printing support
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-accent-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Regenerate QR codes for enhanced security
+              </li>
+            </ul>
+          </div>
+          <div class="bg-accent-50 rounded-lg p-8 text-center">
+            <div class="w-24 h-40 bg-white rounded-lg mx-auto shadow-sm flex items-center justify-center">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-accent-400 rounded-lg mx-auto mb-2"></div>
+                <div class="text-xs text-gray-600">QR Manager</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Management -->
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div class="lg:order-2">
+            <h3 class="text-3xl font-semibold text-gray-900 mb-4">Real-Time Order Tracking</h3>
+            <ul class="text-gray-600 space-y-3 text-lg">
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                View and track orders as they come in
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Manage order status from pending to delivered
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Filter orders by date, status, or table
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Access order statistics and analytics
+              </li>
+            </ul>
+          </div>
+          <div class="bg-primary-50 rounded-lg p-8 text-center lg:order-1">
+            <div class="w-24 h-40 bg-white rounded-lg mx-auto shadow-sm flex items-center justify-center">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-primary-500 rounded-lg mx-auto mb-2"></div>
+                <div class="text-xs text-gray-600">Order Dashboard</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Try Admin Demo CTA -->
+  <section class="py-16 bg-primary-400">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl font-bold text-white mb-6">
+        Experience the Admin Dashboard
+      </h2>
+      <p class="text-xl text-pink-100 mb-8">
+        See how easy restaurant management can be with our intuitive admin tools.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/live-demo" class="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors">
+          Try Admin Demo
+        </a>
+        <a href="/features/menu" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors">
+          View Menu Features
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Carousel Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const adminCarouselContainer = document.getElementById('admin-carousel-container');
+      const adminPrevBtn = document.getElementById('admin-prev-btn');
+      const adminNextBtn = document.getElementById('admin-next-btn');
+      const adminDots = document.querySelectorAll('.admin-carousel-dot');
+      
+      if (adminCarouselContainer && adminPrevBtn && adminNextBtn) {
+        let adminCurrentSlide = 0;
+        const adminTotalSlides = 4;
+        
+        function updateAdminCarousel() {
+          const translateX = -adminCurrentSlide * 100;
+          adminCarouselContainer.style.transform = `translateX(${translateX}%)`;
+          
+          // Update dots
+          adminDots.forEach((dot, index) => {
+            if (index === adminCurrentSlide) {
+              dot.className = 'admin-carousel-dot w-3 h-3 bg-primary-400 rounded-full';
+            } else {
+              dot.className = 'admin-carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-primary-300';
+            }
+          });
+        }
+        
+        function nextAdminSlide() {
+          adminCurrentSlide = (adminCurrentSlide + 1) % adminTotalSlides;
+          updateAdminCarousel();
+        }
+        
+        function prevAdminSlide() {
+          adminCurrentSlide = (adminCurrentSlide - 1 + adminTotalSlides) % adminTotalSlides;
+          updateAdminCarousel();
+        }
+        
+        adminNextBtn.addEventListener('click', nextAdminSlide);
+        adminPrevBtn.addEventListener('click', prevAdminSlide);
+        
+        // Dot navigation
+        adminDots.forEach((dot, index) => {
+          dot.addEventListener('click', () => {
+            adminCurrentSlide = index;
+            updateAdminCarousel();
+          });
+        });
+        
+        // Auto-advance carousel
+        setInterval(nextAdminSlide, 6000);
+      }
+    });
+  </script>
+</Layout>

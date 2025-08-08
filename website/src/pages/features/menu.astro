@@ -1,0 +1,371 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Menu App Features - letsorder"
+  description="Explore the customer-facing menu features of letsorder, designed for seamless mobile ordering experience."
+>
+  <!-- Menu Features Hero -->
+  <section class="bg-gradient-to-r from-secondary-400 to-secondary-600 text-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold mb-6">
+        Guest Menu Experience
+      </h1>
+      <p class="text-xl text-emerald-100 max-w-3xl mx-auto">
+        A seamless and modern dining experience for your guests, accessible from any smartphone.
+      </p>
+    </div>
+  </section>
+
+  <!-- Screenshots Carousel -->
+  <section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="relative">
+        <div id="menu-carousel" class="overflow-hidden rounded-lg">
+          <div class="flex transition-transform duration-500 ease-in-out" id="menu-carousel-container">
+            <!-- Menu Browse Screenshot -->
+            <div class="w-full flex-shrink-0 px-4">
+              <div class="bg-gray-100 rounded-lg aspect-[9/16] max-w-sm mx-auto flex items-center justify-center">
+                <div class="text-center p-8">
+                  <div class="w-20 h-20 bg-secondary-400 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900 mb-2">Browse Menu</h3>
+                  <p class="text-sm text-gray-600">Intuitive menu browsing with clear sections</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cart Screenshot -->
+            <div class="w-full flex-shrink-0 px-4">
+              <div class="bg-gray-100 rounded-lg aspect-[9/16] max-w-sm mx-auto flex items-center justify-center">
+                <div class="text-center p-8">
+                  <div class="w-20 h-20 bg-accent-400 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5H21M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900 mb-2">Shopping Cart</h3>
+                  <p class="text-sm text-gray-600">Easy cart management with floating indicator</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Checkout Screenshot -->
+            <div class="w-full flex-shrink-0 px-4">
+              <div class="bg-gray-100 rounded-lg aspect-[9/16] max-w-sm mx-auto flex items-center justify-center">
+                <div class="text-center p-8">
+                  <div class="w-20 h-20 bg-primary-400 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900 mb-2">Quick Checkout</h3>
+                  <p class="text-sm text-gray-600">Streamlined checkout with customer details</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Order Status Screenshot -->
+            <div class="w-full flex-shrink-0 px-4">
+              <div class="bg-gray-100 rounded-lg aspect-[9/16] max-w-sm mx-auto flex items-center justify-center">
+                <div class="text-center p-8">
+                  <div class="w-20 h-20 bg-secondary-500 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900 mb-2">Order Tracking</h3>
+                  <p class="text-sm text-gray-600">Real-time order status updates</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <button id="menu-prev-btn" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full p-2 text-gray-600 hover:text-secondary-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        <button id="menu-next-btn" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full p-2 text-gray-600 hover:text-secondary-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+        
+        <!-- Dots Indicator -->
+        <div class="flex justify-center mt-6 space-x-2">
+          <button class="menu-carousel-dot w-3 h-3 bg-secondary-400 rounded-full" data-slide="0"></button>
+          <button class="menu-carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-secondary-300" data-slide="1"></button>
+          <button class="menu-carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-secondary-300" data-slide="2"></button>
+          <button class="menu-carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-secondary-300" data-slide="3"></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Menu Features Details -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid gap-12">
+        <!-- Instant Menu Access -->
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <h3 class="text-3xl font-semibold text-gray-900 mb-4">Instant Menu Access</h3>
+            <ul class="text-gray-600 space-y-3 text-lg">
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Customers scan a QR code to instantly view your menu
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                No app download or account creation required
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Works on any smartphone or tablet browser
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Lightning-fast loading for immediate access
+              </li>
+            </ul>
+          </div>
+          <div class="bg-secondary-50 rounded-lg p-8 text-center">
+            <div class="w-24 h-40 bg-white rounded-lg mx-auto shadow-sm flex items-center justify-center">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-secondary-400 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                  </svg>
+                </div>
+                <div class="text-xs text-gray-600">QR Code Scan</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile-First Design -->
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div class="lg:order-2">
+            <h3 class="text-3xl font-semibold text-gray-900 mb-4">Mobile-First Design</h3>
+            <ul class="text-gray-600 space-y-3 text-lg">
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-accent-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Optimized for smartphones with touch-friendly interface
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-accent-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Portrait layout perfect for mobile viewing
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-accent-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Clear typography and intuitive navigation
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-accent-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Responsive design works on all screen sizes
+              </li>
+            </ul>
+          </div>
+          <div class="bg-accent-50 rounded-lg p-8 text-center lg:order-1">
+            <div class="w-24 h-40 bg-white rounded-lg mx-auto shadow-sm flex items-center justify-center">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-accent-400 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div class="text-xs text-gray-600">Mobile View</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simple Ordering -->
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <h3 class="text-3xl font-semibold text-gray-900 mb-4">Simple Ordering Process</h3>
+            <ul class="text-gray-600 space-y-3 text-lg">
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Browse menu items with clear descriptions and prices
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Add items to cart with floating cart indicator
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Review order with running total and item quantities
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-primary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Quick checkout with minimal customer information
+              </li>
+            </ul>
+          </div>
+          <div class="bg-primary-50 rounded-lg p-8 text-center">
+            <div class="w-24 h-40 bg-white rounded-lg mx-auto shadow-sm flex items-center justify-center">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-primary-400 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5H21M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6"></path>
+                  </svg>
+                </div>
+                <div class="text-xs text-gray-600">Order Flow</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-Time Updates -->
+        <div class="grid lg:grid-cols-2 gap-8 items-center">
+          <div class="lg:order-2">
+            <h3 class="text-3xl font-semibold text-gray-900 mb-4">Real-Time Updates</h3>
+            <ul class="text-gray-600 space-y-3 text-lg">
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Menu always reflects the latest item availability
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Order status updates from kitchen to table
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Instant confirmation and order tracking
+              </li>
+              <li class="flex items-start">
+                <svg class="w-6 h-6 text-secondary-500 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Prevents ordering unavailable items
+              </li>
+            </ul>
+          </div>
+          <div class="bg-secondary-50 rounded-lg p-8 text-center lg:order-1">
+            <div class="w-24 h-40 bg-white rounded-lg mx-auto shadow-sm flex items-center justify-center">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-secondary-500 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div class="text-xs text-gray-600">Live Updates</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Try Menu Demo CTA -->
+  <section class="py-16 bg-secondary-400">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl font-bold text-white mb-6">
+        Experience the Guest Menu
+      </h2>
+      <p class="text-xl text-emerald-100 mb-8">
+        See how easy and intuitive the ordering experience is for your customers.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/live-demo" class="bg-white text-secondary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors">
+          Try Menu Demo
+        </a>
+        <a href="/features/admin" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-secondary-600 transition-colors">
+          View Admin Features
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Carousel Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const menuCarouselContainer = document.getElementById('menu-carousel-container');
+      const menuPrevBtn = document.getElementById('menu-prev-btn');
+      const menuNextBtn = document.getElementById('menu-next-btn');
+      const menuDots = document.querySelectorAll('.menu-carousel-dot');
+      
+      if (menuCarouselContainer && menuPrevBtn && menuNextBtn) {
+        let menuCurrentSlide = 0;
+        const menuTotalSlides = 4;
+        
+        function updateMenuCarousel() {
+          const translateX = -menuCurrentSlide * 100;
+          menuCarouselContainer.style.transform = `translateX(${translateX}%)`;
+          
+          // Update dots
+          menuDots.forEach((dot, index) => {
+            if (index === menuCurrentSlide) {
+              dot.className = 'menu-carousel-dot w-3 h-3 bg-secondary-400 rounded-full';
+            } else {
+              dot.className = 'menu-carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-secondary-300';
+            }
+          });
+        }
+        
+        function nextMenuSlide() {
+          menuCurrentSlide = (menuCurrentSlide + 1) % menuTotalSlides;
+          updateMenuCarousel();
+        }
+        
+        function prevMenuSlide() {
+          menuCurrentSlide = (menuCurrentSlide - 1 + menuTotalSlides) % menuTotalSlides;
+          updateMenuCarousel();
+        }
+        
+        menuNextBtn.addEventListener('click', nextMenuSlide);
+        menuPrevBtn.addEventListener('click', prevMenuSlide);
+        
+        // Dot navigation
+        menuDots.forEach((dot, index) => {
+          dot.addEventListener('click', () => {
+            menuCurrentSlide = index;
+            updateMenuCarousel();
+          });
+        });
+        
+        // Auto-advance carousel
+        setInterval(nextMenuSlide, 6000);
+      }
+    });
+  </script>
+</Layout>
