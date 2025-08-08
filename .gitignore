@@ -1,5 +1,6 @@
 .env
 .crush
+.vscode
 
 # Rust
 target/
