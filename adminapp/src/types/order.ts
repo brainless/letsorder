@@ -1,22 +1,4 @@
-export interface OrderItem {
-  menu_item_id: string;
-  menu_item_name: string;
-  quantity: number;
-  price: number;
-  special_requests?: string;
-}
-
-export interface Order {
-  id: string;
-  table_id: string;
-  table_name: string;
-  restaurant_name: string;
-  items: OrderItem[];
-  total_amount: number;
-  status: OrderStatus;
-  customer_name?: string;
-  created_at: string;
-}
+import { OrderResponse, OrderItemResponse } from './api';
 
 export type OrderStatus =
   | 'pending'
@@ -25,6 +7,12 @@ export type OrderStatus =
   | 'ready'
   | 'delivered'
   | 'cancelled';
+
+// Use generated types with proper status typing
+export type OrderItem = OrderItemResponse;
+export interface Order extends Omit<OrderResponse, 'status'> {
+  status: OrderStatus;
+}
 
 export interface UpdateOrderStatusRequest {
   status: OrderStatus;
@@ -62,23 +50,4 @@ export interface OrderContextType {
   clearError: () => void;
 }
 
-// API Response types matching backend
-export interface OrderResponse {
-  id: string;
-  table_id: string;
-  table_name: string;
-  restaurant_name: string;
-  items: OrderItemResponse[];
-  total_amount: number;
-  status: string;
-  customer_name?: string;
-  created_at: string;
-}
-
-export interface OrderItemResponse {
-  menu_item_id: string;
-  menu_item_name: string;
-  quantity: number;
-  price: number;
-  special_requests?: string;
-}
+// These types are now imported from api.ts and used above

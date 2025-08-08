@@ -1,10 +1,7 @@
-export interface Table {
-  id: string;
-  restaurant_id: string;
-  name: string;
-  unique_code: string;
-  created_at: string;
-}
+import { Table as GeneratedTable, QrCodeResponse as GeneratedQrCodeResponse } from './api';
+
+// Use generated types
+export type Table = GeneratedTable;
 
 export interface CreateTableRequest {
   restaurant_id?: string; // Optional as it will be set by the service
@@ -15,11 +12,7 @@ export interface UpdateTableRequest {
   name?: string;
 }
 
-export interface QrCodeResponse {
-  qr_url: string;
-  table_name: string;
-  unique_code: string;
-}
+export type QrCodeResponse = GeneratedQrCodeResponse;
 
 export interface BulkQrCodeRequest {
   table_ids: string[];

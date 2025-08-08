@@ -1,11 +1,7 @@
-export interface Restaurant {
-  id: string;
-  name: string;
-  address?: string;
-  establishment_year?: number;
-  google_maps_link?: string;
-  created_at: string;
-}
+import { Restaurant as GeneratedRestaurant } from './api';
+
+// Use generated types
+export type Restaurant = GeneratedRestaurant;
 
 export interface CreateRestaurantRequest {
   name: string;

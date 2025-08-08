@@ -1,21 +1,13 @@
-export interface MenuSection {
-  id: string;
-  restaurant_id: string;
-  name: string;
-  display_order: number;
-  created_at: string;
-}
+import { 
+  MenuSection as GeneratedMenuSection, 
+  MenuItem as GeneratedMenuItem,
+  MenuSectionWithItems as GeneratedMenuSectionWithItems,
+  RestaurantMenu as GeneratedRestaurantMenu
+} from './api';
 
-export interface MenuItem {
-  id: string;
-  section_id: string;
-  name: string;
-  description?: string;
-  price: number;
-  available: boolean;
-  display_order: number;
-  created_at: string;
-}
+// Use generated types
+export type MenuSection = GeneratedMenuSection;
+export type MenuItem = GeneratedMenuItem;
 
 export interface CreateMenuSectionRequest {
   name: string;
@@ -63,14 +55,8 @@ export interface ToggleAvailabilityRequest {
   available: boolean;
 }
 
-export interface MenuSectionWithItems extends MenuSection {
-  items: MenuItem[];
-}
-
-export interface RestaurantMenu {
-  restaurant_id: string;
-  sections: MenuSectionWithItems[];
-}
+export type MenuSectionWithItems = GeneratedMenuSectionWithItems;
+export type RestaurantMenu = GeneratedRestaurantMenu;
 
 // Frontend-specific types
 export interface MenuState {
