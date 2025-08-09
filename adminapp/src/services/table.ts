@@ -138,7 +138,7 @@ export class TableService {
     tableId: string
   ): Promise<QrCodeResponse> {
     const response = await fetch(
-      `${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}/qr`,
+      `${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}/qr-url`,
       {
         method: 'GET',
         headers: this.getHeaders(),
@@ -186,12 +186,12 @@ export class TableService {
   // Generate printable QR code URL (for external QR service or internal generator)
   static generatePrintableQRUrl(qrUrl: string, size: number = 256): string {
     // Using QR Server API for demonstration - in production you might want to use your own service
-    const encodedUrl = encodeURIComponent(`${config.appUrl}${qrUrl}`);
+    const encodedUrl = encodeURIComponent(`${config.menuUrl}${qrUrl}`);
     return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodedUrl}`;
   }
 
   // Get menu URL for table
   static getMenuUrl(restaurantId: string, uniqueCode: string): string {
-    return `${config.appUrl}/menu/${restaurantId}/${uniqueCode}`;
+    return `${config.menuUrl}/m/${restaurantId}/${uniqueCode}`;
   }
 }
