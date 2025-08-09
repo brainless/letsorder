@@ -138,7 +138,7 @@ export class TableService {
     tableId: string
   ): Promise<QrCodeResponse> {
     const response = await fetch(
-      `${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}/qr`,
+      `${this.BASE_URL}/restaurants/${restaurantId}/tables/${tableId}/qr-url`,
       {
         method: 'GET',
         headers: this.getHeaders(),

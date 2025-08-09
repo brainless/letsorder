@@ -22,7 +22,7 @@ fn generate_unique_code() -> String {
 
 // Helper function to generate QR URL
 fn generate_qr_url(restaurant_id: &str, table_code: &str) -> String {
-    format!("/menu/{restaurant_id}/{table_code}")
+    format!("/m/{restaurant_id}/{table_code}")
 }
 
 // Table CRUD Handlers
@@ -343,7 +343,7 @@ pub async fn get_table_qr_url(
     path: web::Path<(String, String)>,
     claims: web::ReqData<Claims>,
 ) -> Result<HttpResponse> {
-    let (restaurant_id, _table_id) = path.into_inner();
+    let (restaurant_id, table_id) = path.into_inner();
 
     // Check if user is a manager of this restaurant
     let manager_check = sqlx::query!(
@@ -369,14 +369,37 @@ pub async fn get_table_qr_url(
         }
     }
 
-    // Return simple QR URL response for now
-    let qr_url = generate_qr_url(&restaurant_id, "SAMPLE123");
-    let response = QrCodeResponse {
-        qr_url,
-        table_name: "Sample Table".to_string(),
-        unique_code: "SAMPLE123".to_string(),
-    };
-    Ok(HttpResponse::Ok().json(response))
+    // Fetch the actual table data
+    let table = sqlx::query!(
+        "SELECT id, name, unique_code FROM tables WHERE id = ? AND restaurant_id = ?",
+        table_id,
+        restaurant_id
+    )
+    .fetch_one(pool.get_ref())
+    .await;
+
+    match table {
+        Ok(table_row) => {
+            let qr_url = generate_qr_url(&restaurant_id, &table_row.unique_code);
+            let response = QrCodeResponse {
+                qr_url,
+                table_name: table_row.name,
+                unique_code: table_row.unique_code,
+            };
+            Ok(HttpResponse::Ok().json(response))
+        }
+        Err(sqlx::Error::RowNotFound) => {
+            Ok(HttpResponse::NotFound().json(serde_json::json!({
+                "error": "Table not found"
+            })))
+        }
+        Err(e) => {
+            log::error!("Database error fetching table: {e}");
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to fetch table data"
+            })))
+        }
+    }
 }
 
 pub async fn refresh_table_code(
