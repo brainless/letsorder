@@ -4,6 +4,16 @@ import { getOrder } from './api'
 // Mock fetch globally
 global.fetch = vi.fn()
 
+// Mock AbortSignal.timeout
+if (!AbortSignal.timeout) {
+  AbortSignal.timeout = vi.fn(() => ({
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    aborted: false,
+    reason: undefined
+  }))
+}
+
 describe('Order API Functions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -39,13 +49,21 @@ describe('Order API Functions', () => {
       const result = await getOrder('order-123')
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8080/v1/orders/order-123'
+        'http://localhost:8080/v1/orders/order-123',
+        expect.objectContaining({
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          signal: expect.any(Object)
+        })
       )
       expect(result).toEqual(mockOrderData)
     })
 
     it('should handle order not found (404)', async () => {
-      ;(global.fetch as any).mockResolvedValueOnce({
+      // Mock all retry attempts to fail with 404
+      ;(global.fetch as any).mockResolvedValue({
         ok: false,
         status: 404
       })
@@ -54,16 +72,18 @@ describe('Order API Functions', () => {
     })
 
     it('should handle other API errors', async () => {
-      ;(global.fetch as any).mockResolvedValueOnce({
+      // Mock all retry attempts to fail with 500
+      ;(global.fetch as any).mockResolvedValue({
         ok: false,
         status: 500
       })
 
-      await expect(getOrder('order-123')).rejects.toThrow('Failed to fetch order: 500')
+      await expect(getOrder('order-123')).rejects.toThrow('Server error: 500')
     })
 
     it('should handle network errors', async () => {
-      ;(global.fetch as any).mockRejectedValueOnce(new Error('Network Error'))
+      // Mock all retry attempts to fail with network error
+      ;(global.fetch as any).mockRejectedValue(new Error('Network Error'))
 
       await expect(getOrder('order-123')).rejects.toThrow('Network Error')
     })
