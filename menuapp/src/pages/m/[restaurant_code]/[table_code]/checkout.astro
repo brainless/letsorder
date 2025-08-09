@@ -3,9 +3,7 @@ import Layout from '../../../../layouts/Layout.astro';
 import { fetchMenu } from '../../../../lib/api';
 import type { MenuData } from '../../../../types/menu';
 
-export async function getStaticPaths() {
-  return [];
-}
+// Server-side rendering enabled - no need for getStaticPaths
 
 const { restaurant_code, table_code } = Astro.params;
 

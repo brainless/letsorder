@@ -12,13 +12,14 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^12.6.3",
     "@tailwindcss/vite": "^4.1.11",
     "astro": "^5.12.8",
     "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/dom": "^9.3.4",
+    "@testing-library/jest-dom": "^6.1.5",
     "jsdom": "^23.0.1",
     "vitest": "^1.0.4"
   }

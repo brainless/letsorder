@@ -5,10 +5,7 @@ import OrderItemsList from '../../components/OrderItemsList.astro';
 import { getOrder } from '../../lib/api';
 import type { OrderDetails } from '../../types/menu';
 
-export async function getStaticPaths() {
-  // For dynamic routes, we return an empty array since we can't pre-generate all possible order IDs
-  return [];
-}
+// Server-side rendering enabled - no need for getStaticPaths
 
 const { orderId } = Astro.params;
 

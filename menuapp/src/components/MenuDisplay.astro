@@ -247,10 +247,10 @@ const { menuData, showSearch = true, className = '' } = Astro.props;
       const descElement = item.querySelector('p');
 
       if (nameElement) {
-        nameElement.innerHTML = this.addHighlight(nameElement.textContent || '', query);
+        this.addHighlightToElement(nameElement, query);
       }
       if (descElement) {
-        descElement.innerHTML = this.addHighlight(descElement.textContent || '', query);
+        this.addHighlightToElement(descElement, query);
       }
     }
 
@@ -259,18 +259,48 @@ const { menuData, showSearch = true, className = '' } = Astro.props;
       const descElement = item.querySelector('p');
 
       if (nameElement) {
-        nameElement.innerHTML = nameElement.textContent || '';
+        this.clearHighlightFromElement(nameElement);
       }
       if (descElement) {
-        descElement.innerHTML = descElement.textContent || '';
+        this.clearHighlightFromElement(descElement);
       }
     }
 
-    private addHighlight(text: string, query: string): string {
-      if (!query) return text;
+    private addHighlightToElement(element: Element, query: string): void {
+      if (!query) return;
       
+      const originalText = element.getAttribute('data-original-text') || element.textContent || '';
+      if (!element.getAttribute('data-original-text')) {
+        element.setAttribute('data-original-text', originalText);
+      }
+      
+      // Clear existing content
+      element.innerHTML = '';
+      
+      // Create safe highlighted content using DOM manipulation
       const regex = new RegExp(`(${this.escapeRegExp(query)})`, 'gi');
-      return text.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
+      const parts = originalText.split(regex);
+      
+      parts.forEach((part, index) => {
+        if (part.toLowerCase() === query.toLowerCase()) {
+          // Create highlight element for matching text
+          const mark = document.createElement('mark');
+          mark.className = 'bg-yellow-200 px-1 rounded';
+          mark.textContent = part;
+          element.appendChild(mark);
+        } else {
+          // Add plain text node for non-matching text
+          const textNode = document.createTextNode(part);
+          element.appendChild(textNode);
+        }
+      });
+    }
+
+    private clearHighlightFromElement(element: Element): void {
+      const originalText = element.getAttribute('data-original-text');
+      if (originalText) {
+        element.textContent = originalText;
+      }
     }
 
     private escapeRegExp(string: string): string {
