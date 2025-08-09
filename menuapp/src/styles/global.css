@@ -1,1 +1,53 @@
 @import "tailwindcss";
+
+/* Critical CSS - inlined automatically by Astro */
+/* Performance optimizations for mobile-first design */
+
+/* Minimize layout shift with predictable sizing */
+.menu-section,
+.menu-item-wrapper {
+  contain: layout style;
+}
+
+/* Optimize touch targets for mobile */
+@media (pointer: coarse) {
+  button,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Optimize font loading */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Inter'), local('Inter-Regular');
+}
+
+/* Lazy loading animation */
+.lazy-content {
+  min-height: 60px;
+}
+
+/* Search highlight performance optimization */
+mark {
+  background-color: #fef3c7;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.125rem;
+  color: inherit;
+}
