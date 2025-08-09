@@ -1,0 +1,56 @@
+---
+import RetryButton from './RetryButton.astro';
+
+export interface Props {
+  title?: string;
+  message?: string;
+  showRetry?: boolean;
+  retryAction?: string;
+}
+
+const { 
+  title = "Connection Problem",
+  message = "We're having trouble connecting to our servers. Please check your internet connection and try again.",
+  showRetry = true,
+  retryAction = "window.location.reload()"
+} = Astro.props;
+---
+
+<div class="flex items-center justify-center px-4 py-8">
+  <div class="max-w-md w-full text-center">
+    <div class="mb-6">
+      <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
+      </svg>
+    </div>
+
+    <h1 class="text-xl font-semibold text-gray-900 mb-4">{title}</h1>
+    
+    <p class="text-gray-600 mb-8 leading-relaxed">{message}</p>
+
+    {showRetry && (
+      <div class="space-y-4">
+        <RetryButton onclick={retryAction} className="w-full justify-center" />
+        
+        <div class="text-sm text-gray-500">
+          <p>Still having problems?</p>
+          <p class="mt-1">
+            <a href="/" class="text-blue-600 hover:text-blue-700 underline">
+              Go to home page
+            </a>
+          </p>
+        </div>
+      </div>
+    )}
+
+    <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+      <h3 class="font-medium text-gray-900 mb-2">Troubleshooting Tips:</h3>
+      <ul class="text-sm text-gray-600 text-left space-y-1">
+        <li>• Check your internet connection</li>
+        <li>• Try refreshing the page</li>
+        <li>• Make sure you're using a valid QR code</li>
+        <li>• Contact restaurant staff if the problem persists</li>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -2,6 +2,8 @@
 import Layout from '../../layouts/Layout.astro';
 import OrderStatusBadge from '../../components/OrderStatusBadge.astro';
 import OrderItemsList from '../../components/OrderItemsList.astro';
+import NotFound from '../../components/NotFound.astro';
+import NetworkError from '../../components/NetworkError.astro';
 import { getOrder } from '../../lib/api';
 import type { OrderDetails } from '../../types/menu';
 
@@ -10,17 +12,26 @@ import type { OrderDetails } from '../../types/menu';
 const { orderId } = Astro.params;
 
 if (!orderId) {
-  return Astro.redirect('/404');
+  return Astro.redirect('/');
 }
 
 let order: OrderDetails | null = null;
-let error: string | null = null;
+let errorType: 'none' | 'not_found' | 'network' = 'none';
 
 try {
   order = await getOrder(orderId);
 } catch (e) {
-  error = e instanceof Error ? e.message : 'Failed to load order';
   console.error('Error loading order:', e);
+  
+  if (e instanceof Error) {
+    if (e.message.includes('not found') || e.message.includes('404')) {
+      errorType = 'not_found';
+    } else {
+      errorType = 'network';
+    }
+  } else {
+    errorType = 'network';
+  }
 }
 
 // Format date helper
@@ -36,24 +47,23 @@ function formatDate(dateString: string): string {
 }
 ---
 
-<Layout title={order ? `Order #${order.id.slice(-8)}` : 'Order Status'}>
-  <main class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-      {error ? (
-        <!-- Error State -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-          <div class="mb-4">
-            <svg class="h-16 w-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-          </div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h1>
-          <p class="text-gray-600 mb-6">{error}</p>
-          <p class="text-sm text-gray-500">
-            Please check your order ID and try again, or contact the restaurant if you believe this is an error.
-          </p>
-        </div>
-      ) : order && (
+<Layout title={errorType === 'none' && order ? `Order #${order.id.slice(-8)}` : 'Order Status'}>
+  {errorType === 'not_found' && (
+    <NotFound 
+      resourceType="order" 
+      showHome={true}
+    />
+  )}
+
+  {errorType === 'network' && (
+    <NetworkError 
+      showRetry={true}
+    />
+  )}
+
+  {errorType === 'none' && order && (
+    <main class="min-h-screen bg-gray-50 py-8">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Order Details -->
         <div class="space-y-6">
           <!-- Header -->
@@ -117,9 +127,9 @@ function formatDate(dateString: string): string {
             </div>
           </div>
         </div>
-      )}
-    </div>
-  </main>
+      </div>
+    </main>
+  )}
 </Layout>
 
 <style>
@@ -148,4 +158,3 @@ function formatDate(dateString: string): string {
     }
   }
 </style>
-</Layout>

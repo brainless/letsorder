@@ -11,10 +11,10 @@ const { id, name, description, price, sectionName, className = '' } = Astro.prop
 
 <div class={`add-to-cart-container ${className}`} data-item-id={id}>
   <!-- Quantity selector (initially hidden) -->
-  <div class="quantity-selector hidden items-center space-x-2">
+  <div class="quantity-selector hidden items-center space-x-2 h-[36px]">
     <button 
       type="button"
-      class="quantity-btn decrease-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1 px-2 rounded-full w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+      class="quantity-btn decrease-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-full w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0"
       aria-label={`Decrease quantity of ${name}`}
       data-action="decrease"
     >
@@ -23,13 +23,13 @@ const { id, name, description, price, sectionName, className = '' } = Astro.prop
       </svg>
     </button>
     
-    <span class="quantity-display font-medium text-gray-900 min-w-[2ch] text-center" role="status" aria-live="polite">
+    <span class="quantity-display font-medium text-gray-900 min-w-[2ch] text-center text-sm px-2" role="status" aria-live="polite">
       0
     </span>
     
     <button 
       type="button"
-      class="quantity-btn increase-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-full w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+      class="quantity-btn increase-btn bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0"
       aria-label={`Increase quantity of ${name}`}
       data-action="increase"
     >
@@ -42,7 +42,7 @@ const { id, name, description, price, sectionName, className = '' } = Astro.prop
   <!-- Initial "Add" button -->
   <button 
     type="button"
-    class="add-btn bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1 px-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+    class="add-btn bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 min-w-[60px] h-[36px] flex items-center justify-center"
     data-item-id={id}
     data-item-name={name}
     data-item-description={description}
@@ -164,9 +164,9 @@ const { id, name, description, price, sectionName, className = '' } = Astro.prop
       
       if (quantity > 0) {
         // Show quantity selector, hide add button
-        this.addButton.style.display = 'none';
-        this.quantitySelector.style.display = 'flex';
+        this.addButton.classList.add('hidden');
         this.quantitySelector.classList.remove('hidden');
+        this.quantitySelector.classList.add('flex');
         this.quantityDisplay.textContent = quantity.toString();
         
         // Update ARIA label for quantity display
@@ -179,9 +179,9 @@ const { id, name, description, price, sectionName, className = '' } = Astro.prop
         }
       } else {
         // Show add button, hide quantity selector
-        this.addButton.style.display = 'inline-block';
-        this.quantitySelector.style.display = 'none';
+        this.addButton.classList.remove('hidden');
         this.quantitySelector.classList.add('hidden');
+        this.quantitySelector.classList.remove('flex');
       }
     }
 
@@ -267,14 +267,22 @@ const { id, name, description, price, sectionName, className = '' } = Astro.prop
 <style>
   .add-to-cart-container {
     display: inline-block;
+    min-height: 36px;
   }
 
   .quantity-selector {
     display: none;
+    align-items: center;
+    height: 36px;
   }
 
-  .quantity-selector.show {
+  .quantity-selector.flex {
     display: flex;
+  }
+
+  .add-btn {
+    height: 36px;
+    min-width: 60px;
   }
 
   .quantity-btn:disabled {

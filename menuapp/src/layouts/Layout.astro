@@ -48,6 +48,16 @@ const { title, description = 'Guest menu ordering app' } = Astro.props;
 			<slot />
 		</main>
 		
+		<!-- Error Logger -->
+		<script>
+			// Load error logger
+			import('../scripts/error-logger.js').then(() => {
+				console.log('Error logging initialized');
+			}).catch((error) => {
+				console.warn('Failed to initialize error logging:', error);
+			});
+		</script>
+
 		<!-- Register service worker -->
 		<script>
 			if ('serviceWorker' in navigator) {
