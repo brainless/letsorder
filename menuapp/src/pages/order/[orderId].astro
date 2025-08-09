@@ -47,21 +47,21 @@ function formatDate(dateString: string): string {
 }
 ---
 
-{errorType === 'not_found' && (
-  <NotFound 
-    resourceType="order" 
-    showHome={true}
-  />
-)}
+<Layout title={errorType === 'none' && order ? `Order #${order.id.slice(-8)}` : 'Order Status'}>
+  {errorType === 'not_found' && (
+    <NotFound 
+      resourceType="order" 
+      showHome={true}
+    />
+  )}
 
-{errorType === 'network' && (
-  <NetworkError 
-    showRetry={true}
-  />
-)}
+  {errorType === 'network' && (
+    <NetworkError 
+      showRetry={true}
+    />
+  )}
 
-{errorType === 'none' && order && (
-  <Layout title={`Order #${order.id.slice(-8)}`}>
+  {errorType === 'none' && order && (
     <main class="min-h-screen bg-gray-50 py-8">
       <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Order Details -->
@@ -129,8 +129,8 @@ function formatDate(dateString: string): string {
         </div>
       </div>
     </main>
-  </Layout>
-)}
+  )}
+</Layout>
 
 <style>
   /* Print styles */
