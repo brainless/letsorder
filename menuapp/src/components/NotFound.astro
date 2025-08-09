@@ -1,0 +1,91 @@
+---
+import RetryButton from './RetryButton.astro';
+
+export interface Props {
+  title?: string;
+  message?: string;
+  resourceType?: 'restaurant' | 'table' | 'order' | 'page';
+  showHome?: boolean;
+}
+
+const { 
+  title,
+  message,
+  resourceType = 'page',
+  showHome = true
+} = Astro.props;
+
+const defaultTitles = {
+  restaurant: "Restaurant Not Found",
+  table: "Table Not Found", 
+  order: "Order Not Found",
+  page: "Page Not Found"
+};
+
+const defaultMessages = {
+  restaurant: "The restaurant code in your QR code appears to be invalid. Please check with restaurant staff for a valid QR code.",
+  table: "The table code in your QR code appears to be invalid. Please scan the QR code at your table or ask restaurant staff for assistance.",
+  order: "We couldn't find your order. It may have been processed or the order ID is incorrect.",
+  page: "The page you're looking for doesn't exist or has been moved."
+};
+
+const finalTitle = title || defaultTitles[resourceType];
+const finalMessage = message || defaultMessages[resourceType];
+---
+
+<div class="min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-md w-full text-center">
+    <div class="mb-6">
+      <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 20.5a7.962 7.962 0 01-5-1.709M15 3.291A7.962 7.962 0 0112 1.5a7.962 7.962 0 00-5 1.791m10 1.5l.707.707a1 1 0 010 1.414L18 9.414a1 1 0 01-1.414 0L15.879 8.707a1 1 0 010-1.414L16.586 6.586a1 1 0 011.414 0z"></path>
+      </svg>
+    </div>
+
+    <h1 class="text-xl font-semibold text-gray-900 mb-4">{finalTitle}</h1>
+    
+    <p class="text-gray-600 mb-8 leading-relaxed">{finalMessage}</p>
+
+    <div class="space-y-4">
+      {showHome && (
+        <a
+          href="/"
+          class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+          </svg>
+          Go to Home
+        </a>
+      )}
+      
+      <div class="text-sm text-gray-500">
+        <button
+          onclick="history.back()"
+          class="text-blue-600 hover:text-blue-700 underline"
+        >
+          Go back to previous page
+        </button>
+      </div>
+    </div>
+
+    {(resourceType === 'restaurant' || resourceType === 'table') && (
+      <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+        <h3 class="font-medium text-blue-900 mb-2">Need Help?</h3>
+        <p class="text-sm text-blue-800">
+          If you scanned a QR code from this restaurant, please ask your server for assistance. 
+          They can provide you with a fresh QR code or help you place your order directly.
+        </p>
+      </div>
+    )}
+
+    {resourceType === 'order' && (
+      <div class="mt-8 p-4 bg-yellow-50 rounded-lg">
+        <h3 class="font-medium text-yellow-900 mb-2">Order Status</h3>
+        <p class="text-sm text-yellow-800">
+          Your order may have already been processed or completed. 
+          Check with restaurant staff if you need information about your order.
+        </p>
+      </div>
+    )}
+  </div>
+</div>

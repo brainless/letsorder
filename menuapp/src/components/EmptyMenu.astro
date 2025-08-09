@@ -1,0 +1,73 @@
+---
+import RetryButton from './RetryButton.astro';
+
+export interface Props {
+  restaurantName?: string;
+  message?: string;
+  showRetry?: boolean;
+  retryAction?: string;
+}
+
+const { 
+  restaurantName = "this restaurant",
+  message,
+  showRetry = true,
+  retryAction = "window.location.reload()"
+} = Astro.props;
+
+const defaultMessage = `${restaurantName} hasn't added any menu items yet, or the menu is temporarily unavailable. Please check with restaurant staff for current offerings.`;
+const finalMessage = message || defaultMessage;
+---
+
+<div class="min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-md w-full text-center">
+    <div class="mb-6">
+      <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+      </svg>
+    </div>
+
+    <h1 class="text-xl font-semibold text-gray-900 mb-4">Menu Currently Unavailable</h1>
+    
+    <p class="text-gray-600 mb-8 leading-relaxed">{finalMessage}</p>
+
+    <div class="space-y-4">
+      {showRetry && (
+        <div class="space-y-3">
+          <RetryButton 
+            onclick={retryAction} 
+            className="w-full justify-center" 
+            text="Check for Updates"
+          />
+          
+          <div class="text-sm text-gray-500">
+            <button
+              onclick="history.back()"
+              class="text-blue-600 hover:text-blue-700 underline"
+            >
+              Go back to previous page
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+
+    <div class="mt-8 p-4 bg-amber-50 rounded-lg">
+      <h3 class="font-medium text-amber-900 mb-2">What to do next:</h3>
+      <ul class="text-sm text-amber-800 text-left space-y-1">
+        <li>• Ask your server about today's menu</li>
+        <li>• Check if the restaurant is currently serving</li>
+        <li>• Try refreshing the page in a few minutes</li>
+        <li>• Contact restaurant staff for assistance</li>
+      </ul>
+    </div>
+
+    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+      <h3 class="font-medium text-blue-900 mb-2">Restaurant Information</h3>
+      <p class="text-sm text-blue-800">
+        You can still place orders directly with restaurant staff. 
+        They'll be happy to help you with today's available items and specials.
+      </p>
+    </div>
+  </div>
+</div>
