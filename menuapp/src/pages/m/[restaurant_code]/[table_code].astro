@@ -84,11 +84,9 @@ try {
   const apiResponse = await fetchMenu(restaurant_code, table_code);
   console.log('[MENU DEBUG] Successfully fetched menu data:', apiResponse);
   
-  // Check if restaurant/table was found
+  // Check if restaurant was found and if menu has sections
   if (!apiResponse.restaurant) {
     errorType = 'not_found_restaurant';
-  } else if (!apiResponse.table) {
-    errorType = 'not_found_table';
   } else if (!apiResponse.sections || apiResponse.sections.length === 0) {
     // Menu exists but is empty
     errorType = 'empty_menu';
@@ -126,6 +124,8 @@ try {
   // Determine error type based on error message or status
   if (error instanceof Error) {
     if (error.message.includes('404') || error.message.includes('not found')) {
+      // 404 could mean either restaurant or table not found
+      // For now, use restaurant not found as the generic "not found" error
       errorType = 'not_found_restaurant';
     } else if (error.message.includes('network') || error.message.includes('fetch')) {
       errorType = 'network';

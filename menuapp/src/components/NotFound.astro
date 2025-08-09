@@ -16,14 +16,14 @@ const {
 } = Astro.props;
 
 const defaultTitles = {
-  restaurant: "Restaurant Not Found",
+  restaurant: "Restaurant or Table Not Found",
   table: "Table Not Found", 
   order: "Order Not Found",
   page: "Page Not Found"
 };
 
 const defaultMessages = {
-  restaurant: "The restaurant code in your QR code appears to be invalid. Please check with restaurant staff for a valid QR code.",
+  restaurant: "The restaurant or table code in your QR code appears to be invalid. Please check with restaurant staff or scan a fresh QR code from your table.",
   table: "The table code in your QR code appears to be invalid. Please scan the QR code at your table or ask restaurant staff for assistance.",
   order: "We couldn't find your order. It may have been processed or the order ID is incorrect.",
   page: "The page you're looking for doesn't exist or has been moved."
