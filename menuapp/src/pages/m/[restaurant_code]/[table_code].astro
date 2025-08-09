@@ -139,4 +139,17 @@ const pageTitle = `${menuData.restaurant.name} - ${menuData.table.name}`;
 
   <!-- Spacer for fixed cart summary on mobile -->
   <div class="h-32 md:hidden"></div>
+
+  <!-- Load optimized menu display script -->
+  <script>
+    Promise.all([
+      import('../../../scripts/menu-display.js'),
+      import('../../../scripts/performance-monitor.js')
+    ]).then(() => {
+      // Menu display and performance monitoring are automatically initialized
+    }).catch(() => {
+      // Graceful fallback if scripts fail to load
+      console.warn('Failed to load performance scripts');
+    });
+  </script>
 </Layout>
