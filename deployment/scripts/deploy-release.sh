@@ -17,7 +17,6 @@ NC='\033[0m' # No Color
 LETSORDER_USER="letsorder"
 LETSORDER_DIR="/opt/letsorder"
 BACKUP_RETENTION_LOCAL=5
-BUILD_TARGET="x86_64-unknown-linux-gnu"
 
 # Function to print colored output
 log() {
@@ -76,8 +75,8 @@ if [ ! -f "backend/Cargo.toml" ]; then
 fi
 
 # Check required commands
-if ! command_exists "cargo"; then
-    error "Cargo is not installed. Please install Rust toolchain."
+if ! command_exists "git"; then
+    error "Git is not installed. Please install git."
 fi
 
 # Simple S3-compatible upload function using curl (no AWS CLI needed)
@@ -161,55 +160,12 @@ if ! ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" exit; then
     error "Cannot connect to server via SSH. Please check server IP and SSH key."
 fi
 
-# Detect if cross-compilation is needed
-HOST_TARGET=$(rustc -vV | sed -n 's|host: ||p')
-if [ "$BUILD_TARGET" != "$HOST_TARGET" ]; then
-    # Install build target if not present for cross-compilation
-    if ! rustup target list --installed | grep -q "$BUILD_TARGET"; then
-        log "Installing build target: $BUILD_TARGET"
-        rustup target add "$BUILD_TARGET"
-    fi
-fi
+# Get current git commit for deployment
+CURRENT_COMMIT=$(git rev-parse HEAD)
 
-# Build the application
-log "Building LetsOrder backend..."
-cd backend
-
-# Use appropriate build approach
-if [ "$BUILD_TARGET" = "$HOST_TARGET" ]; then
-    # Native build - use optimized settings
-    log "Building for native target ($HOST_TARGET)..."
-    RUSTFLAGS="-C target-cpu=native" cargo build --release
-    BINARY_PATH="target/release/backend"
-else
-    # Cross-compilation - use generic optimization
-    log "Cross-compiling for $BUILD_TARGET..."
-    cargo build --release --target="$BUILD_TARGET"
-    BINARY_PATH="target/$BUILD_TARGET/release/backend"
-fi
-
-# Strip the binary to reduce size
-if command_exists "strip"; then
-    log "Stripping debug symbols from binary..."
-    strip "$BINARY_PATH"
-fi
-
-BINARY_SIZE=$(du -h "$BINARY_PATH" | cut -f1)
-log "Built binary size: $BINARY_SIZE"
-
-cd ..
-
-# Create deployment package
-DEPLOY_DIR="target/deploy-$BUILD_TIME"
-mkdir -p "$DEPLOY_DIR"
-cp "backend/$BINARY_PATH" "$DEPLOY_DIR/"
-cp -r deployment/config "$DEPLOY_DIR/"
-
-log "Created deployment package in $DEPLOY_DIR"
-
-# Upload deployment package
-log "Uploading deployment package to server..."
-scp $SSH_OPTS -r "$DEPLOY_DIR"/* "$LETSORDER_USER@$SERVER_IP:/tmp/"
+# Upload deployment configuration files
+log "Uploading deployment configuration files to server..."
+scp $SSH_OPTS -r deployment/config "$LETSORDER_USER@$SERVER_IP:/tmp/"
 
 # Create deployment script to run on server
 REMOTE_DEPLOY_SCRIPT=$(cat << 'REMOTE_SCRIPT'
@@ -228,6 +184,7 @@ error() {
 LETSORDER_DIR="/opt/letsorder"
 RELEASE_TAG="$1"
 SKIP_BACKUP="$2"
+COMMIT_HASH="$3"
 
 log "Starting deployment on server..."
 
@@ -237,6 +194,39 @@ if systemctl list-unit-files | grep -q letsorder.service; then
 else
     SERVICE_EXISTS="false"
 fi
+
+# Install Rust if not present
+if ! command -v cargo >/dev/null 2>&1; then
+    log "Installing Rust toolchain..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+    source ~/.cargo/env
+    log "Rust toolchain installed"
+else
+    log "Rust toolchain already available"
+fi
+
+# Clone or update repository
+REPO_DIR="$LETSORDER_DIR/repo"
+if [ ! -d "$REPO_DIR" ]; then
+    log "Cloning repository..."
+    git clone https://github.com/brainless/letsorder.git "$REPO_DIR"
+    chown -R letsorder:letsorder "$REPO_DIR"
+else
+    log "Updating repository..."
+    cd "$REPO_DIR"
+    git fetch origin
+fi
+
+cd "$REPO_DIR"
+log "Checking out commit: $COMMIT_HASH"
+git checkout "$COMMIT_HASH"
+
+# Build the application on server
+log "Building LetsOrder backend on server..."
+cd backend
+SQLX_OFFLINE=true cargo build --release
+BINARY_SIZE=$(du -h target/release/backend | cut -f1)
+log "Built binary size: $BINARY_SIZE"
 
 # Create database backup if requested
 if [ "$SKIP_BACKUP" != "true" ] && [ -f "$LETSORDER_DIR/data/letsorder.db" ]; then
@@ -273,7 +263,7 @@ fi
 
 # Install new binary
 log "Installing new binary..."
-cp /tmp/backend "$LETSORDER_DIR/bin/"
+cp "$REPO_DIR/backend/target/release/backend" "$LETSORDER_DIR/bin/"
 chmod +x "$LETSORDER_DIR/bin/backend"
 
 # Install configuration files
@@ -350,8 +340,7 @@ log "Reloading nginx..."
 sudo systemctl reload nginx
 
 # Clean up temporary files
-rm -f /tmp/backend /tmp/letsorder.service.new /tmp/nginx.conf.new
-rm -rf /tmp/config
+rm -f /tmp/letsorder.service.new /tmp/nginx.conf.new
 
 log "Deployment completed successfully!"
 log "Service status: $(sudo systemctl is-active letsorder)"
@@ -363,11 +352,11 @@ REMOTE_SCRIPT
 # Execute deployment on server
 log "Executing deployment on server..."
 echo "$REMOTE_DEPLOY_SCRIPT" | ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" \
-    "cat > /tmp/deploy.sh && chmod +x /tmp/deploy.sh && /tmp/deploy.sh '$RELEASE_TAG' '$SKIP_BACKUP'"
+    "cat > /tmp/deploy.sh && chmod +x /tmp/deploy.sh && /tmp/deploy.sh '$RELEASE_TAG' '$SKIP_BACKUP' '$CURRENT_COMMIT'"
 
-# Clean up deployment package
-log "Cleaning up local deployment package..."
-rm -rf "$DEPLOY_DIR"
+# Clean up temporary files on server
+log "Cleaning up temporary files on server..."
+ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" "rm -rf /tmp/config /tmp/deploy.sh"
 
 # Verify deployment
 log "Verifying deployment..."

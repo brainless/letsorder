@@ -67,17 +67,17 @@ deployment/
 
 ### Local Environment
 
-- **Rust toolchain** with cross-compilation support
+- **Git** for version control
 - **SSH client** with key-based authentication
 - **curl** (for HTTP requests and S3-compatible uploads)
-- **openssl** (for S3 authentication, usually pre-installed)
 
 ### Server Requirements
 
 - **Ubuntu 22.04 LTS** (recommended)
-- **1 CPU, 2GB RAM minimum** (Scaleway DEV1-S or equivalent)
+- **2GB RAM minimum** (for building Rust code - Scaleway DEV1-S or equivalent)
 - **SSH access with sudo privileges**
 - **Public IP address** with port 22 (SSH) and 443 (HTTPS) open
+- **Git and Rust** will be installed automatically during deployment
 
 ### External Services
 
@@ -124,14 +124,13 @@ The `deploy-release.sh` script handles the complete deployment pipeline:
 ```
 
 **Deployment process:**
-1. **Build**: Cross-compiles Rust binary for production
-2. **Package**: Creates deployment package with configs
+1. **Clone/Update**: Clones or updates repository on server
+2. **Build**: Compiles Rust binary directly on the server
 3. **Backup**: Creates timestamped database backup
-4. **Upload**: Transfers files via SCP
-5. **Deploy**: Installs binary and configurations
-6. **Migrate**: Runs database migrations
-7. **Start**: Restarts service with health verification
-8. **Verify**: Tests health endpoint
+4. **Deploy**: Installs binary and configurations  
+5. **Migrate**: Runs database migrations
+6. **Start**: Restarts service with health verification
+7. **Verify**: Tests health endpoint
 
 **Rollback safety:**
 - Previous binary saved as `.old`
