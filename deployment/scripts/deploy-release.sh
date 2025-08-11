@@ -1,0 +1,326 @@
+#!/bin/bash
+
+# LetsOrder Release Deployment Script
+# This script builds and deploys a new release of LetsOrder to the production server
+# Usage: ./deploy-release.sh <server-ip> <ssh-key-path> [--skip-backup]
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Configuration
+LETSORDER_USER="letsorder"
+LETSORDER_DIR="/opt/letsorder"
+BACKUP_RETENTION_LOCAL=5
+BUILD_TARGET="x86_64-unknown-linux-gnu"
+
+# Function to print colored output
+log() {
+    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] $1${NC}"
+}
+
+info() {
+    echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')] $1${NC}"
+}
+
+warn() {
+    echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING: $1${NC}"
+}
+
+error() {
+    echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ERROR: $1${NC}"
+    exit 1
+}
+
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Check arguments
+if [ $# -lt 2 ]; then
+    error "Usage: $0 <server-ip> <ssh-key-path> [--skip-backup]"
+fi
+
+SERVER_IP="$1"
+SSH_KEY_PATH="$2"
+SKIP_BACKUP=""
+
+# Parse additional arguments
+shift 2
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --skip-backup)
+            SKIP_BACKUP="true"
+            shift
+            ;;
+        *)
+            error "Unknown option: $1"
+            ;;
+    esac
+done
+
+# Check if SSH key exists
+if [ ! -f "$SSH_KEY_PATH" ]; then
+    error "SSH key file not found: $SSH_KEY_PATH"
+fi
+
+# Check if we're in the project root
+if [ ! -f "backend/Cargo.toml" ]; then
+    error "This script must be run from the project root directory"
+fi
+
+# Check required commands
+if ! command_exists "cargo"; then
+    error "Cargo is not installed. Please install Rust toolchain."
+fi
+
+if ! command_exists "aws" && [ "$SKIP_BACKUP" != "true" ]; then
+    error "AWS CLI is not installed. Required for database backups. Use --skip-backup to skip."
+fi
+
+# Load environment variables
+if [ -f "deployment/.env" ]; then
+    log "Loading environment variables..."
+    set -a
+    source deployment/.env
+    set +a
+else
+    warn "No deployment/.env file found. Some features may not work."
+fi
+
+log "Starting LetsOrder deployment to $SERVER_IP"
+
+# Get release information
+RELEASE_TAG=$(git describe --tags --always --dirty)
+COMMIT_HASH=$(git rev-parse --short HEAD)
+BUILD_TIME=$(date -u '+%Y-%m-%d_%H%M%S')
+
+info "Release: $RELEASE_TAG"
+info "Commit: $COMMIT_HASH"
+info "Build time: $BUILD_TIME"
+
+# Test SSH connection
+log "Testing SSH connection..."
+if ! ssh -i "$SSH_KEY_PATH" -o ConnectTimeout=10 -o BatchMode=yes "$LETSORDER_USER@$SERVER_IP" exit; then
+    error "Cannot connect to server via SSH. Please check server IP and SSH key."
+fi
+
+# Install build target if not present
+if ! rustup target list --installed | grep -q "$BUILD_TARGET"; then
+    log "Installing build target: $BUILD_TARGET"
+    rustup target add "$BUILD_TARGET"
+fi
+
+# Build the application
+log "Building LetsOrder backend..."
+cd backend
+RUSTFLAGS="-C target-cpu=native" cargo build --release --target="$BUILD_TARGET"
+
+# Strip the binary to reduce size
+if command_exists "strip"; then
+    log "Stripping debug symbols from binary..."
+    strip "target/$BUILD_TARGET/release/backend"
+fi
+
+BINARY_SIZE=$(du -h "target/$BUILD_TARGET/release/backend" | cut -f1)
+log "Built binary size: $BINARY_SIZE"
+
+cd ..
+
+# Create deployment package
+DEPLOY_DIR="target/deploy-$BUILD_TIME"
+mkdir -p "$DEPLOY_DIR"
+cp "backend/target/$BUILD_TARGET/release/backend" "$DEPLOY_DIR/"
+cp -r deployment/config "$DEPLOY_DIR/"
+
+log "Created deployment package in $DEPLOY_DIR"
+
+# Upload deployment package
+log "Uploading deployment package to server..."
+scp -i "$SSH_KEY_PATH" -r "$DEPLOY_DIR"/* "$LETSORDER_USER@$SERVER_IP:/tmp/"
+
+# Create deployment script to run on server
+REMOTE_DEPLOY_SCRIPT=$(cat << 'REMOTE_SCRIPT'
+#!/bin/bash
+set -e
+
+log() {
+    echo -e "\033[0;32m[$(date +'%Y-%m-%d %H:%M:%S')] $1\033[0m"
+}
+
+error() {
+    echo -e "\033[0;31m[$(date +'%Y-%m-%d %H:%M:%S')] ERROR: $1\033[0m"
+    exit 1
+}
+
+LETSORDER_DIR="/opt/letsorder"
+RELEASE_TAG="$1"
+SKIP_BACKUP="$2"
+
+log "Starting deployment on server..."
+
+# Check if service exists
+if systemctl list-unit-files | grep -q letsorder.service; then
+    SERVICE_EXISTS="true"
+else
+    SERVICE_EXISTS="false"
+fi
+
+# Create database backup if requested
+if [ "$SKIP_BACKUP" != "true" ] && [ -f "$LETSORDER_DIR/data/letsorder.db" ]; then
+    log "Creating database backup..."
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    BACKUP_FILE="$LETSORDER_DIR/backups/backup_${TIMESTAMP}_${RELEASE_TAG}.db"
+    
+    # Use sqlite3 to create a consistent backup
+    sqlite3 "$LETSORDER_DIR/data/letsorder.db" ".backup $BACKUP_FILE"
+    
+    # Upload to S3 if AWS CLI is available and configured
+    if command -v aws >/dev/null 2>&1 && [ -n "$AWS_ACCESS_KEY_ID" ]; then
+        log "Uploading backup to S3..."
+        aws s3 cp "$BACKUP_FILE" \
+            "s3://letsorder-backups/releases/${RELEASE_TAG}/letsorder.db" \
+            --metadata "timestamp=${TIMESTAMP},release=${RELEASE_TAG}" || true
+    fi
+    
+    # Keep only last 5 local backups
+    cd "$LETSORDER_DIR/backups"
+    ls -t backup_*.db | tail -n +6 | xargs -r rm -f
+    log "Database backup completed"
+fi
+
+# Stop the service if it exists
+if [ "$SERVICE_EXISTS" = "true" ]; then
+    log "Stopping LetsOrder service..."
+    sudo systemctl stop letsorder || true
+fi
+
+# Backup current binary
+if [ -f "$LETSORDER_DIR/bin/backend" ]; then
+    log "Backing up current binary..."
+    cp "$LETSORDER_DIR/bin/backend" "$LETSORDER_DIR/bin/backend.old"
+fi
+
+# Install new binary
+log "Installing new binary..."
+cp /tmp/backend "$LETSORDER_DIR/bin/"
+chmod +x "$LETSORDER_DIR/bin/backend"
+
+# Install configuration files
+log "Installing configuration files..."
+cp /tmp/config/letsorder.service /tmp/letsorder.service.new
+cp /tmp/config/nginx.conf /tmp/nginx.conf.new
+cp /tmp/config/litestream.yml "$LETSORDER_DIR/config/"
+
+# Install systemd service
+if [ ! -f /etc/systemd/system/letsorder.service ] || ! cmp -s /tmp/letsorder.service.new /etc/systemd/system/letsorder.service; then
+    log "Installing systemd service..."
+    sudo cp /tmp/letsorder.service.new /etc/systemd/system/letsorder.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable letsorder
+fi
+
+# Update nginx configuration
+if [ ! -f /etc/nginx/sites-available/letsorder ] || ! cmp -s /tmp/nginx.conf.new /etc/nginx/sites-available/letsorder; then
+    log "Installing nginx configuration..."
+    sudo cp /tmp/nginx.conf.new /etc/nginx/sites-available/letsorder
+    
+    # Enable site if not already enabled
+    if [ ! -L /etc/nginx/sites-enabled/letsorder ]; then
+        sudo ln -sf /etc/nginx/sites-available/letsorder /etc/nginx/sites-enabled/
+    fi
+    
+    # Remove default nginx site
+    sudo rm -f /etc/nginx/sites-enabled/default
+    
+    # Test nginx configuration
+    if sudo nginx -t; then
+        log "Nginx configuration is valid"
+    else
+        error "Nginx configuration is invalid"
+    fi
+fi
+
+# Run database migrations
+log "Running database migrations..."
+cd "$LETSORDER_DIR"
+SQLX_OFFLINE=true ./bin/backend --migrate || true
+
+# Start the service
+log "Starting LetsOrder service..."
+sudo systemctl start letsorder
+
+# Wait for service to start and check health
+log "Waiting for service to start..."
+sleep 5
+
+# Check if service is running
+if sudo systemctl is-active --quiet letsorder; then
+    log "Service started successfully"
+else
+    error "Service failed to start"
+fi
+
+# Test health endpoint
+for i in {1..10}; do
+    if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health | grep -q "200"; then
+        log "Health check passed"
+        break
+    else
+        if [ $i -eq 10 ]; then
+            error "Health check failed after 10 attempts"
+        fi
+        log "Health check attempt $i failed, retrying..."
+        sleep 3
+    fi
+done
+
+# Reload nginx
+log "Reloading nginx..."
+sudo systemctl reload nginx
+
+# Clean up temporary files
+rm -f /tmp/backend /tmp/letsorder.service.new /tmp/nginx.conf.new
+rm -rf /tmp/config
+
+log "Deployment completed successfully!"
+log "Service status: $(sudo systemctl is-active letsorder)"
+log "Release: $RELEASE_TAG deployed"
+
+REMOTE_SCRIPT
+)
+
+# Execute deployment on server
+log "Executing deployment on server..."
+echo "$REMOTE_DEPLOY_SCRIPT" | ssh -i "$SSH_KEY_PATH" "$LETSORDER_USER@$SERVER_IP" \
+    "cat > /tmp/deploy.sh && chmod +x /tmp/deploy.sh && /tmp/deploy.sh '$RELEASE_TAG' '$SKIP_BACKUP'"
+
+# Clean up deployment package
+log "Cleaning up local deployment package..."
+rm -rf "$DEPLOY_DIR"
+
+# Verify deployment
+log "Verifying deployment..."
+HEALTH_URL="https://api.letsorder.app/health"
+if command_exists "curl"; then
+    if curl -s -f "$HEALTH_URL" >/dev/null; then
+        log "✓ Deployment verification successful!"
+        log "✓ Health endpoint is responding: $HEALTH_URL"
+    else
+        warn "Health endpoint check failed. Manual verification may be needed."
+    fi
+fi
+
+log "Deployment completed successfully!"
+log "Release $RELEASE_TAG has been deployed to $SERVER_IP"
+log ""
+log "Next steps:"
+log "1. Test the application functionality"
+log "2. Monitor logs: ssh -i $SSH_KEY_PATH $LETSORDER_USER@$SERVER_IP 'sudo journalctl -u letsorder -f'"
+log "3. Check service status: ssh -i $SSH_KEY_PATH $LETSORDER_USER@$SERVER_IP 'sudo systemctl status letsorder'"
