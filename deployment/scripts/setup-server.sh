@@ -136,7 +136,16 @@ fi
 
 if [ "$SSH_CONFIG_CHANGED" = true ]; then
     log "Restarting SSH service due to configuration changes"
-    systemctl restart sshd
+    # Detect correct SSH service name (sshd vs ssh)
+    if systemctl list-unit-files | grep -q "^sshd.service"; then
+        systemctl restart sshd
+        log "Restarted sshd.service"
+    elif systemctl list-unit-files | grep -q "^ssh.service"; then
+        systemctl restart ssh
+        log "Restarted ssh.service"
+    else
+        log "Warning: Could not find SSH service to restart. Manual restart may be needed."
+    fi
 else
     log "SSH configuration unchanged, no restart needed"
 fi
