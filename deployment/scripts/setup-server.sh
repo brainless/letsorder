@@ -59,6 +59,9 @@ SETUP_SCRIPT=$(cat << 'REMOTE_SCRIPT'
 #!/bin/bash
 set -e
 
+# Suppress debconf warnings for non-interactive installs
+export DEBIAN_FRONTEND=noninteractive
+
 log() {
     echo -e "\033[0;32m[$(date +'%Y-%m-%d %H:%M:%S')] $1\033[0m"
 }
@@ -73,6 +76,7 @@ LETSORDER_HOME="/home/$LETSORDER_USER"
 LETSORDER_DIR="/opt/letsorder"
 
 log "Updating system packages..."
+export DEBIAN_FRONTEND=noninteractive
 apt update && apt upgrade -y
 
 log "Installing dependencies..."
