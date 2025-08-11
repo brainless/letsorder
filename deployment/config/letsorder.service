@@ -1,0 +1,42 @@
+[Unit]
+Description=LetsOrder Backend Service
+Documentation=https://github.com/brainless/letsorder
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=letsorder
+Group=letsorder
+WorkingDirectory=/opt/letsorder
+ExecStart=/opt/letsorder/bin/backend
+Restart=always
+RestartSec=5
+
+# Environment variables
+Environment=RUST_LOG=info
+Environment=RUST_BACKTRACE=1
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/letsorder
+
+# Resource limits
+LimitNOFILE=65536
+MemoryAccounting=true
+MemoryMax=1G
+
+# Health check
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=letsorder
+
+[Install]
+WantedBy=multi-user.target
