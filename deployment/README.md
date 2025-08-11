@@ -77,7 +77,7 @@ deployment/
 - **2GB RAM minimum** (for building Rust code - Scaleway DEV1-S or equivalent)
 - **SSH access with sudo privileges**
 - **Public IP address** with port 22 (SSH) and 443 (HTTPS) open
-- **Git and Rust** will be installed automatically during deployment
+- **Git, Rust, and build tools** will be installed automatically during deployment
 
 ### External Services
 
@@ -96,7 +96,7 @@ The `setup-server.sh` script performs comprehensive server hardening:
 ```
 
 **What it does:**
-- Updates system packages and installs dependencies
+- Updates system packages and installs dependencies (nginx, git, build tools, etc.)
 - Creates dedicated `letsorder` user with sudo privileges
 - Disables root SSH login and password authentication
 - Configures UFW firewall (SSH + HTTPS only)

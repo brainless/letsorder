@@ -83,7 +83,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt update && apt upgrade -y
 
 log "Installing dependencies..."
-apt install -y nginx sqlite3 curl unzip ufw fail2ban git
+apt install -y nginx sqlite3 curl unzip ufw fail2ban git build-essential pkg-config libssl-dev
 
 log "Configuring firewall..."
 ufw --force reset

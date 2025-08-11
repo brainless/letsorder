@@ -195,6 +195,14 @@ else
     SERVICE_EXISTS="false"
 fi
 
+# Install build dependencies if not present
+if ! command -v cc >/dev/null 2>&1; then
+    log "Installing build dependencies..."
+    sudo apt update
+    sudo apt install -y build-essential pkg-config libssl-dev
+    log "Build dependencies installed"
+fi
+
 # Install Rust if not present
 if ! command -v cargo >/dev/null 2>&1; then
     log "Installing Rust toolchain..."
