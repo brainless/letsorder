@@ -10,13 +10,14 @@ User=letsorder
 Group=letsorder
 WorkingDirectory=/opt/letsorder
 ExecStart=/opt/letsorder/bin/backend
+# Force the environment variable to override config
+Environment="DATABASE_URL=sqlite:/opt/letsorder/data/letsorder.db"
 Restart=always
 RestartSec=5
 
 # Environment variables
 Environment=RUST_LOG=info
 Environment=RUST_BACKTRACE=1
-Environment=DATABASE_URL=sqlite:/opt/letsorder/data/letsorder.db
 
 # Security settings
 NoNewPrivileges=true

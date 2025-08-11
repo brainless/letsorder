@@ -581,8 +581,8 @@ chown letsorder:letsorder "$LETSORDER_DIR/settings.toml" "$LETSORDER_DIR/setting
 chmod 644 "$LETSORDER_DIR/settings.toml" "$LETSORDER_DIR/settings"
 log "Settings file created with database path: sqlite:/opt/letsorder/data/letsorder.db"
 
-# Test configuration loading
-log "Testing configuration and database setup..."
+# Set up database configuration
+log "Setting up database configuration..."
 cd "$LETSORDER_DIR"
 
 # Create the database file manually to ensure proper permissions
@@ -591,8 +591,13 @@ touch "$LETSORDER_DIR/data/letsorder.db"
 chown letsorder:letsorder "$LETSORDER_DIR/data/letsorder.db"
 chmod 644 "$LETSORDER_DIR/data/letsorder.db"
 
-# The backend will run migrations automatically on startup
-log "Database file created. Migrations will run automatically when the service starts."
+# Create symlink for fallback compatibility (backend defaults to ./letsorder.db)
+log "Creating symlink for database fallback compatibility..."
+rm -f "$LETSORDER_DIR/letsorder.db"  # Remove any existing file/symlink
+ln -sf "$LETSORDER_DIR/data/letsorder.db" "$LETSORDER_DIR/letsorder.db"
+chown -h letsorder:letsorder "$LETSORDER_DIR/letsorder.db"
+
+log "Database configuration complete. Backend will use settings file or fallback to symlink."
 
 # Start the service
 log "Starting LetsOrder service..."
