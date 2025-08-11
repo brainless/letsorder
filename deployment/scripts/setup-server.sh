@@ -102,22 +102,52 @@ fi
 log "Setting up SSH keys for letsorder user..."
 mkdir -p "$LETSORDER_HOME/.ssh"
 if [ -f /root/.ssh/authorized_keys ]; then
-    cp /root/.ssh/authorized_keys "$LETSORDER_HOME/.ssh/"
+    if [ ! -f "$LETSORDER_HOME/.ssh/authorized_keys" ] || ! cmp -s /root/.ssh/authorized_keys "$LETSORDER_HOME/.ssh/authorized_keys"; then
+        cp /root/.ssh/authorized_keys "$LETSORDER_HOME/.ssh/"
+        log "SSH keys copied to letsorder user"
+    else
+        log "SSH keys already up to date for letsorder user"
+    fi
     chown -R "$LETSORDER_USER:$LETSORDER_USER" "$LETSORDER_HOME/.ssh"
     chmod 700 "$LETSORDER_HOME/.ssh"
     chmod 600 "$LETSORDER_HOME/.ssh/authorized_keys"
-    log "SSH keys copied to letsorder user"
 else
     error "No authorized_keys found for root user"
 fi
 
 log "Disabling root SSH login..."
-sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-systemctl restart sshd
+SSH_CONFIG_CHANGED=false
+
+if ! grep -q "^PermitRootLogin no" /etc/ssh/sshd_config; then
+    sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+    SSH_CONFIG_CHANGED=true
+    log "Root SSH login disabled"
+else
+    log "Root SSH login already disabled"
+fi
+
+if ! grep -q "^PasswordAuthentication no" /etc/ssh/sshd_config; then
+    sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+    SSH_CONFIG_CHANGED=true
+    log "Password authentication disabled"
+else
+    log "Password authentication already disabled"
+fi
+
+if [ "$SSH_CONFIG_CHANGED" = true ]; then
+    log "Restarting SSH service due to configuration changes"
+    systemctl restart sshd
+else
+    log "SSH configuration unchanged, no restart needed"
+fi
 
 log "Installing Litestream..."
-curl -L https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64-static.tar.gz | tar -xz -C /usr/local/bin
+if [ ! -f /usr/local/bin/litestream ]; then
+    curl -L https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64-static.tar.gz | tar -xz -C /usr/local/bin
+    log "Litestream installed"
+else
+    log "Litestream already installed"
+fi
 
 log "Creating LetsOrder directory structure..."
 mkdir -p "$LETSORDER_DIR"/{bin,data,config,logs,backups}
@@ -129,7 +159,8 @@ chown root:root /etc/ssl/cloudflare
 chmod 700 /etc/ssl/cloudflare
 
 log "Configuring fail2ban..."
-cat > /etc/fail2ban/jail.local << 'EOF'
+if [ ! -f /etc/fail2ban/jail.local ]; then
+    cat > /etc/fail2ban/jail.local << 'EOF'
 [DEFAULT]
 bantime = 3600
 findtime = 600
@@ -149,6 +180,10 @@ filter = nginx-http-auth
 logpath = /var/log/nginx/error.log
 maxretry = 3
 EOF
+    log "fail2ban configuration created"
+else
+    log "fail2ban already configured"
+fi
 
 systemctl enable fail2ban
 systemctl restart fail2ban
