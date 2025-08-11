@@ -383,6 +383,49 @@ error() {
     exit 1
 }
 
+# Simple S3-compatible upload function using curl (no AWS CLI needed)
+upload_to_s3_compatible() {
+    local file_path="$1"
+    local s3_key="$2" 
+    local bucket="$3"
+    local metadata="$4"
+    
+    # Check if S3 credentials are available
+    if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$S3_ENDPOINT" ]; then
+        log "S3 credentials or endpoint not configured, skipping backup upload"
+        return 0
+    fi
+    
+    # Use simple HTTP PUT with basic auth for S3-compatible storage
+    local s3_url="${S3_ENDPOINT}/${bucket}/${s3_key}"
+    
+    log "Uploading backup to ${s3_url}..."
+    
+    # Try upload with simple approach first (works with many S3-compatible services)
+    if curl -X PUT \
+        -H "Content-Type: application/octet-stream" \
+        -H "x-amz-meta-timestamp: ${metadata}" \
+        --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
+        --data-binary "@${file_path}" \
+        "${s3_url}" >/dev/null 2>&1; then
+        log "Successfully uploaded to ${s3_url}"
+        return 0
+    else
+        # Fallback: try without authentication (for public buckets or pre-configured access)
+        log "Authenticated upload failed, trying without authentication..."
+        if curl -X PUT \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@${file_path}" \
+            "${s3_url}" >/dev/null 2>&1; then
+            log "Successfully uploaded to ${s3_url} (no auth)"
+            return 0
+        else
+            log "Failed to upload backup to S3-compatible storage, continuing without backup upload"
+            return 1
+        fi
+    fi
+}
+
 LETSORDER_DIR="/opt/letsorder"
 RELEASE_TAG="$1"
 SKIP_BACKUP="$2"
