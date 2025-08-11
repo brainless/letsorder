@@ -387,6 +387,7 @@ LETSORDER_DIR="/opt/letsorder"
 RELEASE_TAG="$1"
 SKIP_BACKUP="$2"
 COMMIT_HASH="$3"
+JWT_SECRET="$4"
 
 log "Starting deployment on server..."
 
@@ -550,10 +551,49 @@ if [ ! -f /etc/nginx/sites-available/letsorder ] || ! cmp -s /tmp/nginx.conf.new
     fi
 fi
 
+# Ensure database directory exists and has correct permissions
+log "Setting up database directory and permissions..."
+mkdir -p "$LETSORDER_DIR/data"
+chown -R letsorder:letsorder "$LETSORDER_DIR"
+chmod -R 755 "$LETSORDER_DIR"
+chmod 644 "$LETSORDER_DIR/data"/*.db 2>/dev/null || true
+
+# Create production settings file
+log "Creating production settings configuration..."
+cat > "$LETSORDER_DIR/settings.ini" << EOF
+[server]
+host = "127.0.0.1"
+port = 8080
+
+[database]
+url = "sqlite:/opt/letsorder/data/letsorder.db"
+max_connections = 10
+
+[jwt]
+secret = "${JWT_SECRET:-change-this-secret-in-production}"
+expiration_hours = 24
+EOF
+
+chown letsorder:letsorder "$LETSORDER_DIR/settings.ini"
+chmod 644 "$LETSORDER_DIR/settings.ini"
+log "Settings file created with database path: sqlite:/opt/letsorder/data/letsorder.db"
+
 # Run database migrations
 log "Running database migrations..."
 cd "$LETSORDER_DIR"
+# Set DATABASE_URL to ensure correct path
+export DATABASE_URL="sqlite:$LETSORDER_DIR/data/letsorder.db"
+log "Database URL: $DATABASE_URL"
 SQLX_OFFLINE=true ./bin/backend --migrate || true
+
+# Ensure database file has correct permissions after creation
+if [ -f "$LETSORDER_DIR/data/letsorder.db" ]; then
+    chown letsorder:letsorder "$LETSORDER_DIR/data/letsorder.db"
+    chmod 644 "$LETSORDER_DIR/data/letsorder.db"
+    log "Database file permissions set correctly"
+else
+    log "Database file not found after migration, it will be created on first run"
+fi
 
 # Start the service
 log "Starting LetsOrder service..."
@@ -617,7 +657,7 @@ REMOTE_SCRIPT
 # Execute deployment on server
 log "Executing deployment on server..."
 echo "$REMOTE_DEPLOY_SCRIPT" | ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" \
-    "cat > /tmp/deploy.sh && chmod +x /tmp/deploy.sh && /tmp/deploy.sh '$RELEASE_TAG' '$SKIP_BACKUP' '$CURRENT_COMMIT'"
+    "cat > /tmp/deploy.sh && chmod +x /tmp/deploy.sh && /tmp/deploy.sh '$RELEASE_TAG' '$SKIP_BACKUP' '$CURRENT_COMMIT' '${JWT_SECRET:-change-this-secret-in-production}'"
 
 # Clean up temporary files on server
 log "Cleaning up temporary files on server..."
