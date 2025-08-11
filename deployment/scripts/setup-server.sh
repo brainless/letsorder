@@ -165,8 +165,24 @@ fi
 
 log "Installing Litestream..."
 if [ ! -f /usr/local/bin/litestream ]; then
-    curl -L https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64-static.tar.gz | tar -xz -C /usr/local/bin
-    log "Litestream installed"
+    # Download and verify Litestream
+    LITESTREAM_URL="https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.tar.gz"
+    TEMP_FILE="/tmp/litestream.tar.gz"
+    
+    log "Downloading Litestream from GitHub releases..."
+    if curl -L -f -o "$TEMP_FILE" "$LITESTREAM_URL"; then
+        # Verify it's actually a gzip file
+        if file "$TEMP_FILE" | grep -q "gzip compressed"; then
+            tar -xzf "$TEMP_FILE" -C /usr/local/bin
+            rm -f "$TEMP_FILE"
+            chmod +x /usr/local/bin/litestream
+            log "Litestream installed successfully"
+        else
+            error "Downloaded file is not a valid gzip archive. Check Litestream release URL."
+        fi
+    else
+        error "Failed to download Litestream. Check internet connection and release URL."
+    fi
 else
     log "Litestream already installed"
 fi
