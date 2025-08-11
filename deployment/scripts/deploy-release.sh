@@ -161,24 +161,40 @@ if ! ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" exit; then
     error "Cannot connect to server via SSH. Please check server IP and SSH key."
 fi
 
-# Install build target if not present
-if ! rustup target list --installed | grep -q "$BUILD_TARGET"; then
-    log "Installing build target: $BUILD_TARGET"
-    rustup target add "$BUILD_TARGET"
+# Detect if cross-compilation is needed
+HOST_TARGET=$(rustc -vV | sed -n 's|host: ||p')
+if [ "$BUILD_TARGET" != "$HOST_TARGET" ]; then
+    # Install build target if not present for cross-compilation
+    if ! rustup target list --installed | grep -q "$BUILD_TARGET"; then
+        log "Installing build target: $BUILD_TARGET"
+        rustup target add "$BUILD_TARGET"
+    fi
 fi
 
 # Build the application
 log "Building LetsOrder backend..."
 cd backend
-RUSTFLAGS="-C target-cpu=native" cargo build --release --target="$BUILD_TARGET"
+
+# Use appropriate build approach
+if [ "$BUILD_TARGET" = "$HOST_TARGET" ]; then
+    # Native build - use optimized settings
+    log "Building for native target ($HOST_TARGET)..."
+    RUSTFLAGS="-C target-cpu=native" cargo build --release
+    BINARY_PATH="target/release/backend"
+else
+    # Cross-compilation - use generic optimization
+    log "Cross-compiling for $BUILD_TARGET..."
+    cargo build --release --target="$BUILD_TARGET"
+    BINARY_PATH="target/$BUILD_TARGET/release/backend"
+fi
 
 # Strip the binary to reduce size
 if command_exists "strip"; then
     log "Stripping debug symbols from binary..."
-    strip "target/$BUILD_TARGET/release/backend"
+    strip "$BINARY_PATH"
 fi
 
-BINARY_SIZE=$(du -h "target/$BUILD_TARGET/release/backend" | cut -f1)
+BINARY_SIZE=$(du -h "$BINARY_PATH" | cut -f1)
 log "Built binary size: $BINARY_SIZE"
 
 cd ..
@@ -186,7 +202,7 @@ cd ..
 # Create deployment package
 DEPLOY_DIR="target/deploy-$BUILD_TIME"
 mkdir -p "$DEPLOY_DIR"
-cp "backend/target/$BUILD_TARGET/release/backend" "$DEPLOY_DIR/"
+cp "backend/$BINARY_PATH" "$DEPLOY_DIR/"
 cp -r deployment/config "$DEPLOY_DIR/"
 
 log "Created deployment package in $DEPLOY_DIR"
