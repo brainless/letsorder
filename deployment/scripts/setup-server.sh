@@ -99,6 +99,16 @@ else
     log "User $LETSORDER_USER already exists"
 fi
 
+log "Configuring passwordless sudo for letsorder user..."
+SUDOERS_FILE="/etc/sudoers.d/letsorder"
+if [ ! -f "$SUDOERS_FILE" ]; then
+    echo "$LETSORDER_USER ALL=(ALL) NOPASSWD:ALL" > "$SUDOERS_FILE"
+    chmod 440 "$SUDOERS_FILE"
+    log "Passwordless sudo configured for $LETSORDER_USER"
+else
+    log "Passwordless sudo already configured for $LETSORDER_USER"
+fi
+
 log "Setting up SSH keys for letsorder user..."
 mkdir -p "$LETSORDER_HOME/.ssh"
 if [ -f /root/.ssh/authorized_keys ]; then
