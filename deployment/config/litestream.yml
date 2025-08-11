@@ -1,0 +1,37 @@
+# Litestream Configuration for LetsOrder
+# Provides continuous replication of SQLite database to S3
+
+dbs:
+  - path: /opt/letsorder/data/letsorder.db
+    replicas:
+      # Primary S3 replica for continuous backup
+      - type: s3
+        bucket: letsorder-backups
+        path: continuous
+        region: eu-west-1
+        # Retention settings
+        retention: 72h
+        sync-interval: 10s
+        # Snapshot interval for point-in-time recovery
+        snapshot-interval: 1h
+        # Validation settings
+        validation-interval: 6h
+        
+      # Secondary replica for disaster recovery
+      - type: s3
+        bucket: letsorder-backups
+        path: disaster-recovery
+        region: us-east-1
+        retention: 30d
+        sync-interval: 5m
+        snapshot-interval: 6h
+
+# Monitoring and logging
+access-key-id: ${AWS_ACCESS_KEY_ID}
+secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+
+# Health check endpoint
+addr: ":9090"
+
+# Logging configuration
+log-level: info
