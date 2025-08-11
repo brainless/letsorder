@@ -67,7 +67,10 @@ log "Starting LetsOrder rollback on $SERVER_IP"
 
 # Test SSH connection
 log "Testing SSH connection..."
-if ! ssh -i "$SSH_KEY_PATH" -o ConnectTimeout=10 -o BatchMode=yes "$LETSORDER_USER@$SERVER_IP" exit; then
+# SSH options for automated connections
+SSH_OPTS="-i $SSH_KEY_PATH -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+if ! ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" exit; then
     error "Cannot connect to server via SSH. Please check server IP and SSH key."
 fi
 
@@ -212,12 +215,12 @@ if [ -z "$TARGET_BACKUP" ]; then
     
     # List available backups
     info "Available database backups:"
-    ssh -i "$SSH_KEY_PATH" "$LETSORDER_USER@$SERVER_IP" \
+    ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" \
         "ls -la $LETSORDER_DIR/backups/backup_*.db 2>/dev/null || echo 'No local backups found'"
     
     # Check for previous binary
     info "Previous binary availability:"
-    if ssh -i "$SSH_KEY_PATH" "$LETSORDER_USER@$SERVER_IP" \
+    if ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" \
        "[ -f $LETSORDER_DIR/bin/backend.old ]"; then
         info "✓ Previous binary is available for rollback"
     else
@@ -239,7 +242,7 @@ fi
 
 # Execute rollback on server
 log "Executing rollback on server..."
-echo "$REMOTE_ROLLBACK_SCRIPT" | ssh -i "$SSH_KEY_PATH" "$LETSORDER_USER@$SERVER_IP" \
+echo "$REMOTE_ROLLBACK_SCRIPT" | ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" \
     "cat > /tmp/rollback.sh && chmod +x /tmp/rollback.sh && /tmp/rollback.sh '$TARGET_BACKUP'"
 
 # Verify rollback

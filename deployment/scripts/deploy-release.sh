@@ -107,7 +107,10 @@ info "Build time: $BUILD_TIME"
 
 # Test SSH connection
 log "Testing SSH connection..."
-if ! ssh -i "$SSH_KEY_PATH" -o ConnectTimeout=10 -o BatchMode=yes "$LETSORDER_USER@$SERVER_IP" exit; then
+# SSH options for automated connections
+SSH_OPTS="-i $SSH_KEY_PATH -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+if ! ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" exit; then
     error "Cannot connect to server via SSH. Please check server IP and SSH key."
 fi
 
@@ -143,7 +146,7 @@ log "Created deployment package in $DEPLOY_DIR"
 
 # Upload deployment package
 log "Uploading deployment package to server..."
-scp -i "$SSH_KEY_PATH" -r "$DEPLOY_DIR"/* "$LETSORDER_USER@$SERVER_IP:/tmp/"
+scp $SSH_OPTS -r "$DEPLOY_DIR"/* "$LETSORDER_USER@$SERVER_IP:/tmp/"
 
 # Create deployment script to run on server
 REMOTE_DEPLOY_SCRIPT=$(cat << 'REMOTE_SCRIPT'
@@ -298,7 +301,7 @@ REMOTE_SCRIPT
 
 # Execute deployment on server
 log "Executing deployment on server..."
-echo "$REMOTE_DEPLOY_SCRIPT" | ssh -i "$SSH_KEY_PATH" "$LETSORDER_USER@$SERVER_IP" \
+echo "$REMOTE_DEPLOY_SCRIPT" | ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" \
     "cat > /tmp/deploy.sh && chmod +x /tmp/deploy.sh && /tmp/deploy.sh '$RELEASE_TAG' '$SKIP_BACKUP'"
 
 # Clean up deployment package

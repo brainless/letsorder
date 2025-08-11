@@ -48,7 +48,10 @@ log "Starting LetsOrder server setup for $SERVER_IP"
 
 # Test SSH connection
 log "Testing SSH connection..."
-if ! ssh -i "$SSH_KEY_PATH" -o ConnectTimeout=10 -o BatchMode=yes root@"$SERVER_IP" exit; then
+# SSH options for automated connections
+SSH_OPTS="-i $SSH_KEY_PATH -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+if ! ssh $SSH_OPTS root@"$SERVER_IP" exit; then
     error "Cannot connect to server via SSH. Please check server IP and SSH key."
 fi
 
@@ -218,14 +221,14 @@ REMOTE_SCRIPT
 
 # Upload and execute setup script
 log "Uploading setup script to server..."
-echo "$SETUP_SCRIPT" | ssh -i "$SSH_KEY_PATH" root@"$SERVER_IP" "cat > /tmp/setup-letsorder.sh && chmod +x /tmp/setup-letsorder.sh"
+echo "$SETUP_SCRIPT" | ssh $SSH_OPTS root@"$SERVER_IP" "cat > /tmp/setup-letsorder.sh && chmod +x /tmp/setup-letsorder.sh"
 
 log "Executing setup script on server..."
-ssh -i "$SSH_KEY_PATH" root@"$SERVER_IP" "/tmp/setup-letsorder.sh"
+ssh $SSH_OPTS root@"$SERVER_IP" "/tmp/setup-letsorder.sh"
 
 # Clean up
 log "Cleaning up temporary files..."
-ssh -i "$SSH_KEY_PATH" root@"$SERVER_IP" "rm -f /tmp/setup-letsorder.sh"
+ssh $SSH_OPTS root@"$SERVER_IP" "rm -f /tmp/setup-letsorder.sh"
 
 log "Server setup completed successfully!"
 log "You can now SSH to the server using: ssh -i $SSH_KEY_PATH $LETSORDER_USER@$SERVER_IP"
