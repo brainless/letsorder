@@ -35,6 +35,11 @@ nano deployment/.env
 ```bash
 # Build and deploy the latest version
 ./deployment/scripts/deploy-release.sh <server-ip> <ssh-key-path>
+
+# The script will prompt for CloudFlare credentials if not in .env
+# Or set them beforehand:
+export CLOUDFLARE_API_TOKEN=your_token_here
+export CLOUDFLARE_ZONE_ID=your_zone_id_here
 ```
 
 ### 4. Rollback (if needed)
@@ -85,6 +90,44 @@ deployment/
 - **CloudFlare account** for SSL certificates and CDN
 - **S3-compatible storage** for database backups (AWS S3, DigitalOcean Spaces, MinIO, etc.)
 
+## CloudFlare SSL Certificate Setup
+
+The deployment system automatically handles CloudFlare Origin Certificates for SSL/TLS:
+
+### Automatic Setup (Recommended)
+
+The deployment script will prompt for CloudFlare credentials if they're not configured:
+
+```bash
+# During deployment, you'll be prompted for:
+# 1. CloudFlare API Token (with Zone:SSL and Certificates:Edit permissions)
+# 2. CloudFlare Zone ID for your domain
+
+# Or set them in deployment/.env:
+CLOUDFLARE_API_TOKEN=your_api_token_here
+CLOUDFLARE_ZONE_ID=your_zone_id_here
+```
+
+**Getting CloudFlare Credentials:**
+1. Go to [CloudFlare API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+2. Create a token with permissions: `Zone:Zone:Read, Zone:SSL and Certificates:Edit`
+3. Get your Zone ID from the domain overview page
+
+### Manual Setup (Alternative)
+
+If you prefer manual certificate management:
+
+```bash
+# Place these files on the server:
+/etc/ssl/cloudflare/cert.pem      # Origin certificate  
+/etc/ssl/cloudflare/key.pem       # Private key
+/etc/ssl/cloudflare/origin-ca.pem # CloudFlare root CA
+
+# Set proper permissions:
+sudo chown root:root /etc/ssl/cloudflare/*
+sudo chmod 600 /etc/ssl/cloudflare/*
+```
+
 ## Detailed Usage
 
 ### Initial Server Setup
@@ -124,13 +167,14 @@ The `deploy-release.sh` script handles the complete deployment pipeline:
 ```
 
 **Deployment process:**
-1. **Clone/Update**: Clones or updates repository on server
-2. **Build**: Compiles Rust binary directly on the server
-3. **Backup**: Creates timestamped database backup
-4. **Deploy**: Installs binary and configurations  
-5. **Migrate**: Runs database migrations
-6. **Start**: Restarts service with health verification
-7. **Verify**: Tests health endpoint
+1. **Certificate Setup**: Prompts for CloudFlare credentials if not configured
+2. **Clone/Update**: Clones or updates repository on server
+3. **Build**: Compiles Rust binary directly on the server
+4. **Backup**: Creates timestamped database backup
+5. **Deploy**: Installs binary, configurations, and SSL certificates
+6. **Migrate**: Runs database migrations
+7. **Start**: Restarts service with health verification
+8. **Verify**: Tests health endpoint
 
 **Rollback safety:**
 - Previous binary saved as `.old`

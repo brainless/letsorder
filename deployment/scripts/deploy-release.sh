@@ -79,6 +79,71 @@ if ! command_exists "git"; then
     error "Git is not installed. Please install git."
 fi
 
+# CloudFlare certificate setup function
+setup_cloudflare_certificates() {
+    local domain="$1"
+    
+    if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ZONE_ID" ]; then
+        warn "CloudFlare API credentials not found in environment"
+        echo ""
+        echo "To automatically set up SSL certificates, please provide:"
+        echo "1. CloudFlare API Token (with Zone:SSL and Certificates:Edit permissions)"
+        echo "2. CloudFlare Zone ID for your domain"
+        echo ""
+        echo "You can find these at: https://dash.cloudflare.com/profile/api-tokens"
+        echo ""
+        read -p "Do you want to enter CloudFlare credentials now? [y/N]: " -r
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo ""
+            read -p "Enter CloudFlare API Token: " -s CLOUDFLARE_API_TOKEN
+            echo ""
+            read -p "Enter CloudFlare Zone ID: " CLOUDFLARE_ZONE_ID
+            echo ""
+        else
+            log "Skipping automatic certificate setup"
+            log "You'll need to manually place certificates in /etc/ssl/cloudflare/"
+            return 1
+        fi
+    fi
+    
+    log "Setting up CloudFlare Origin Certificate for $domain..."
+    
+    # Create certificate request
+    local cert_request=$(cat << EOF
+{
+    "type": "origin-rsa",
+    "hostnames": ["$domain", "*.$domain"],
+    "requested_validity": 5475
+}
+EOF
+)
+    
+    # Request certificate from CloudFlare
+    local cert_response=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/origin_ca_certificates" \
+        -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$cert_request")
+    
+    if echo "$cert_response" | grep -q '"success":true'; then
+        # Extract certificate and key
+        local certificate=$(echo "$cert_response" | grep -o '"certificate":"[^"]*' | cut -d'"' -f4 | sed 's/\\n/\n/g')
+        local private_key=$(echo "$cert_response" | grep -o '"private_key":"[^"]*' | cut -d'"' -f4 | sed 's/\\n/\n/g')
+        
+        # Save certificate files
+        echo "$certificate" > /tmp/cloudflare_cert.pem
+        echo "$private_key" > /tmp/cloudflare_key.pem
+        
+        # Download CloudFlare Origin CA
+        curl -s https://developers.cloudflare.com/ssl/static/origin_ca_ecc_root.pem > /tmp/cloudflare_origin_ca.pem
+        
+        log "CloudFlare certificates generated successfully"
+        return 0
+    else
+        error "Failed to generate CloudFlare certificate: $(echo "$cert_response" | grep -o '"message":"[^"]*' | cut -d'"' -f4)"
+        return 1
+    fi
+}
+
 # Simple S3-compatible upload function using curl (no AWS CLI needed)
 upload_to_s3_compatible() {
     local file_path="$1"
@@ -163,9 +228,30 @@ fi
 # Get current git commit for deployment
 CURRENT_COMMIT=$(git rev-parse HEAD)
 
+# Set up CloudFlare certificates if needed
+DOMAIN="api.letsorder.app"  # Extract from SERVER_HOST env var if available
+if [ -n "$SERVER_HOST" ]; then
+    DOMAIN="$SERVER_HOST"
+fi
+
+log "Checking CloudFlare certificate setup..."
+if setup_cloudflare_certificates "$DOMAIN"; then
+    log "CloudFlare certificates will be installed during deployment"
+    CERT_FILES_AVAILABLE="true"
+else
+    log "CloudFlare certificates not set up - deployment will continue but nginx may not start"
+    CERT_FILES_AVAILABLE="false"
+fi
+
 # Upload deployment configuration files
 log "Uploading deployment configuration files to server..."
 scp $SSH_OPTS -r deployment/config "$LETSORDER_USER@$SERVER_IP:/tmp/"
+
+# Upload certificate files if available
+if [ "$CERT_FILES_AVAILABLE" = "true" ]; then
+    log "Uploading CloudFlare certificates to server..."
+    scp $SSH_OPTS /tmp/cloudflare_*.pem "$LETSORDER_USER@$SERVER_IP:/tmp/"
+fi
 
 # Create deployment script to run on server
 REMOTE_DEPLOY_SCRIPT=$(cat << 'REMOTE_SCRIPT'
@@ -280,6 +366,18 @@ cp /tmp/config/letsorder.service /tmp/letsorder.service.new
 cp /tmp/config/nginx.conf /tmp/nginx.conf.new
 cp /tmp/config/litestream.yml "$LETSORDER_DIR/config/"
 
+# Check and install CloudFlare certificates if available
+if [ -f /tmp/cloudflare_cert.pem ]; then
+    log "Installing CloudFlare certificates..."
+    sudo mkdir -p /etc/ssl/cloudflare
+    sudo cp /tmp/cloudflare_cert.pem /etc/ssl/cloudflare/cert.pem
+    sudo cp /tmp/cloudflare_key.pem /etc/ssl/cloudflare/key.pem
+    sudo cp /tmp/cloudflare_origin_ca.pem /etc/ssl/cloudflare/origin-ca.pem
+    sudo chown root:root /etc/ssl/cloudflare/*
+    sudo chmod 600 /etc/ssl/cloudflare/*
+    log "CloudFlare certificates installed"
+fi
+
 # Install systemd service
 if [ ! -f /etc/systemd/system/letsorder.service ] || ! cmp -s /tmp/letsorder.service.new /etc/systemd/system/letsorder.service; then
     log "Installing systemd service..."
@@ -301,11 +399,20 @@ if [ ! -f /etc/nginx/sites-available/letsorder ] || ! cmp -s /tmp/nginx.conf.new
     # Remove default nginx site
     sudo rm -f /etc/nginx/sites-enabled/default
     
-    # Test nginx configuration
-    if sudo nginx -t; then
-        log "Nginx configuration is valid"
+    # Test nginx configuration only if SSL certificates are present
+    if [ -f /etc/ssl/cloudflare/cert.pem ] && [ -f /etc/ssl/cloudflare/key.pem ] && [ -f /etc/ssl/cloudflare/origin-ca.pem ]; then
+        if sudo nginx -t; then
+            log "Nginx configuration is valid"
+        else
+            error "Nginx configuration is invalid"
+        fi
     else
-        error "Nginx configuration is invalid"
+        log "WARNING: CloudFlare SSL certificates not found - nginx will not start properly"
+        log "Please set up certificates manually or run setup again with CloudFlare credentials"
+        log "Required files:"
+        log "  /etc/ssl/cloudflare/cert.pem"
+        log "  /etc/ssl/cloudflare/key.pem" 
+        log "  /etc/ssl/cloudflare/origin-ca.pem"
     fi
 fi
 
@@ -350,6 +457,22 @@ sudo systemctl reload nginx
 # Clean up temporary files
 rm -f /tmp/letsorder.service.new /tmp/nginx.conf.new
 
+# Final certificate check and guidance
+if [ ! -f /etc/ssl/cloudflare/cert.pem ]; then
+    log "IMPORTANT: SSL certificates are not set up"
+    log "Your application is running but HTTPS/SSL is not configured"
+    log ""
+    log "To complete the setup:"
+    log "1. Get CloudFlare API token and Zone ID from: https://dash.cloudflare.com/profile/api-tokens"
+    log "2. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID in deployment/.env"
+    log "3. Re-run the deployment script to automatically set up certificates"
+    log ""
+    log "Or manually place certificates in:"
+    log "  /etc/ssl/cloudflare/cert.pem (Origin certificate)"
+    log "  /etc/ssl/cloudflare/key.pem (Private key)"
+    log "  /etc/ssl/cloudflare/origin-ca.pem (CloudFlare root CA)"
+fi
+
 log "Deployment completed successfully!"
 log "Service status: $(sudo systemctl is-active letsorder)"
 log "Release: $RELEASE_TAG deployed"
@@ -364,7 +487,13 @@ echo "$REMOTE_DEPLOY_SCRIPT" | ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" \
 
 # Clean up temporary files on server
 log "Cleaning up temporary files on server..."
-ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" "rm -rf /tmp/config /tmp/deploy.sh"
+ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" "rm -rf /tmp/config /tmp/deploy.sh /tmp/cloudflare_*.pem"
+
+# Clean up local temporary files
+if [ "$CERT_FILES_AVAILABLE" = "true" ]; then
+    log "Cleaning up local certificate files..."
+    rm -f /tmp/cloudflare_*.pem
+fi
 
 # Verify deployment
 log "Verifying deployment..."
