@@ -594,7 +594,7 @@ const MenuDashboardContent: Component = () => {
                                       </h4>
 
                                       <span class="font-semibold text-green-600">
-                                        ${item.price.toFixed(2)}
+                                        ${item.price ? item.price.toFixed(2) : '0.00'}
                                       </span>
 
                                       <Show when={!item.available}>

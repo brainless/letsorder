@@ -472,7 +472,7 @@ pub async fn get_restaurant_menu(
 
     for section in sections {
         let items_result = sqlx::query_as::<_, crate::models::MenuItemRow>(
-            "SELECT id, section_id, name, description, price, available, display_order, created_at 
+            "SELECT id, section_id, name, description, CAST(price AS REAL) as price, available, display_order, created_at 
              FROM menu_items 
              WHERE section_id = ? 
              ORDER BY display_order ASC",
@@ -573,7 +573,7 @@ pub async fn get_public_menu(
     let mut sections_with_items = Vec::new();
     for section in sections {
         let items_result = sqlx::query_as::<_, crate::models::MenuItemRow>(
-            "SELECT id, section_id, name, description, price, available, display_order, created_at 
+            "SELECT id, section_id, name, description, CAST(price AS REAL) as price, available, display_order, created_at 
              FROM menu_items 
              WHERE section_id = ? AND available = TRUE
              ORDER BY display_order ASC",
