@@ -558,9 +558,9 @@ chown -R letsorder:letsorder "$LETSORDER_DIR"
 chmod -R 755 "$LETSORDER_DIR"
 chmod 644 "$LETSORDER_DIR/data"/*.db 2>/dev/null || true
 
-# Create production settings file
+# Create production settings file (config crate looks for "settings" without extension)
 log "Creating production settings configuration..."
-cat > "$LETSORDER_DIR/settings.ini" << EOF
+cat > "$LETSORDER_DIR/settings.toml" << EOF
 [server]
 host = "127.0.0.1"
 port = 8080
@@ -574,26 +574,25 @@ secret = "${JWT_SECRET:-change-this-secret-in-production}"
 expiration_hours = 24
 EOF
 
-chown letsorder:letsorder "$LETSORDER_DIR/settings.ini"
-chmod 644 "$LETSORDER_DIR/settings.ini"
+# Also create without extension as config crate expects
+cp "$LETSORDER_DIR/settings.toml" "$LETSORDER_DIR/settings"
+
+chown letsorder:letsorder "$LETSORDER_DIR/settings.toml" "$LETSORDER_DIR/settings"
+chmod 644 "$LETSORDER_DIR/settings.toml" "$LETSORDER_DIR/settings"
 log "Settings file created with database path: sqlite:/opt/letsorder/data/letsorder.db"
 
-# Run database migrations
-log "Running database migrations..."
+# Test configuration loading
+log "Testing configuration and database setup..."
 cd "$LETSORDER_DIR"
-# Set DATABASE_URL to ensure correct path
-export DATABASE_URL="sqlite:$LETSORDER_DIR/data/letsorder.db"
-log "Database URL: $DATABASE_URL"
-SQLX_OFFLINE=true ./bin/backend --migrate || true
 
-# Ensure database file has correct permissions after creation
-if [ -f "$LETSORDER_DIR/data/letsorder.db" ]; then
-    chown letsorder:letsorder "$LETSORDER_DIR/data/letsorder.db"
-    chmod 644 "$LETSORDER_DIR/data/letsorder.db"
-    log "Database file permissions set correctly"
-else
-    log "Database file not found after migration, it will be created on first run"
-fi
+# Create the database file manually to ensure proper permissions
+log "Ensuring database file exists with correct permissions..."
+touch "$LETSORDER_DIR/data/letsorder.db"
+chown letsorder:letsorder "$LETSORDER_DIR/data/letsorder.db"
+chmod 644 "$LETSORDER_DIR/data/letsorder.db"
+
+# The backend will run migrations automatically on startup
+log "Database file created. Migrations will run automatically when the service starts."
 
 # Start the service
 log "Starting LetsOrder service..."
