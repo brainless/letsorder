@@ -90,7 +90,9 @@ setup_cloudflare_certificates() {
         echo "1. CloudFlare API Token (with Zone:SSL and Certificates:Edit permissions)"
         echo "2. CloudFlare Zone ID for your domain"
         echo ""
-        echo "You can find these at: https://dash.cloudflare.com/profile/api-tokens"
+        echo "You can find these at:"
+        echo "  - API Tokens: https://dash.cloudflare.com/profile/api-tokens"
+        echo "  - Zone ID: In your domain's overview page (right sidebar)"
         echo ""
         read -p "Do you want to enter CloudFlare credentials now? [y/N]: " -r
         if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -106,40 +108,142 @@ setup_cloudflare_certificates() {
         fi
     fi
     
+    # Validate credentials before proceeding
+    log "Validating CloudFlare credentials..."
+    local validation_response=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID" \
+        -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+        -H "Content-Type: application/json")
+    
+    if echo "$validation_response" | grep -q '"success":true'; then
+        local zone_name=$(echo "$validation_response" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
+        log "CloudFlare credentials validated for zone: $zone_name"
+        
+        # Check if zone supports Origin Certificates (paid plans only)
+        local plan_name=$(echo "$validation_response" | sed -n 's/.*"plan":{"id":"[^"]*","name":"\([^"]*\)".*/\1/p')
+        log "CloudFlare plan: $plan_name"
+        
+        if echo "$plan_name" | grep -qi "free"; then
+            warn "Origin Certificates are not available on CloudFlare Free plan"
+            echo ""
+            echo "CloudFlare Origin Certificates require a paid plan (Pro, Business, or Enterprise)."
+            echo "For the Free plan, you have these alternatives:"
+            echo ""
+            echo "1. Upgrade to CloudFlare Pro plan (\$20/month) to use Origin Certificates"
+            echo "2. Use Let's Encrypt with certbot (free) - run: ./deployment/scripts/setup-letsencrypt.sh $SERVER_IP $SSH_KEY_PATH api.letsorder.app"
+            echo "3. Continue with HTTP-only deployment for testing"
+            echo ""
+            echo "More info: https://developers.cloudflare.com/ssl/origin-configuration/origin-ca/"
+            echo ""
+            return 1
+        fi
+        
+        # Test Origin Certificate API access for paid plans
+        log "Testing Origin Certificate API access..."
+        local cert_test_response=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/origin_ca_certificates" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: application/json")
+        
+        if echo "$cert_test_response" | grep -q '"success":true'; then
+            log "Origin Certificate API access confirmed"
+        else
+            local cert_error=$(echo "$cert_test_response" | sed -n 's/.*"message":"\([^"]*\)".*/\1/p')
+            error "Origin Certificate API access failed: $cert_error"
+            echo ""
+            echo "Your API token needs these specific permissions:"
+            echo "  - Zone:Zone:Read"
+            echo "  - Zone:SSL and Certificates:Edit"
+            echo ""
+            echo "Make sure the token includes access to the zone: $zone_name"
+            echo ""
+            return 1
+        fi
+    else
+        local error_msg=$(echo "$validation_response" | sed -n 's/.*"message":"\([^"]*\)".*/\1/p')
+        if [ -z "$error_msg" ]; then
+            error_msg="Invalid Zone ID or API token lacks required permissions"
+        fi
+        
+        error "CloudFlare credential validation failed: $error_msg"
+        echo ""
+        echo "Please check:"
+        echo "1. Zone ID is correct (from domain overview page in CloudFlare dashboard)"
+        echo "2. API token has these permissions:"
+        echo "   - Zone:Zone:Read" 
+        echo "   - Zone:SSL and Certificates:Edit"
+        echo "3. API token includes the correct zone resources"
+        echo ""
+        return 1
+    fi
+    
     log "Setting up CloudFlare Origin Certificate for $domain..."
     
-    # Create certificate request
+    # Create certificate request with minimal settings
     local cert_request=$(cat << EOF
 {
     "type": "origin-rsa",
-    "hostnames": ["$domain", "*.$domain"],
-    "requested_validity": 5475
+    "hostnames": ["$domain"],
+    "requested_validity": 365
 }
 EOF
 )
     
-    # Request certificate from CloudFlare
-    local cert_response=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/origin_ca_certificates" \
+    log "Sending certificate request to CloudFlare..."
+    log "API Endpoint: https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/origin_ca_certificates"
+    
+    # Request certificate from CloudFlare with more verbose output
+    local cert_response=$(curl -s -w "HTTP_STATUS:%{http_code}\n" -X POST \
+        "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/origin_ca_certificates" \
         -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
         -H "Content-Type: application/json" \
         -d "$cert_request")
     
-    if echo "$cert_response" | grep -q '"success":true'; then
-        # Extract certificate and key
-        local certificate=$(echo "$cert_response" | grep -o '"certificate":"[^"]*' | cut -d'"' -f4 | sed 's/\\n/\n/g')
-        local private_key=$(echo "$cert_response" | grep -o '"private_key":"[^"]*' | cut -d'"' -f4 | sed 's/\\n/\n/g')
+    local http_status=$(echo "$cert_response" | grep "HTTP_STATUS:" | cut -d: -f2)
+    local response_body=$(echo "$cert_response" | sed '/HTTP_STATUS:/d')
+    
+    log "HTTP Status: $http_status"
+    
+    if [ "$http_status" = "200" ] && echo "$response_body" | grep -q '"success":true'; then
+        log "Certificate request successful"
+        
+        # Extract certificate and key using more robust JSON parsing
+        local certificate=$(echo "$response_body" | sed -n 's/.*"certificate":"\([^"]*\)".*/\1/p' | sed 's/\\n/\n/g')
+        local private_key=$(echo "$response_body" | sed -n 's/.*"private_key":"\([^"]*\)".*/\1/p' | sed 's/\\n/\n/g')
+        
+        if [ -z "$certificate" ] || [ -z "$private_key" ]; then
+            error "Failed to extract certificate data from CloudFlare response"
+            echo "Response: $response_body"
+            return 1
+        fi
         
         # Save certificate files
         echo "$certificate" > /tmp/cloudflare_cert.pem
         echo "$private_key" > /tmp/cloudflare_key.pem
         
         # Download CloudFlare Origin CA
-        curl -s https://developers.cloudflare.com/ssl/static/origin_ca_ecc_root.pem > /tmp/cloudflare_origin_ca.pem
-        
-        log "CloudFlare certificates generated successfully"
-        return 0
+        log "Downloading CloudFlare Origin CA certificate..."
+        if curl -s -f https://developers.cloudflare.com/ssl/static/origin_ca_ecc_root.pem > /tmp/cloudflare_origin_ca.pem; then
+            log "CloudFlare certificates generated successfully"
+            return 0
+        else
+            error "Failed to download CloudFlare Origin CA certificate"
+            return 1
+        fi
     else
-        error "Failed to generate CloudFlare certificate: $(echo "$cert_response" | grep -o '"message":"[^"]*' | cut -d'"' -f4)"
+        local error_msg=$(echo "$response_body" | sed -n 's/.*"message":"\([^"]*\)".*/\1/p')
+        if [ -z "$error_msg" ]; then
+            error_msg="HTTP $http_status - Check API token permissions and zone access"
+        fi
+        
+        error "Failed to generate CloudFlare certificate: $error_msg"
+        echo ""
+        echo "Full API Response:"
+        echo "$response_body"
+        echo ""
+        echo "This usually means:"
+        echo "1. Your API token doesn't have 'Zone:SSL and Certificates:Edit' permission"
+        echo "2. The API token doesn't include access to this specific zone"
+        echo "3. The zone might not be on a plan that supports Origin Certificates"
+        echo ""
         return 1
     fi
 }
@@ -239,7 +343,19 @@ if setup_cloudflare_certificates "$DOMAIN"; then
     log "CloudFlare certificates will be installed during deployment"
     CERT_FILES_AVAILABLE="true"
 else
-    log "CloudFlare certificates not set up - deployment will continue but nginx may not start"
+    warn "CloudFlare certificates not set up - deployment will continue but HTTPS will not work"
+    warn "The application will run on HTTP only until SSL certificates are configured"
+    echo ""
+    echo "Options to fix this:"
+    echo "1. Upgrade to CloudFlare Pro plan and re-run this script"
+    echo "2. Use Let's Encrypt (free): ./deployment/scripts/setup-letsencrypt.sh $SERVER_IP $SSH_KEY_PATH api.letsorder.app"
+    echo "3. Continue with HTTP-only deployment for testing"
+    echo ""
+    read -p "Continue with deployment anyway? [y/N]: " -r
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log "Deployment cancelled by user"
+        exit 0
+    fi
     CERT_FILES_AVAILABLE="false"
 fi
 
@@ -363,7 +479,27 @@ chmod +x "$LETSORDER_DIR/bin/backend"
 # Install configuration files
 log "Installing configuration files..."
 cp /tmp/config/letsorder.service /tmp/letsorder.service.new
-cp /tmp/config/nginx.conf /tmp/nginx.conf.new
+
+# Choose nginx config based on certificate availability
+DOMAIN="\${SERVER_HOST:-api.letsorder.app}"
+if [ -f /tmp/cloudflare_cert.pem ]; then
+    log "Using HTTPS nginx configuration with CloudFlare certificates"
+    cp /tmp/config/nginx.conf /tmp/nginx.conf.new
+elif [ -f /etc/letsencrypt/live/\$DOMAIN/fullchain.pem ]; then
+    log "Using existing HTTPS nginx configuration (Let's Encrypt certificates detected)"
+    # Don't overwrite existing Let's Encrypt nginx config
+    if [ ! -f /etc/nginx/sites-available/letsorder ] || ! grep -q "letsencrypt" /etc/nginx/sites-available/letsorder; then
+        log "Let's Encrypt nginx config not found, using HTTP-only config"
+        cp /tmp/config/nginx-http-only.conf /tmp/nginx.conf.new
+    else
+        log "Keeping existing Let's Encrypt nginx configuration"
+        cp /etc/nginx/sites-available/letsorder /tmp/nginx.conf.new
+    fi
+else
+    log "Using HTTP-only nginx configuration (no SSL certificates available)"
+    cp /tmp/config/nginx-http-only.conf /tmp/nginx.conf.new
+fi
+
 cp /tmp/config/litestream.yml "$LETSORDER_DIR/config/"
 
 # Check and install CloudFlare certificates if available
@@ -399,20 +535,18 @@ if [ ! -f /etc/nginx/sites-available/letsorder ] || ! cmp -s /tmp/nginx.conf.new
     # Remove default nginx site
     sudo rm -f /etc/nginx/sites-enabled/default
     
-    # Test nginx configuration only if SSL certificates are present
-    if [ -f /etc/ssl/cloudflare/cert.pem ] && [ -f /etc/ssl/cloudflare/key.pem ] && [ -f /etc/ssl/cloudflare/origin-ca.pem ]; then
-        if sudo nginx -t; then
-            log "Nginx configuration is valid"
+    # Test nginx configuration
+    if sudo nginx -t; then
+        if [ -f /etc/ssl/cloudflare/cert.pem ]; then
+            log "Nginx HTTPS configuration is valid (CloudFlare certificates)"
+        elif [ -f /etc/letsencrypt/live/\$DOMAIN/fullchain.pem ]; then
+            log "Nginx HTTPS configuration is valid (Let's Encrypt certificates)"
         else
-            error "Nginx configuration is invalid"
+            log "Nginx HTTP-only configuration is valid"
+            log "NOTE: Application will run on HTTP until SSL certificates are configured"
         fi
     else
-        log "WARNING: CloudFlare SSL certificates not found - nginx will not start properly"
-        log "Please set up certificates manually or run setup again with CloudFlare credentials"
-        log "Required files:"
-        log "  /etc/ssl/cloudflare/cert.pem"
-        log "  /etc/ssl/cloudflare/key.pem" 
-        log "  /etc/ssl/cloudflare/origin-ca.pem"
+        error "Nginx configuration is invalid"
     fi
 fi
 
@@ -458,19 +592,19 @@ sudo systemctl reload nginx
 rm -f /tmp/letsorder.service.new /tmp/nginx.conf.new
 
 # Final certificate check and guidance
-if [ ! -f /etc/ssl/cloudflare/cert.pem ]; then
+DOMAIN="\${SERVER_HOST:-api.letsorder.app}"
+if [ ! -f /etc/ssl/cloudflare/cert.pem ] && [ ! -f /etc/letsencrypt/live/\$DOMAIN/fullchain.pem ]; then
     log "IMPORTANT: SSL certificates are not set up"
     log "Your application is running but HTTPS/SSL is not configured"
     log ""
     log "To complete the setup:"
-    log "1. Get CloudFlare API token and Zone ID from: https://dash.cloudflare.com/profile/api-tokens"
-    log "2. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID in deployment/.env"
-    log "3. Re-run the deployment script to automatically set up certificates"
+    log "1. Use Let's Encrypt (free): ./deployment/scripts/setup-letsencrypt.sh \$SERVER_IP \$SSH_KEY_PATH \$DOMAIN"
+    log "2. Or upgrade CloudFlare to Pro plan for Origin Certificates"
     log ""
-    log "Or manually place certificates in:"
-    log "  /etc/ssl/cloudflare/cert.pem (Origin certificate)"
-    log "  /etc/ssl/cloudflare/key.pem (Private key)"
-    log "  /etc/ssl/cloudflare/origin-ca.pem (CloudFlare root CA)"
+elif [ -f /etc/letsencrypt/live/\$DOMAIN/fullchain.pem ]; then
+    log "✓ Let's Encrypt SSL certificates detected and configured"
+elif [ -f /etc/ssl/cloudflare/cert.pem ]; then
+    log "✓ CloudFlare Origin SSL certificates detected and configured"
 fi
 
 log "Deployment completed successfully!"
