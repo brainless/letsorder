@@ -468,12 +468,16 @@ if [ ! -d "$REPO_DIR" ]; then
 else
     log "Updating repository..."
     cd "$REPO_DIR"
+    # Reset any local changes that might conflict
+    git reset --hard
+    git clean -fd
     git fetch origin
 fi
 
 cd "$REPO_DIR"
 log "Checking out commit: $COMMIT_HASH"
-git checkout "$COMMIT_HASH"
+# Force checkout to handle any conflicts
+git checkout --force "$COMMIT_HASH"
 
 # Build the application on server
 log "Building LetsOrder backend on server..."
