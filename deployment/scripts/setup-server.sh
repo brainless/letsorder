@@ -128,40 +128,7 @@ else
     error "No authorized_keys found for root user"
 fi
 
-log "Disabling root SSH login..."
-SSH_CONFIG_CHANGED=false
-
-if ! grep -q "^PermitRootLogin no" /etc/ssh/sshd_config; then
-    sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-    SSH_CONFIG_CHANGED=true
-    log "Root SSH login disabled"
-else
-    log "Root SSH login already disabled"
-fi
-
-if ! grep -q "^PasswordAuthentication no" /etc/ssh/sshd_config; then
-    sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-    SSH_CONFIG_CHANGED=true
-    log "Password authentication disabled"
-else
-    log "Password authentication already disabled"
-fi
-
-if [ "$SSH_CONFIG_CHANGED" = true ]; then
-    log "Restarting SSH service due to configuration changes"
-    # Detect correct SSH service name (sshd vs ssh)
-    if systemctl list-unit-files | grep -q "^sshd.service"; then
-        systemctl restart sshd
-        log "Restarted sshd.service"
-    elif systemctl list-unit-files | grep -q "^ssh.service"; then
-        systemctl restart ssh
-        log "Restarted ssh.service"
-    else
-        log "Warning: Could not find SSH service to restart. Manual restart may be needed."
-    fi
-else
-    log "SSH configuration unchanged, no restart needed"
-fi
+# NOTE: SSH config changes moved to end of script to avoid lockout if later steps fail
 
 log "Installing Litestream..."
 if [ ! -f /usr/local/bin/litestream ]; then
@@ -226,6 +193,58 @@ fi
 systemctl enable fail2ban
 systemctl restart fail2ban
 
+# Verify letsorder user can actually SSH before disabling root access
+log "Verifying letsorder user SSH access before disabling root..."
+if su - "$LETSORDER_USER" -c "ssh-keygen -l -f ~/.ssh/authorized_keys" >/dev/null 2>&1; then
+    log "SSH keys verified for letsorder user"
+else
+    error "SSH keys verification failed for letsorder user. Root access will remain enabled for safety."
+fi
+
+# Test sudo access for letsorder user  
+log "Verifying sudo access for letsorder user..."
+if su - "$LETSORDER_USER" -c "sudo -n echo 'sudo test successful'" >/dev/null 2>&1; then
+    log "Sudo access verified for letsorder user"
+else
+    error "Sudo access verification failed for letsorder user. Root access will remain enabled for safety."
+fi
+
+# Now safely disable root SSH access since letsorder user is fully functional
+log "Disabling root SSH login (final step)..."
+SSH_CONFIG_CHANGED=false
+
+if ! grep -q "^PermitRootLogin no" /etc/ssh/sshd_config; then
+    sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+    SSH_CONFIG_CHANGED=true
+    log "Root SSH login disabled"
+else
+    log "Root SSH login already disabled"
+fi
+
+if ! grep -q "^PasswordAuthentication no" /etc/ssh/sshd_config; then
+    sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+    SSH_CONFIG_CHANGED=true
+    log "Password authentication disabled"
+else
+    log "Password authentication already disabled"
+fi
+
+if [ "$SSH_CONFIG_CHANGED" = true ]; then
+    log "Restarting SSH service due to configuration changes"
+    # Detect correct SSH service name (sshd vs ssh)
+    if systemctl list-unit-files | grep -q "^sshd.service"; then
+        systemctl restart sshd
+        log "Restarted sshd.service"
+    elif systemctl list-unit-files | grep -q "^ssh.service"; then
+        systemctl restart ssh
+        log "Restarted ssh.service"
+    else
+        log "Warning: Could not find SSH service to restart. Manual restart may be needed."
+    fi
+else
+    log "SSH configuration unchanged, no restart needed"
+fi
+
 log "Server setup completed successfully!"
 log "Next steps:"
 log "1. Configure CloudFlare certificates"
@@ -249,7 +268,7 @@ ssh $SSH_OPTS root@"$SERVER_IP" "rm -f /tmp/setup-letsorder.sh"
 log "Server setup completed successfully!"
 log "You can now SSH to the server using: ssh -i $SSH_KEY_PATH $LETSORDER_USER@$SERVER_IP"
 
-warn "IMPORTANT: Root SSH access has been disabled. Use the letsorder user for all future access."
+warn "IMPORTANT: Root SSH access has been disabled only after full verification. Use the letsorder user for all future access."
 warn "Next steps:"
 warn "1. Run deploy-release.sh to deploy the application"
 warn "2. Configure CloudFlare certificates using your API token"
