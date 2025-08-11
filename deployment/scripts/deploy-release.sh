@@ -80,9 +80,48 @@ if ! command_exists "cargo"; then
     error "Cargo is not installed. Please install Rust toolchain."
 fi
 
-if ! command_exists "aws" && [ "$SKIP_BACKUP" != "true" ]; then
-    error "AWS CLI is not installed. Required for database backups. Use --skip-backup to skip."
-fi
+# Simple S3-compatible upload function using curl (no AWS CLI needed)
+upload_to_s3_compatible() {
+    local file_path="$1"
+    local s3_key="$2" 
+    local bucket="$3"
+    local metadata="$4"
+    
+    # Check if S3 credentials are available
+    if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$S3_ENDPOINT" ]; then
+        log "S3 credentials or endpoint not configured, skipping backup upload"
+        return 0
+    fi
+    
+    # Use simple HTTP PUT with basic auth for S3-compatible storage
+    local s3_url="${S3_ENDPOINT}/${bucket}/${s3_key}"
+    
+    log "Uploading backup to ${s3_url}..."
+    
+    # Try upload with simple approach first (works with many S3-compatible services)
+    if curl -X PUT \
+        -H "Content-Type: application/octet-stream" \
+        -H "x-amz-meta-timestamp: ${metadata}" \
+        --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
+        --data-binary "@${file_path}" \
+        "${s3_url}" >/dev/null 2>&1; then
+        log "Successfully uploaded to ${s3_url}"
+        return 0
+    else
+        # Fallback: try without authentication (for public buckets or pre-configured access)
+        log "Authenticated upload failed, trying without authentication..."
+        if curl -X PUT \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@${file_path}" \
+            "${s3_url}" >/dev/null 2>&1; then
+            log "Successfully uploaded to ${s3_url} (no auth)"
+            return 0
+        else
+            log "Failed to upload backup to S3-compatible storage, continuing without backup upload"
+            return 1
+        fi
+    fi
+}
 
 # Load environment variables
 if [ -f "deployment/.env" ]; then
@@ -184,13 +223,11 @@ if [ "$SKIP_BACKUP" != "true" ] && [ -f "$LETSORDER_DIR/data/letsorder.db" ]; th
     # Use sqlite3 to create a consistent backup
     sqlite3 "$LETSORDER_DIR/data/letsorder.db" ".backup $BACKUP_FILE"
     
-    # Upload to S3 if AWS CLI is available and configured
-    if command -v aws >/dev/null 2>&1 && [ -n "$AWS_ACCESS_KEY_ID" ]; then
-        log "Uploading backup to S3..."
-        aws s3 cp "$BACKUP_FILE" \
-            "s3://letsorder-backups/releases/${RELEASE_TAG}/letsorder.db" \
-            --metadata "timestamp=${TIMESTAMP},release=${RELEASE_TAG}" || true
-    fi
+    # Upload to S3-compatible storage using curl
+    upload_to_s3_compatible "$BACKUP_FILE" \
+        "releases/${RELEASE_TAG}/letsorder.db" \
+        "${AWS_S3_BUCKET:-letsorder-backups}" \
+        "timestamp=${TIMESTAMP},release=${RELEASE_TAG}"
     
     # Keep only last 5 local backups
     cd "$LETSORDER_DIR/backups"

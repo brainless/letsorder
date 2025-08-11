@@ -63,6 +63,50 @@ if [ ! -f "$SSH_KEY_PATH" ]; then
     error "SSH key file not found: $SSH_KEY_PATH"
 fi
 
+# Simple S3-compatible download function using curl (no AWS CLI needed)
+download_from_s3_compatible() {
+    local s3_key="$1"
+    local local_path="$2"
+    local bucket="$3"
+    
+    # Check if S3 credentials are available
+    if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$S3_ENDPOINT" ]; then
+        log "S3 credentials or endpoint not configured, cannot download from S3"
+        return 1
+    fi
+    
+    local s3_url="${S3_ENDPOINT}/${bucket}/${s3_key}"
+    
+    log "Downloading backup from ${s3_url}..."
+    
+    # Try download with simple approach first
+    if curl -f --user "${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}" \
+        -o "${local_path}" "${s3_url}" >/dev/null 2>&1; then
+        log "Successfully downloaded from ${s3_url}"
+        return 0
+    else
+        # Fallback: try without authentication (for public buckets)
+        log "Authenticated download failed, trying without authentication..."
+        if curl -f -o "${local_path}" "${s3_url}" >/dev/null 2>&1; then
+            log "Successfully downloaded from ${s3_url} (no auth)"
+            return 0
+        else
+            log "Failed to download from S3-compatible storage"
+            return 1
+        fi
+    fi
+}
+
+# Load environment variables
+if [ -f "deployment/.env" ]; then
+    log "Loading environment variables..."
+    set -a
+    source deployment/.env
+    set +a
+else
+    warn "No deployment/.env file found. S3 backup download may not work."
+fi
+
 log "Starting LetsOrder rollback on $SERVER_IP"
 
 # Test SSH connection
@@ -111,18 +155,12 @@ if [ -n "$TARGET_BACKUP" ]; then
     BACKUP_PATH="$LETSORDER_DIR/backups/$TARGET_BACKUP"
     
     if [ ! -f "$BACKUP_PATH" ]; then
-        # Check if it's an S3 backup
-        if command -v aws >/dev/null 2>&1; then
-            log "Backup not found locally, checking S3..."
-            S3_PATH="s3://letsorder-backups/releases/$TARGET_BACKUP"
-            if aws s3 ls "$S3_PATH" >/dev/null 2>&1; then
-                log "Downloading backup from S3..."
-                aws s3 cp "$S3_PATH" "$BACKUP_PATH"
-            else
-                error "Backup not found: $TARGET_BACKUP (checked locally and S3)"
-            fi
+        # Try to download from S3-compatible storage
+        log "Backup not found locally, trying S3-compatible storage..."
+        if download_from_s3_compatible "releases/$TARGET_BACKUP" "$BACKUP_PATH" "${AWS_S3_BUCKET:-letsorder-backups}"; then
+            log "Successfully downloaded backup from S3"
         else
-            error "Backup not found: $TARGET_BACKUP"
+            error "Backup not found: $TARGET_BACKUP (checked locally and S3-compatible storage)"
         fi
     fi
     

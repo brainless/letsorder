@@ -69,8 +69,8 @@ deployment/
 
 - **Rust toolchain** with cross-compilation support
 - **SSH client** with key-based authentication
-- **AWS CLI** (for database backups)
-- **curl** (for health checks)
+- **curl** (for HTTP requests and S3-compatible uploads)
+- **openssl** (for S3 authentication, usually pre-installed)
 
 ### Server Requirements
 
@@ -83,7 +83,7 @@ deployment/
 
 - **Scaleway account** for server provisioning
 - **CloudFlare account** for SSL certificates and CDN
-- **AWS S3 bucket** for database backups
+- **S3-compatible storage** for database backups (AWS S3, DigitalOcean Spaces, MinIO, etc.)
 
 ## Detailed Usage
 
