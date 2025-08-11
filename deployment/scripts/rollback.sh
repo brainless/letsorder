@@ -97,6 +97,10 @@ download_from_s3_compatible() {
     fi
 }
 
+# Store command line arguments before loading environment
+CMD_SERVER_IP="$SERVER_IP"
+CMD_SSH_KEY_PATH="$SSH_KEY_PATH"
+
 # Load environment variables
 if [ -f "deployment/.env" ]; then
     log "Loading environment variables..."
@@ -106,6 +110,10 @@ if [ -f "deployment/.env" ]; then
 else
     warn "No deployment/.env file found. S3 backup download may not work."
 fi
+
+# Restore command line arguments (they take precedence over .env)
+SERVER_IP="$CMD_SERVER_IP"
+SSH_KEY_PATH="$CMD_SSH_KEY_PATH"
 
 log "Starting LetsOrder rollback on $SERVER_IP"
 
