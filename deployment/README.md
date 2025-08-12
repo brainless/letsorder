@@ -50,6 +50,16 @@ nano deployment/.env
 ./deployment/scripts/rollback.sh <server-ip> <ssh-key-path> --to-backup=backup_20250811_123456_v1.0.0.db
 ```
 
+### 5. Check Status
+
+```bash
+# Check production deployment status
+./deployment/scripts/check-status.sh <server-ip> <ssh-key-path>
+
+# Or use environment variables from .env
+./deployment/scripts/check-status.sh
+```
+
 ## Directory Structure
 
 ```
@@ -57,7 +67,10 @@ deployment/
 ├── scripts/
 │   ├── setup-server.sh      # Initial server provisioning
 │   ├── deploy-release.sh    # Release deployment
-│   └── rollback.sh         # Emergency rollback
+│   ├── rollback.sh         # Emergency rollback
+│   ├── check-status.sh     # Production status monitoring
+│   ├── debug-server.sh     # Server debugging and diagnostics
+│   └── setup-letsencrypt.sh # SSL certificate setup
 ├── config/
 │   ├── nginx.conf          # Nginx reverse proxy configuration
 │   ├── letsorder.service   # SystemD service definition
@@ -420,6 +433,55 @@ When updating deployment scripts or configurations:
 2. Update documentation if needed
 3. Version control all changes
 4. Communicate changes to team members
+
+## Status Monitoring
+
+### Production Status Check (`scripts/check-status.sh`)
+
+Comprehensive monitoring script that checks all aspects of the production deployment:
+
+```bash
+# Check all systems
+./deployment/scripts/check-status.sh <server-ip> <ssh-key-path>
+
+# Use environment variables
+./deployment/scripts/check-status.sh
+```
+
+**What it checks:**
+- **System Services**: LetsOrder service, Nginx status and auto-start configuration
+- **Application Health**: Health endpoint responses, database accessibility, service uptime
+- **Network Connectivity**: Public endpoint access, DNS resolution, SSL certificate status
+- **Resource Usage**: Memory usage, disk space, recent error logs
+
+**Output:**
+- ✅ **Green**: All checks passed
+- ⚠️ **Yellow**: Warnings (non-critical issues)
+- ❌ **Red**: Critical errors requiring attention
+
+**Exit codes:**
+- `0`: All systems operational
+- `1`: Warnings present
+- `2`: Critical issues detected
+
+**Example output:**
+```
+[2025-08-12 10:14:01] ✅ SSH connection to 1.2.3.4 working
+[2025-08-12 10:14:02] ✅ LetsOrder service is running
+[2025-08-12 10:14:02] ✅ Nginx service is running
+[2025-08-12 10:14:03] ✅ Health endpoint responding locally
+[2025-08-12 10:14:04] ✅ Public health endpoint accessible
+==================================================
+           STATUS CHECK SUMMARY
+==================================================
+Checks passed: 12
+Warnings: 0
+Critical errors: 0
+==================================================
+✅ All systems operational
+```
+
+**Automation**: Can be run from CI/CD pipelines or monitoring systems for automated health checks.
 
 ## Related Resources
 
