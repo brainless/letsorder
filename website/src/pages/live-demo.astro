@@ -1,5 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+// Get environment variables
+const adminDemoUrl = import.meta.env.PUBLIC_ADMIN_DEMO_URL || 'https://a.letsorder.app';
+const menuDemoNote = import.meta.env.PUBLIC_MENU_DEMO_NOTE || 'Menu demo URL can be found via the \'QR Code\' button for any Restaurant > Table in the Admin app';
 ---
 
 <Layout
@@ -97,7 +101,7 @@ import Layout from '../layouts/Layout.astro';
               <p class="text-gray-700"><strong>Password:</strong> demo123</p>
             </div>
           </div>
-          <a href="#" target="_blank" class="w-full bg-primary-400 text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-primary-500 transition-colors block">
+          <a href={adminDemoUrl} target="_blank" class="w-full bg-primary-400 text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-primary-500 transition-colors block">
             Launch Admin Demo
           </a>
         </div>
@@ -169,14 +173,21 @@ import Layout from '../layouts/Layout.astro';
           </div>
           
           <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">No Login Required</h3>
-            <p class="text-gray-600">
-              This demo provides direct access to the menu interface. Simply scan the QR code or click the link below.
-            </p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">How to Access Menu Demo</h3>
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-blue-800 text-sm">
+                  {menuDemoNote}
+                </p>
+              </div>
+            </div>
           </div>
-          <a href="#" target="_blank" class="w-full bg-secondary-400 text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-secondary-500 transition-colors block">
-            Launch Menu Demo
-          </a>
+          <div class="text-center">
+            <p class="text-gray-500 text-sm italic">Menu URL is dynamically generated for each restaurant and table</p>
+          </div>
         </div>
       </div>
 
