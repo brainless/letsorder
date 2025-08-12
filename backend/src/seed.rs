@@ -7,7 +7,7 @@ pub async fn seed_database(pool: &Pool<Sqlite>) -> Result<(), sqlx::Error> {
     let user_id = Uuid::new_v4().to_string();
     let password_hash = PasswordHasher::hash_password("password123")
         .map_err(|e| sqlx::Error::Protocol(format!("Password hashing failed: {}", e)))?;
-    
+
     sqlx::query!(
         r#"
         INSERT INTO users (id, email, phone, password_hash)

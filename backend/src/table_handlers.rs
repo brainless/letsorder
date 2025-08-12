@@ -114,15 +114,13 @@ pub async fn create_table(
             .await;
 
             match created_table {
-                Ok(table_row) => {
-                    Ok(HttpResponse::Created().json(serde_json::json!({
-                        "id": table_row.id,
-                        "restaurant_id": table_row.restaurant_id,
-                        "name": table_row.name,
-                        "unique_code": table_row.unique_code,
-                        "created_at": table_row.created_at
-                    })))
-                }
+                Ok(table_row) => Ok(HttpResponse::Created().json(serde_json::json!({
+                    "id": table_row.id,
+                    "restaurant_id": table_row.restaurant_id,
+                    "name": table_row.name,
+                    "unique_code": table_row.unique_code,
+                    "created_at": table_row.created_at
+                }))),
                 Err(e) => {
                     log::error!("Database error fetching created table: {e}");
                     Ok(HttpResponse::InternalServerError().json(serde_json::json!({
@@ -388,11 +386,9 @@ pub async fn get_table_qr_url(
             };
             Ok(HttpResponse::Ok().json(response))
         }
-        Err(sqlx::Error::RowNotFound) => {
-            Ok(HttpResponse::NotFound().json(serde_json::json!({
-                "error": "Table not found"
-            })))
-        }
+        Err(sqlx::Error::RowNotFound) => Ok(HttpResponse::NotFound().json(serde_json::json!({
+            "error": "Table not found"
+        }))),
         Err(e) => {
             log::error!("Database error fetching table: {e}");
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({

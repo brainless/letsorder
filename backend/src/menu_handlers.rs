@@ -82,15 +82,13 @@ pub async fn create_menu_section(
             .await;
 
             match created_section {
-                Ok(section_row) => {
-                    Ok(HttpResponse::Created().json(serde_json::json!({
-                        "id": section_row.id,
-                        "restaurant_id": section_row.restaurant_id,
-                        "name": section_row.name,
-                        "display_order": section_row.display_order,
-                        "created_at": section_row.created_at
-                    })))
-                }
+                Ok(section_row) => Ok(HttpResponse::Created().json(serde_json::json!({
+                    "id": section_row.id,
+                    "restaurant_id": section_row.restaurant_id,
+                    "name": section_row.name,
+                    "display_order": section_row.display_order,
+                    "created_at": section_row.created_at
+                }))),
                 Err(e) => {
                     log::error!("Database error fetching created section: {e}");
                     Ok(HttpResponse::InternalServerError().json(serde_json::json!({
@@ -583,18 +581,28 @@ pub async fn get_public_menu(
         .await;
 
         let items = match items_result {
-            Ok(rows) => rows.into_iter().map(|row| {
-                let item_id = row.id.unwrap_or_default();
-                log::debug!("Menu item: {} -> ID: {}", row.name.as_ref().unwrap_or(&"Unknown".to_string()), item_id);
-                crate::models::PublicMenuItem {
-                    id: item_id,
-                    name: row.name.unwrap_or_default(),
-                    description: row.description,
-                    price: row.price.unwrap_or(0.0),
-                }
-            }).collect::<Vec<_>>(),
+            Ok(rows) => rows
+                .into_iter()
+                .map(|row| {
+                    let item_id = row.id.unwrap_or_default();
+                    log::debug!(
+                        "Menu item: {} -> ID: {}",
+                        row.name.as_ref().unwrap_or(&"Unknown".to_string()),
+                        item_id
+                    );
+                    crate::models::PublicMenuItem {
+                        id: item_id,
+                        name: row.name.unwrap_or_default(),
+                        description: row.description,
+                        price: row.price.unwrap_or(0.0),
+                    }
+                })
+                .collect::<Vec<_>>(),
             Err(e) => {
-                log::error!("Database error fetching menu items for section {}: {e}", section.id);
+                log::error!(
+                    "Database error fetching menu items for section {}: {e}",
+                    section.id
+                );
                 continue; // Skip this section on error
             }
         };

@@ -160,7 +160,10 @@ pub fn create_app(
                 .wrap(auth_middleware)
                 .route("/test", web::get().to(handlers::protected_test))
                 // User routes
-                .route("/user/restaurants", web::get().to(handlers::get_user_restaurants))
+                .route(
+                    "/user/restaurants",
+                    web::get().to(handlers::get_user_restaurants),
+                )
                 // Restaurant CRUD routes
                 .route("/restaurants", web::post().to(handlers::create_restaurant))
                 .route("/restaurants/{id}", web::get().to(handlers::get_restaurant))
@@ -300,7 +303,10 @@ pub fn create_app(
         )
         // Public order routes (no auth required)
         .route("/orders", web::post().to(order_handlers::create_order))
-        .route("/debug/orders", web::post().to(order_handlers::debug_order_payload))
+        .route(
+            "/debug/orders",
+            web::post().to(order_handlers::debug_order_payload),
+        )
         .route(
             "/orders/{order_id}",
             web::get().to(order_handlers::get_order),
