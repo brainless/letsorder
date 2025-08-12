@@ -49,6 +49,7 @@ jobs:
 
       - name: Setup database and prepare SQLx cache
         run: |
+          cargo install sqlx-cli
           sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
           sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
           sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
@@ -151,6 +152,7 @@ jobs:
 
       - name: Setup database and prepare SQLx cache
         run: |
+          cargo install sqlx-cli
           sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
           sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
           sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
