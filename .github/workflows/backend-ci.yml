@@ -47,11 +47,27 @@ jobs:
       - name: Check formatting
         run: cargo fmt --check
 
+      - name: Setup database and prepare SQLx cache
+        run: |
+          cargo install sqlx-cli
+          sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
+          sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
+          sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          cargo sqlx prepare -- --all-targets
+        env:
+          DATABASE_URL: sqlite:./temp.db
+
       - name: Run clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
+        env:
+          DATABASE_URL: "sqlite::memory:"
+          SQLX_OFFLINE: true
 
       - name: Build
         run: cargo build --verbose
+        env:
+          DATABASE_URL: "sqlite::memory:"
+          SQLX_OFFLINE: true
 
       - name: Run tests
         run: cargo test --verbose
@@ -134,8 +150,21 @@ jobs:
           restore-keys: |
             ubuntu-latest-${{ matrix.rust }}-cargo-
 
+      - name: Setup database and prepare SQLx cache
+        run: |
+          cargo install sqlx-cli
+          sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
+          sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
+          sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          cargo sqlx prepare -- --all-targets
+        env:
+          DATABASE_URL: sqlite:./temp.db
+
       - name: Build
         run: cargo build --verbose
+        env:
+          DATABASE_URL: "sqlite::memory:"
+          SQLX_OFFLINE: true
 
       - name: Run tests
         run: cargo test --verbose

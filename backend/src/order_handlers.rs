@@ -10,12 +10,12 @@ use uuid::Uuid;
 // Debug endpoint to capture raw JSON
 pub async fn debug_order_payload(payload: web::Bytes) -> Result<HttpResponse> {
     let payload_str = String::from_utf8_lossy(&payload);
-    log::debug!("Raw order payload: {}", payload_str);
+    log::debug!("Raw order payload: {payload_str}");
 
     // Try to parse as serde_json::Value to see structure
     match serde_json::from_slice::<serde_json::Value>(&payload) {
-        Ok(json) => log::debug!("Parsed JSON structure: {:#}", json),
-        Err(e) => log::error!("JSON parsing error: {}", e),
+        Ok(json) => log::debug!("Parsed JSON structure: {json:#}"),
+        Err(e) => log::error!("JSON parsing error: {e}"),
     }
 
     Ok(HttpResponse::Ok().json(serde_json::json!({"debug": "payload logged"})))
@@ -25,7 +25,7 @@ pub async fn create_order(
     pool: web::Data<Pool<Sqlite>>,
     req: web::Json<CreateOrderRequest>,
 ) -> Result<HttpResponse> {
-    log::debug!("Successfully deserialized order request: {:?}", req);
+    log::debug!("Successfully deserialized order request: {req:?}");
     // Find table by unique code
     let table_row = sqlx::query_as::<_, TableRow>(
         "SELECT id, restaurant_id, name, unique_code, created_at FROM tables WHERE unique_code = ?",

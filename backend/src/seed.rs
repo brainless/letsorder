@@ -6,7 +6,7 @@ pub async fn seed_database(pool: &Pool<Sqlite>) -> Result<(), sqlx::Error> {
     // Create a test user with password "password123"
     let user_id = Uuid::new_v4().to_string();
     let password_hash = PasswordHasher::hash_password("password123")
-        .map_err(|e| sqlx::Error::Protocol(format!("Password hashing failed: {}", e)))?;
+        .map_err(|e| sqlx::Error::Protocol(format!("Password hashing failed: {e}")))?;
 
     sqlx::query!(
         r#"

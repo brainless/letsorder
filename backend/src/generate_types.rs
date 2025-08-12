@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for entry in fs::read_dir(&temp_dir)? {
         let entry = entry?;
         let path = entry.path();
-        if path.extension().map_or(false, |ext| ext == "ts") {
+        if path.extension().is_some_and(|ext| ext == "ts") {
             let content = fs::read_to_string(&path)?;
 
             // Process content to remove import statements since we're consolidating into one file
@@ -73,11 +73,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let admin_types_dir = "../adminapp/src/types";
     let menu_types_dir = "../menuapp/src/types";
 
-    if let Err(_) = fs::metadata(admin_types_dir) {
+    if fs::metadata(admin_types_dir).is_err() {
         fs::create_dir_all(admin_types_dir)?;
     }
 
-    if let Err(_) = fs::metadata(menu_types_dir) {
+    if fs::metadata(menu_types_dir).is_err() {
         fs::create_dir_all(menu_types_dir)?;
     }
 
