@@ -143,6 +143,9 @@ SSH_KEY_PATH="$CMD_SSH_KEY_PATH"
 
 log "Starting LetsOrder deployment to $SERVER_IP"
 
+# Security check: Ensure deployment is from main branch only
+info "Verifying deployment source branch..."
+
 # Get release information
 RELEASE_TAG=$(git describe --tags --always --dirty)
 COMMIT_HASH=$(git rev-parse --short HEAD)
@@ -159,6 +162,12 @@ SSH_OPTS="-i $SSH_KEY_PATH -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKe
 
 if ! ssh $SSH_OPTS "$LETSORDER_USER@$SERVER_IP" exit; then
     error "Cannot connect to server via SSH. Please check server IP and SSH key."
+fi
+
+# Ensure we're deploying from main branch only
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+    error "Deployment must be run from main branch only. Current branch: $CURRENT_BRANCH"
 fi
 
 # Get current git commit for deployment
@@ -283,7 +292,19 @@ else
 fi
 
 cd "$REPO_DIR"
-log "Checking out commit: $COMMIT_HASH"
+
+# Ensure we're on main branch first
+log "Switching to main branch..."
+git checkout main
+git pull origin main
+
+# Verify the commit hash exists on main branch
+if ! git merge-base --is-ancestor "$COMMIT_HASH" main; then
+    log "ERROR: Commit $COMMIT_HASH is not on main branch. Deployment cancelled."
+    exit 1
+fi
+
+log "Checking out commit: $COMMIT_HASH (verified on main branch)"
 # Force checkout to handle any conflicts
 git checkout --force "$COMMIT_HASH"
 
@@ -337,8 +358,8 @@ log "Installing configuration files..."
 cp /tmp/config/letsorder.service /tmp/letsorder.service.new
 
 # Choose nginx config based on Let's Encrypt certificate availability
-DOMAIN="\${SERVER_HOST:-api.letsorder.app}"
-if [ -f /etc/letsencrypt/live/\$DOMAIN/fullchain.pem ]; then
+# Use hardcoded domain for now since variable expansion is complex in heredoc
+if [ -f /etc/letsencrypt/live/api.letsorder.app/fullchain.pem ]; then
     log "Let's Encrypt certificates found - using HTTPS configuration"
     cp /tmp/config/nginx.conf /tmp/nginx.conf.new
 else
@@ -373,7 +394,7 @@ if [ ! -f /etc/nginx/sites-available/letsorder ] || ! cmp -s /tmp/nginx.conf.new
     
     # Test nginx configuration
     if sudo nginx -t; then
-        if [ -f /etc/letsencrypt/live/\$DOMAIN/fullchain.pem ]; then
+        if [ -f /etc/letsencrypt/live/api.letsorder.app/fullchain.pem ]; then
             log "Nginx HTTPS configuration is valid (Let's Encrypt certificates)"
         else
             log "Nginx HTTP-only configuration is valid"
@@ -469,8 +490,7 @@ sudo systemctl reload nginx
 rm -f /tmp/letsorder.service.new /tmp/nginx.conf.new
 
 # Final certificate check and guidance
-DOMAIN="\${SERVER_HOST:-api.letsorder.app}"
-if [ -f /etc/letsencrypt/live/\$DOMAIN/fullchain.pem ]; then
+if [ -f /etc/letsencrypt/live/api.letsorder.app/fullchain.pem ]; then
     log "✓ Let's Encrypt SSL certificates detected and configured"
     log "✓ Application is running with HTTPS enabled"
 else
@@ -478,7 +498,7 @@ else
     log "Your application is running on HTTP only"
     log ""
     log "To enable HTTPS/SSL:"
-    log "Use Let's Encrypt (free): ./deployment/scripts/setup-letsencrypt.sh \$SERVER_IP \$SSH_KEY_PATH \$DOMAIN"
+    log "Use Let's Encrypt (free): ./deployment/scripts/setup-letsencrypt.sh [SERVER_IP] [SSH_KEY_PATH] api.letsorder.app"
     log ""
 fi
 

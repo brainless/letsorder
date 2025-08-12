@@ -32,8 +32,14 @@ nano deployment/.env
 
 ### 3. Deploy Application
 
+**Important**: Deployment must be run from the `main` branch only for security.
+
 ```bash
-# Build and deploy the latest version (HTTP-only)
+# Switch to main branch first
+git checkout main
+git pull origin main
+
+# Build and deploy the latest version
 ./deployment/scripts/deploy-release.sh <server-ip> <ssh-key-path>
 
 # Skip database backup for testing
