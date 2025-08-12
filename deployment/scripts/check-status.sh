@@ -41,16 +41,19 @@ info() {
 warn() {
     echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] ${WARNING_MARK} WARNING: $1${NC}"
     ((WARNINGS++))
+    return 0
 }
 
 error() {
     echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ${CROSS_MARK} ERROR: $1${NC}"
     ((CRITICAL_ERRORS++))
+    return 0
 }
 
 success() {
     echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] ${CHECK_MARK} $1${NC}"
     ((CHECKS_PASSED++))
+    return 0
 }
 
 # Function to check if command exists
@@ -155,7 +158,7 @@ parse_arguments() {
 
 # SSH options
 get_ssh_opts() {
-    echo "-i $SSH_KEY_PATH -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+    echo "-i $SSH_KEY_PATH -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
 }
 
 # Test SSH connectivity
