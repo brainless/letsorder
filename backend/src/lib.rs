@@ -139,6 +139,10 @@ pub fn create_app(
             Cors::default()
                 .allowed_origin("http://localhost:3000")
                 .allowed_origin("http://localhost:4321")
+                .allowed_origin("https://a.letsorder.app")
+                .allowed_origin("https://admin.letsorder.app")
+                .allowed_origin("https://menu.letsorder.app")
+                .allowed_origin("https://m.letsorder.app")
                 .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
                 .allowed_headers(vec!["Content-Type", "Authorization"])
                 .max_age(3600),
