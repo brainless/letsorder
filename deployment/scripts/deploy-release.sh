@@ -358,8 +358,8 @@ log "Installing configuration files..."
 cp /tmp/config/letsorder.service /tmp/letsorder.service.new
 
 # Choose nginx config based on Let's Encrypt certificate availability
-# Use hardcoded domain for now since variable expansion is complex in heredoc
-if [ -f /etc/letsencrypt/live/api.letsorder.app/fullchain.pem ]; then
+# Use sudo since letsencrypt directory is only accessible by root
+if sudo test -f /etc/letsencrypt/live/api.letsorder.app/fullchain.pem; then
     log "Let's Encrypt certificates found - using HTTPS configuration"
     cp /tmp/config/nginx.conf /tmp/nginx.conf.new
 else
@@ -394,7 +394,7 @@ if [ ! -f /etc/nginx/sites-available/letsorder ] || ! cmp -s /tmp/nginx.conf.new
     
     # Test nginx configuration
     if sudo nginx -t; then
-        if [ -f /etc/letsencrypt/live/api.letsorder.app/fullchain.pem ]; then
+        if sudo test -f /etc/letsencrypt/live/api.letsorder.app/fullchain.pem; then
             log "Nginx HTTPS configuration is valid (Let's Encrypt certificates)"
         else
             log "Nginx HTTP-only configuration is valid"
@@ -490,7 +490,7 @@ sudo systemctl reload nginx
 rm -f /tmp/letsorder.service.new /tmp/nginx.conf.new
 
 # Final certificate check and guidance
-if [ -f /etc/letsencrypt/live/api.letsorder.app/fullchain.pem ]; then
+if sudo test -f /etc/letsencrypt/live/api.letsorder.app/fullchain.pem; then
     log "✓ Let's Encrypt SSL certificates detected and configured"
     log "✓ Application is running with HTTPS enabled"
 else
