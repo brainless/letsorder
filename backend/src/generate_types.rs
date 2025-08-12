@@ -1,15 +1,15 @@
-use std::fs;
-use std::path::Path;
-use ts_rs::TS;
 use backend::models::*;
 use backend::qr_handlers::*;
 use backend::HealthResponse;
+use std::fs;
+use std::path::Path;
+use ts_rs::TS;
 
 fn process_ts_content(content: &str) -> String {
     // Remove import statements and extra headers since we're consolidating everything into one file
     let lines: Vec<&str> = content.lines().collect();
     let mut processed_lines = Vec::new();
-    
+
     for line in lines {
         // Skip import lines that reference other files (but keep export statements)
         if line.starts_with("import type") || line.starts_with("import ") {
@@ -17,7 +17,7 @@ fn process_ts_content(content: &str) -> String {
         }
         processed_lines.push(line);
     }
-    
+
     processed_lines.join("\n")
 }
 
@@ -58,7 +58,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let path = entry.path();
         if path.extension().map_or(false, |ext| ext == "ts") {
             let content = fs::read_to_string(&path)?;
-            
+
             // Process content to remove import statements since we're consolidating into one file
             let processed_content = process_ts_content(&content);
             all_types.push_str(&processed_content);
@@ -84,12 +84,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Write to admin app
     let admin_path = Path::new(admin_types_dir).join("api.ts");
     fs::write(&admin_path, &all_types)?;
-    println!("Generated TypeScript types for adminapp: {}", admin_path.display());
+    println!(
+        "Generated TypeScript types for adminapp: {}",
+        admin_path.display()
+    );
 
-    // Write to menu app  
+    // Write to menu app
     let menu_path = Path::new(menu_types_dir).join("api.ts");
     fs::write(&menu_path, &all_types)?;
-    println!("Generated TypeScript types for menuapp: {}", menu_path.display());
+    println!(
+        "Generated TypeScript types for menuapp: {}",
+        menu_path.display()
+    );
 
     println!("TypeScript type generation completed successfully!");
     Ok(())

@@ -1008,7 +1008,7 @@ pub async fn get_user_restaurants(
          FROM restaurants r 
          JOIN restaurant_managers rm ON r.id = rm.restaurant_id 
          WHERE rm.user_id = ?
-         ORDER BY r.created_at DESC"
+         ORDER BY r.created_at DESC",
     )
     .bind(&claims.sub)
     .fetch_all(pool.get_ref())

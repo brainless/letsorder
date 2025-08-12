@@ -139,6 +139,10 @@ pub fn create_app(
             Cors::default()
                 .allowed_origin("http://localhost:3000")
                 .allowed_origin("http://localhost:4321")
+                .allowed_origin("https://a.letsorder.app")
+                .allowed_origin("https://admin.letsorder.app")
+                .allowed_origin("https://menu.letsorder.app")
+                .allowed_origin("https://m.letsorder.app")
                 .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
                 .allowed_headers(vec!["Content-Type", "Authorization"])
                 .max_age(3600),
@@ -156,7 +160,10 @@ pub fn create_app(
                 .wrap(auth_middleware)
                 .route("/test", web::get().to(handlers::protected_test))
                 // User routes
-                .route("/user/restaurants", web::get().to(handlers::get_user_restaurants))
+                .route(
+                    "/user/restaurants",
+                    web::get().to(handlers::get_user_restaurants),
+                )
                 // Restaurant CRUD routes
                 .route("/restaurants", web::post().to(handlers::create_restaurant))
                 .route("/restaurants/{id}", web::get().to(handlers::get_restaurant))
@@ -296,7 +303,10 @@ pub fn create_app(
         )
         // Public order routes (no auth required)
         .route("/orders", web::post().to(order_handlers::create_order))
-        .route("/debug/orders", web::post().to(order_handlers::debug_order_payload))
+        .route(
+            "/debug/orders",
+            web::post().to(order_handlers::debug_order_payload),
+        )
         .route(
             "/orders/{order_id}",
             web::get().to(order_handlers::get_order),
