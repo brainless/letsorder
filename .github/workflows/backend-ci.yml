@@ -53,7 +53,7 @@ jobs:
           sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
           sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
           sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
-          cargo sqlx prepare
+          cargo sqlx prepare -- --all-targets
         env:
           DATABASE_URL: sqlite:./temp.db
 
@@ -156,7 +156,7 @@ jobs:
           sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
           sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
           sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
-          cargo sqlx prepare
+          cargo sqlx prepare -- --all-targets
         env:
           DATABASE_URL: sqlite:./temp.db
 
