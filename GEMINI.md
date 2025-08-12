@@ -4,9 +4,9 @@ This is my understanding of the project.
 
 Complete menu management, browsing and ordering app for restaurants and guests.
 
-## Development Workflow
+# Development Workflow
 - Create a new branch for each task
-- Branch names should start with chore/ or feature/ or fix/
+- Branch names should start with `feature/`, `chore/` or `fix/`
 - Please add tests for any new features added, particularly integration tests
 - Please run formatters, linters and tests before committing changes
 - When finished please commit and push to the new branch
@@ -33,27 +33,28 @@ Complete menu management, browsing and ordering app for restaurants and guests.
 
 ### Technical Stack
 
-*   **Backend:** Rust with Actix Web.
-*   **Admin App:** SolidJS with TypeScript, Tailwind CSS, and shadcn/solid-ui.
+*   **Backend:** Rust with Actix Web, SQLx for database interaction, and `ts-rs` for generating TypeScript types from Rust models.
+*   **Admin App:** SolidJS with Vite, TypeScript, Tailwind CSS, and Kobalte UI components.
 *   **Menu App:** Astro with TypeScript and Tailwind CSS.
 *   **Database:** SQLite with `litestream` for continuous backup to S3-compatible storage.
-*   **Authentication:** JWT-based.
+*   **Authentication:** JWT-based with Argon2 for password hashing.
 *   **Deployment:**
-    *   Backend on a VPS.
+    *   Backend on a VPS managed by custom shell scripts.
     *   Web apps on CloudFlare Pages.
-*   **CI/CD:** GitHub Actions.
-*   **Monitoring:** Sentry.
-*   **Configuration:** `settings.ini` file.
+*   **CI/CD:** GitHub Actions for backend testing, including linting, formatting, and security audits.
+*   **Configuration:** `settings.toml` file for the backend, with environment variables for deployment.
 
 ### Architecture
 
-*   Monorepo structure with `backend`, `admin`, `menu`, and `shared` directories.
+*   Monorepo structure with `backend`, `adminapp`, `menuapp`, and `shared` directories.
 *   REST API for communication between frontend and backend.
+*   The `backend` includes a `generate_types` binary to automatically create TypeScript type definitions from Rust structs, ensuring type safety between the frontend and backend.
 
 ### Key Decisions
 
 *   **Simplicity:** No payment integration, social login, real-time features, menu variants, or inventory tracking in the initial version.
-*   **Local Storage:** Images are stored locally.
+*   **Local Storage:** Images are stored locally on the server.
 *   **Manual Invites:** Managers are invited via generated links.
 *   **No Approval:** Restaurants can go live without approval.
-*   **Focus on Backend Testing:** Thorough testing of the backend API is a priority.
+*   **Focus on Backend Testing:** Thorough testing of the backend API is a priority, enforced by CI.
+*   **Automated Deployment:** The deployment process is automated via shell scripts for setting up the server, deploying new releases, and rolling back if necessary.
