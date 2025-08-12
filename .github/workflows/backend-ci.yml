@@ -47,6 +47,15 @@ jobs:
       - name: Check formatting
         run: cargo fmt --check
 
+      - name: Setup database and prepare SQLx cache
+        run: |
+          sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
+          sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
+          sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          cargo sqlx prepare
+        env:
+          DATABASE_URL: sqlite:./temp.db
+
       - name: Run clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
         env:
@@ -139,6 +148,15 @@ jobs:
           key: ubuntu-latest-${{ matrix.rust }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ubuntu-latest-${{ matrix.rust }}-cargo-
+
+      - name: Setup database and prepare SQLx cache
+        run: |
+          sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
+          sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
+          sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          cargo sqlx prepare
+        env:
+          DATABASE_URL: sqlite:./temp.db
 
       - name: Build
         run: cargo build --verbose
