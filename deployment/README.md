@@ -97,17 +97,17 @@ deployment/
 
 ### External Services
 
-- **Scaleway account** for server provisioning
-- **CloudFlare account** for SSL certificates and CDN
+- **Scaleway account** for server provisioning  
 - **S3-compatible storage** for database backups (AWS S3, DigitalOcean Spaces, MinIO, etc.)
+- **Domain name** with DNS pointing to your server for Let's Encrypt SSL certificates
 
 ## SSL/HTTPS Setup
 
-The deployment system uses HTTP by default for simplicity. For HTTPS/SSL support, you have several options:
+The deployment system automatically detects and uses Let's Encrypt SSL certificates when available. If no certificates are found, it falls back to HTTP-only configuration.
 
 ### Let's Encrypt SSL (Recommended - Free)
 
-After deployment, set up free SSL certificates with Let's Encrypt:
+Set up free SSL certificates with Let's Encrypt:
 
 ```bash
 # Set up Let's Encrypt SSL certificates
@@ -118,13 +118,14 @@ After deployment, set up free SSL certificates with Let's Encrypt:
 ```
 
 **Requirements:**
-- Domain must point directly to your server (disable CloudFlare proxy temporarily)
+- Domain must point directly to your server
 - Port 80 must be accessible for domain validation
 - Automatic certificate renewal is configured
 
-### Manual SSL Setup
-
-You can also manually configure SSL certificates by placing them in the standard locations and updating the nginx configuration.
+**After Setup:**
+- Future deployments will automatically detect and use the certificates
+- Nginx will be configured for HTTPS with automatic HTTP redirects
+- All security headers and HSTS will be enabled
 
 ## Detailed Usage
 
@@ -201,20 +202,17 @@ The `rollback.sh` script provides quick recovery options:
 ### Nginx Configuration (`config/nginx.conf`)
 
 **Features:**
-- CloudFlare Origin Certificate authentication
+- Let's Encrypt SSL certificate support
 - Rate limiting (10 requests/second)
 - CORS headers for admin/menu apps
 - Security headers (HSTS, XSS protection, etc.)
 - Gzip compression for API responses
 - Health check endpoint bypass
+- Automatic HTTP to HTTPS redirect
 
-**SSL Setup:**
-```bash
-# Place CloudFlare certificates in:
-/etc/ssl/cloudflare/cert.pem      # Origin certificate
-/etc/ssl/cloudflare/key.pem       # Private key
-/etc/ssl/cloudflare/origin-ca.pem # CloudFlare root CA
-```
+**SSL Requirements:**
+- Automatically uses Let's Encrypt certificates from `/etc/letsencrypt/live/api.letsorder.app/`
+- Falls back to HTTP-only configuration if certificates are not available
 
 ### SystemD Service (`config/letsorder.service`)
 
@@ -248,9 +246,6 @@ Copy `deployment/.env.example` to `deployment/.env` and configure:
 # Scaleway (server provisioning)
 SCALEWAY_ACCESS_KEY=your_access_key
 SCALEWAY_SECRET_KEY=your_secret_key
-
-# CloudFlare (SSL certificates)
-CLOUDFLARE_API_TOKEN=your_api_token
 
 # AWS (database backups)
 AWS_ACCESS_KEY_ID=your_access_key
@@ -348,8 +343,8 @@ openssl s_client -connect api.letsorder.app:443 -servername api.letsorder.app
 # Check nginx configuration
 ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'sudo nginx -t'
 
-# Verify certificate files
-ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'sudo ls -la /etc/ssl/cloudflare/'
+# Verify Let's Encrypt certificate files
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'sudo ls -la /etc/letsencrypt/live/api.letsorder.app/'
 ```
 
 ### Recovery Procedures
@@ -393,10 +388,10 @@ ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'sudo systemctl start letsorder'
 
 ### Application Security
 - JWT-based authentication with secure secrets
-- HTTPS-only communication with HSTS
-- CloudFlare DDoS protection and WAF
+- HTTPS-only communication with HSTS (when SSL configured)
 - Rate limiting on API endpoints
 - Security headers (XSS, CSRF protection)
+- Let's Encrypt SSL certificates with automatic renewal
 
 ### Data Security
 - Encrypted database backups in S3

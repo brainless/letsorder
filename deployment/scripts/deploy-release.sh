@@ -164,21 +164,18 @@ fi
 # Get current git commit for deployment
 CURRENT_COMMIT=$(git rev-parse HEAD)
 
-log "SSL Certificate Options:"
+log "SSL Certificate Configuration:"
 echo ""
-echo "This deployment will use HTTP-only configuration by default."
-echo "For HTTPS/SSL support, you have these options after deployment:"
+echo "This deployment will automatically use HTTPS if Let's Encrypt certificates are available."
+echo "Otherwise, it will fall back to HTTP-only configuration."
 echo ""
-echo "1. Use Let's Encrypt (free): ./deployment/scripts/setup-letsencrypt.sh $SERVER_IP $SSH_KEY_PATH api.letsorder.app"
-echo "2. Manually configure SSL certificates"
+echo "To set up HTTPS after deployment (if not already configured):"
+echo "Use Let's Encrypt (free): ./deployment/scripts/setup-letsencrypt.sh $SERVER_IP $SSH_KEY_PATH api.letsorder.app"
 echo ""
-CERT_FILES_AVAILABLE="false"
 
 # Upload deployment configuration files
 log "Uploading deployment configuration files to server..."
 scp $SSH_OPTS -r deployment/config "$LETSORDER_USER@$SERVER_IP:/tmp/"
-
-# No certificate files to upload - using HTTP-only configuration
 
 # Create deployment script to run on server
 REMOTE_DEPLOY_SCRIPT=$(cat << 'REMOTE_SCRIPT'
@@ -339,20 +336,13 @@ chmod +x "$LETSORDER_DIR/bin/backend"
 log "Installing configuration files..."
 cp /tmp/config/letsorder.service /tmp/letsorder.service.new
 
-# Choose nginx config based on certificate availability
+# Choose nginx config based on Let's Encrypt certificate availability
 DOMAIN="\${SERVER_HOST:-api.letsorder.app}"
 if [ -f /etc/letsencrypt/live/\$DOMAIN/fullchain.pem ]; then
-    log "Using existing HTTPS nginx configuration (Let's Encrypt certificates detected)"
-    # Don't overwrite existing Let's Encrypt nginx config
-    if [ ! -f /etc/nginx/sites-available/letsorder ] || ! grep -q "letsencrypt" /etc/nginx/sites-available/letsorder; then
-        log "Let's Encrypt nginx config not found, using HTTP-only config"
-        cp /tmp/config/nginx-http-only.conf /tmp/nginx.conf.new
-    else
-        log "Keeping existing Let's Encrypt nginx configuration"
-        cp /etc/nginx/sites-available/letsorder /tmp/nginx.conf.new
-    fi
+    log "Let's Encrypt certificates found - using HTTPS configuration"
+    cp /tmp/config/nginx.conf /tmp/nginx.conf.new
 else
-    log "Using HTTP-only nginx configuration (no SSL certificates available)"
+    log "No Let's Encrypt certificates found - using HTTP-only configuration"
     cp /tmp/config/nginx-http-only.conf /tmp/nginx.conf.new
 fi
 
@@ -488,8 +478,7 @@ else
     log "Your application is running on HTTP only"
     log ""
     log "To enable HTTPS/SSL:"
-    log "1. Use Let's Encrypt (free): ./deployment/scripts/setup-letsencrypt.sh \$SERVER_IP \$SSH_KEY_PATH \$DOMAIN"
-    log "2. Or manually configure SSL certificates"
+    log "Use Let's Encrypt (free): ./deployment/scripts/setup-letsencrypt.sh \$SERVER_IP \$SSH_KEY_PATH \$DOMAIN"
     log ""
 fi
 
