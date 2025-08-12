@@ -1,209 +1,403 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
 
 // Get environment variables
-const adminDemoUrl = import.meta.env.PUBLIC_ADMIN_DEMO_URL || 'https://a.letsorder.app';
-const menuDemoNote = import.meta.env.PUBLIC_MENU_DEMO_NOTE || 'Menu demo URL can be found via the \'QR Code\' button for any Restaurant > Table in the Admin app';
+const adminDemoUrl =
+    import.meta.env.PUBLIC_ADMIN_DEMO_URL || "https://a.letsorder.app";
+const menuDemoNote =
+    import.meta.env.PUBLIC_MENU_DEMO_NOTE ||
+    "Menu demo URL can be found via the 'QR Code' button for any Restaurant > Table in the Admin app";
 ---
 
 <Layout
-  title="Live Demo - letsorder"
-  description="Experience letsorder in action. Access our live demo to explore the features of our restaurant management and ordering system."
+    title="Live Demo - letsorder"
+    description="Experience letsorder in action. Access our live demo to explore the features of our restaurant management and ordering system."
 >
-  <!-- Hero Section -->
-  <section class="bg-gradient-to-r from-primary-400 via-accent-400 to-secondary-400 text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-      <div class="text-center">
-        <h1 class="text-4xl md:text-6xl font-bold mb-6">
-          Live Demo
-        </h1>
-        <p class="text-xl md:text-2xl mb-8 text-pink-100 max-w-3xl mx-auto">
-          Experience letsorder in action. Access our live demo to explore the features of our restaurant management and ordering system.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Demo Section -->
-  <section class="py-20 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid md:grid-cols-2 gap-12">
-        <!-- Admin Demo -->
-        <div class="bg-white p-8 rounded-lg shadow-md">
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">Admin Demo</h2>
-          <p class="text-gray-600 mb-6">
-            Explore the powerful features of our admin dashboard. Manage menus, track orders, and gain valuable insights.
-          </p>
-          
-          <!-- Admin Screenshots Carousel -->
-          <div class="relative mb-6">
-            <div id="admin-demo-carousel" class="overflow-hidden rounded-lg">
-              <div class="flex transition-transform duration-500 ease-in-out" id="admin-demo-container">
-                <!-- Admin Dashboard Screenshot -->
-                <div class="w-full flex-shrink-0 px-2">
-                  <div class="bg-primary-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center">
-                    <div class="text-center p-4">
-                      <div class="w-12 h-12 bg-primary-400 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                      </div>
-                      <h4 class="text-sm font-semibold text-gray-900 mb-1">Dashboard</h4>
-                      <p class="text-xs text-gray-600">Main overview</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Menu Management Screenshot -->
-                <div class="w-full flex-shrink-0 px-2">
-                  <div class="bg-secondary-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center">
-                    <div class="text-center p-4">
-                      <div class="w-12 h-12 bg-secondary-400 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                      </div>
-                      <h4 class="text-sm font-semibold text-gray-900 mb-1">Menus</h4>
-                      <p class="text-xs text-gray-600">Edit menus</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- QR Codes Screenshot -->
-                <div class="w-full flex-shrink-0 px-2">
-                  <div class="bg-accent-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center">
-                    <div class="text-center p-4">
-                      <div class="w-12 h-12 bg-accent-400 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
-                        </svg>
-                      </div>
-                      <h4 class="text-sm font-semibold text-gray-900 mb-1">QR Codes</h4>
-                      <p class="text-xs text-gray-600">Table codes</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Navigation Dots -->
-            <div class="flex justify-center mt-4 space-x-2">
-              <button class="admin-demo-dot w-2 h-2 bg-primary-400 rounded-full" data-slide="0"></button>
-              <button class="admin-demo-dot w-2 h-2 bg-gray-300 rounded-full hover:bg-primary-300" data-slide="1"></button>
-              <button class="admin-demo-dot w-2 h-2 bg-gray-300 rounded-full hover:bg-primary-300" data-slide="2"></button>
-            </div>
-          </div>
-          
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Demo Credentials</h3>
-            <div class="bg-gray-100 p-4 rounded-lg">
-              <p class="text-gray-700"><strong>Username:</strong> demo@letsorder.com</p>
-              <p class="text-gray-700"><strong>Password:</strong> demo123</p>
-            </div>
-          </div>
-          <a href={adminDemoUrl} target="_blank" class="w-full bg-primary-400 text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-primary-500 transition-colors block">
-            Launch Admin Demo
-          </a>
-        </div>
-
-        <!-- Menu Demo -->
-        <div class="bg-white p-8 rounded-lg shadow-md">
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">Menu Demo</h2>
-          <p class="text-gray-600 mb-6">
-            See how your customers will experience your menu. Our mobile-friendly design makes ordering a breeze.
-          </p>
-          
-          <!-- Menu Screenshots Carousel -->
-          <div class="relative mb-6">
-            <div id="menu-demo-carousel" class="overflow-hidden rounded-lg">
-              <div class="flex transition-transform duration-500 ease-in-out" id="menu-demo-container">
-                <!-- Menu Browse Screenshot -->
-                <div class="w-full flex-shrink-0 px-2">
-                  <div class="bg-secondary-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center">
-                    <div class="text-center p-4">
-                      <div class="w-12 h-12 bg-secondary-400 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                      </div>
-                      <h4 class="text-sm font-semibold text-gray-900 mb-1">Browse</h4>
-                      <p class="text-xs text-gray-600">Menu items</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Cart Screenshot -->
-                <div class="w-full flex-shrink-0 px-2">
-                  <div class="bg-accent-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center">
-                    <div class="text-center p-4">
-                      <div class="w-12 h-12 bg-accent-400 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5H21M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6"></path>
-                        </svg>
-                      </div>
-                      <h4 class="text-sm font-semibold text-gray-900 mb-1">Cart</h4>
-                      <p class="text-xs text-gray-600">Order items</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Checkout Screenshot -->
-                <div class="w-full flex-shrink-0 px-2">
-                  <div class="bg-primary-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center">
-                    <div class="text-center p-4">
-                      <div class="w-12 h-12 bg-primary-400 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                      </div>
-                      <h4 class="text-sm font-semibold text-gray-900 mb-1">Checkout</h4>
-                      <p class="text-xs text-gray-600">Place order</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Navigation Dots -->
-            <div class="flex justify-center mt-4 space-x-2">
-              <button class="menu-demo-dot w-2 h-2 bg-secondary-400 rounded-full" data-slide="0"></button>
-              <button class="menu-demo-dot w-2 h-2 bg-gray-300 rounded-full hover:bg-secondary-300" data-slide="1"></button>
-              <button class="menu-demo-dot w-2 h-2 bg-gray-300 rounded-full hover:bg-secondary-300" data-slide="2"></button>
-            </div>
-          </div>
-          
-          <div class="mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">How to Access Menu Demo</h3>
-            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div class="flex items-start">
-                <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <p class="text-blue-800 text-sm">
-                  {menuDemoNote}
+    <!-- Hero Section -->
+    <section
+        class="bg-gradient-to-r from-primary-400 via-accent-400 to-secondary-400 text-white"
+    >
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6">Live Demo</h1>
+                <p
+                    class="text-xl md:text-2xl mb-8 text-pink-100 max-w-3xl mx-auto"
+                >
+                    Experience letsorder in action. Access our live demo to
+                    explore the features of our restaurant management and
+                    ordering system.
                 </p>
-              </div>
             </div>
-          </div>
-          <div class="text-center">
-            <p class="text-gray-500 text-sm italic">Menu URL is dynamically generated for each restaurant and table</p>
-          </div>
         </div>
-      </div>
+    </section>
 
-      <!-- Explanatory Content -->
-      <div class="mt-16 text-center max-w-3xl mx-auto">
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">About the Demo</h2>
-        <p class="text-gray-600 mb-4">
-          Our live demo provides a sandbox environment to test the core functionalities of letsorder. The demo data is reset periodically to ensure a clean experience for everyone.
-        </p>
-        <p class="text-gray-600 mb-4">
-          For full access, including the ability to create your own menus and see your own branding, please sign up for a free trial.
-        </p>
-        <p class="text-gray-600">
-          Have questions? <a href="/contact" class="text-primary-500 font-semibold hover:underline">Contact us</a> for more information.
-        </p>
-      </div>
-    </div>
-  </section>
+    <!-- Demo Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Admin Demo -->
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                        Admin Demo
+                    </h2>
+                    <p class="text-gray-600 mb-6">
+                        Explore the powerful features of our admin dashboard.
+                        Manage menus, track orders, and gain valuable insights.
+                    </p>
+
+                    <!-- Admin Screenshots Carousel -->
+                    <div class="relative mb-6">
+                        <div
+                            id="admin-demo-carousel"
+                            class="overflow-hidden rounded-lg"
+                        >
+                            <div
+                                class="flex transition-transform duration-500 ease-in-out"
+                                id="admin-demo-container"
+                            >
+                                <!-- Admin Dashboard Screenshot -->
+                                <div class="w-full flex-shrink-0 px-2">
+                                    <div
+                                        class="bg-primary-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center"
+                                    >
+                                        <div class="text-center p-4">
+                                            <div
+                                                class="w-12 h-12 bg-primary-400 rounded-lg mx-auto mb-2 flex items-center justify-center"
+                                            >
+                                                <svg
+                                                    class="w-6 h-6 text-white"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                                    ></path>
+                                                </svg>
+                                            </div>
+                                            <h4
+                                                class="text-sm font-semibold text-gray-900 mb-1"
+                                            >
+                                                Dashboard
+                                            </h4>
+                                            <p class="text-xs text-gray-600">
+                                                Main overview
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Menu Management Screenshot -->
+                                <div class="w-full flex-shrink-0 px-2">
+                                    <div
+                                        class="bg-secondary-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center"
+                                    >
+                                        <div class="text-center p-4">
+                                            <div
+                                                class="w-12 h-12 bg-secondary-400 rounded-lg mx-auto mb-2 flex items-center justify-center"
+                                            >
+                                                <svg
+                                                    class="w-6 h-6 text-white"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                                    ></path>
+                                                </svg>
+                                            </div>
+                                            <h4
+                                                class="text-sm font-semibold text-gray-900 mb-1"
+                                            >
+                                                Menus
+                                            </h4>
+                                            <p class="text-xs text-gray-600">
+                                                Edit menus
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- QR Codes Screenshot -->
+                                <div class="w-full flex-shrink-0 px-2">
+                                    <div
+                                        class="bg-accent-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center"
+                                    >
+                                        <div class="text-center p-4">
+                                            <div
+                                                class="w-12 h-12 bg-accent-400 rounded-lg mx-auto mb-2 flex items-center justify-center"
+                                            >
+                                                <svg
+                                                    class="w-6 h-6 text-white"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                                                    ></path>
+                                                </svg>
+                                            </div>
+                                            <h4
+                                                class="text-sm font-semibold text-gray-900 mb-1"
+                                            >
+                                                QR Codes
+                                            </h4>
+                                            <p class="text-xs text-gray-600">
+                                                Table codes
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Dots -->
+                        <div class="flex justify-center mt-4 space-x-2">
+                            <button
+                                class="admin-demo-dot w-2 h-2 bg-primary-400 rounded-full"
+                                data-slide="0"></button>
+                            <button
+                                class="admin-demo-dot w-2 h-2 bg-gray-300 rounded-full hover:bg-primary-300"
+                                data-slide="1"></button>
+                            <button
+                                class="admin-demo-dot w-2 h-2 bg-gray-300 rounded-full hover:bg-primary-300"
+                                data-slide="2"></button>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                            Demo Credentials
+                        </h3>
+                        <div class="bg-gray-100 p-4 rounded-lg">
+                            <p class="text-gray-700">
+                                <strong>Username:</strong> manager@example.com
+                            </p>
+                            <p class="text-gray-700">
+                                <strong>Password:</strong> password123
+                            </p>
+                        </div>
+                    </div>
+                    <a
+                        href={adminDemoUrl}
+                        target="_blank"
+                        class="w-full bg-primary-400 text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-primary-500 transition-colors block"
+                    >
+                        Launch Admin Demo
+                    </a>
+                </div>
+
+                <!-- Menu Demo -->
+                <div class="bg-white p-8 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                        Menu Demo
+                    </h2>
+                    <p class="text-gray-600 mb-6">
+                        See how your customers will experience your menu. Our
+                        mobile-friendly design makes ordering a breeze.
+                    </p>
+
+                    <!-- Menu Screenshots Carousel -->
+                    <div class="relative mb-6">
+                        <div
+                            id="menu-demo-carousel"
+                            class="overflow-hidden rounded-lg"
+                        >
+                            <div
+                                class="flex transition-transform duration-500 ease-in-out"
+                                id="menu-demo-container"
+                            >
+                                <!-- Menu Browse Screenshot -->
+                                <div class="w-full flex-shrink-0 px-2">
+                                    <div
+                                        class="bg-secondary-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center"
+                                    >
+                                        <div class="text-center p-4">
+                                            <div
+                                                class="w-12 h-12 bg-secondary-400 rounded-lg mx-auto mb-2 flex items-center justify-center"
+                                            >
+                                                <svg
+                                                    class="w-6 h-6 text-white"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                                    ></path>
+                                                </svg>
+                                            </div>
+                                            <h4
+                                                class="text-sm font-semibold text-gray-900 mb-1"
+                                            >
+                                                Browse
+                                            </h4>
+                                            <p class="text-xs text-gray-600">
+                                                Menu items
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Cart Screenshot -->
+                                <div class="w-full flex-shrink-0 px-2">
+                                    <div
+                                        class="bg-accent-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center"
+                                    >
+                                        <div class="text-center p-4">
+                                            <div
+                                                class="w-12 h-12 bg-accent-400 rounded-lg mx-auto mb-2 flex items-center justify-center"
+                                            >
+                                                <svg
+                                                    class="w-6 h-6 text-white"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5H21M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6"
+                                                    ></path>
+                                                </svg>
+                                            </div>
+                                            <h4
+                                                class="text-sm font-semibold text-gray-900 mb-1"
+                                            >
+                                                Cart
+                                            </h4>
+                                            <p class="text-xs text-gray-600">
+                                                Order items
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Checkout Screenshot -->
+                                <div class="w-full flex-shrink-0 px-2">
+                                    <div
+                                        class="bg-primary-50 rounded-lg aspect-[9/16] max-w-40 mx-auto flex items-center justify-center"
+                                    >
+                                        <div class="text-center p-4">
+                                            <div
+                                                class="w-12 h-12 bg-primary-400 rounded-lg mx-auto mb-2 flex items-center justify-center"
+                                            >
+                                                <svg
+                                                    class="w-6 h-6 text-white"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                    ></path>
+                                                </svg>
+                                            </div>
+                                            <h4
+                                                class="text-sm font-semibold text-gray-900 mb-1"
+                                            >
+                                                Checkout
+                                            </h4>
+                                            <p class="text-xs text-gray-600">
+                                                Place order
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Dots -->
+                        <div class="flex justify-center mt-4 space-x-2">
+                            <button
+                                class="menu-demo-dot w-2 h-2 bg-secondary-400 rounded-full"
+                                data-slide="0"></button>
+                            <button
+                                class="menu-demo-dot w-2 h-2 bg-gray-300 rounded-full hover:bg-secondary-300"
+                                data-slide="1"></button>
+                            <button
+                                class="menu-demo-dot w-2 h-2 bg-gray-300 rounded-full hover:bg-secondary-300"
+                                data-slide="2"></button>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                            How to Access Menu Demo
+                        </h3>
+                        <div
+                            class="bg-blue-50 p-4 rounded-lg border border-blue-200"
+                        >
+                            <div class="flex items-start">
+                                <svg
+                                    class="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    ></path>
+                                </svg>
+                                <p class="text-blue-800 text-sm">
+                                    {menuDemoNote}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-gray-500 text-sm italic">
+                            Menu URL is dynamically generated for each
+                            restaurant and table
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Explanatory Content -->
+            <div class="mt-16 text-center max-w-3xl mx-auto">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                    About the Demo
+                </h2>
+                <p class="text-gray-600 mb-4">
+                    Our live demo provides a sandbox environment to test the
+                    core functionalities of letsorder. The demo data is reset
+                    periodically to ensure a clean experience for everyone.
+                </p>
+                <p class="text-gray-600 mb-4">
+                    For full access, including the ability to create your own
+                    menus and see your own branding, please sign up for a free
+                    trial.
+                </p>
+                <p class="text-gray-600">
+                    Have questions? <a
+                        href="/contact"
+                        class="text-primary-500 font-semibold hover:underline"
+                        >Contact us</a
+                    > for more information.
+                </p>
+            </div>
+        </div>
+    </section>
 </Layout>
