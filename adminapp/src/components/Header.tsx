@@ -1,15 +1,23 @@
-import { createSignal, Show } from 'solid-js';
+import { createSignal, Show, For } from 'solid-js';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
+import { useRestaurant } from '../contexts/RestaurantContext';
 
 function Header() {
   const [userMenuOpen, setUserMenuOpen] = createSignal(false);
+  const [restaurantMenuOpen, setRestaurantMenuOpen] = createSignal(false);
   const auth = useAuth();
   const ui = useUI();
+  const restaurant = useRestaurant();
 
   const handleLogout = () => {
     auth.logout();
     setUserMenuOpen(false);
+  };
+
+  const handleRestaurantSelect = (selectedRestaurant: typeof restaurant.currentRestaurant) => {
+    restaurant.setCurrentRestaurant(selectedRestaurant);
+    setRestaurantMenuOpen(false);
   };
 
   const getUserInitials = () => {
@@ -53,6 +61,71 @@ function Header() {
             LetsOrder Admin
           </h1>
         </div>
+
+        {/* Restaurant selector dropdown */}
+        <Show when={auth.isAuthenticated && restaurant.restaurants.length > 0}>
+          <div class="flex items-center">
+            <div class="relative">
+              <button
+                type="button"
+                class="flex items-center gap-x-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 border border-gray-300"
+                onClick={() => setRestaurantMenuOpen(!restaurantMenuOpen())}
+              >
+                <span class="text-lg">🏪</span>
+                <span class="max-w-32 truncate">
+                  {restaurant.currentRestaurant?.name || 'Select Restaurant'}
+                </span>
+                <svg
+                  class="h-4 w-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+              </button>
+
+              <Show when={restaurantMenuOpen()}>
+                <div
+                  class="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5"
+                  onClick={() => setRestaurantMenuOpen(false)}
+                >
+                  <div class="px-3 py-2 border-b border-gray-100">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      Select Restaurant
+                    </p>
+                  </div>
+                  <For each={restaurant.restaurants}>
+                    {(rest) => (
+                      <button
+                        onClick={() => handleRestaurantSelect(rest)}
+                        class={`block w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${
+                          restaurant.currentRestaurant?.id === rest.id
+                            ? 'bg-blue-50 text-blue-700 font-medium'
+                            : 'text-gray-900'
+                        }`}
+                      >
+                        <div class="flex items-center gap-x-2">
+                          <span class="text-base">🏪</span>
+                          <div class="flex-1 min-w-0">
+                            <p class="truncate">{rest.name}</p>
+                            <p class="text-xs text-gray-500 truncate">{rest.address}</p>
+                          </div>
+                        </div>
+                      </button>
+                    )}
+                  </For>
+                </div>
+              </Show>
+            </div>
+          </div>
+        </Show>
+
         <div class="flex items-center gap-x-4 lg:gap-x-6">
           <Show when={auth.isAuthenticated}>
             {/* Profile dropdown */}

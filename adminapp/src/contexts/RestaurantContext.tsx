@@ -65,6 +65,32 @@ export const RestaurantProvider: ParentComponent = (props) => {
     }
   });
 
+  // Persist selected restaurant in localStorage
+  createEffect(() => {
+    const current = currentRestaurant();
+    if (current) {
+      localStorage.setItem('selectedRestaurantId', current.id);
+    } else {
+      localStorage.removeItem('selectedRestaurantId');
+    }
+  });
+
+  // Auto-select restaurant from localStorage or first available
+  createEffect(() => {
+    const restaurantList = restaurants();
+    if (restaurantList.length > 0 && !currentRestaurant()) {
+      const savedId = localStorage.getItem('selectedRestaurantId');
+      let restaurantToSelect = restaurantList.find(r => r.id === savedId);
+      
+      // If saved restaurant not found, select the first one
+      if (!restaurantToSelect) {
+        restaurantToSelect = restaurantList[0];
+      }
+      
+      setCurrentRestaurant(restaurantToSelect);
+    }
+  });
+
   const clearError = () => {
     setError(null);
   };

@@ -1,19 +1,38 @@
 import { A } from '@solidjs/router';
 import { Dialog } from '@kobalte/core';
 import { useUI } from '../contexts/UIContext';
-import { For } from 'solid-js';
+import { useRestaurant } from '../contexts/RestaurantContext';
+import { For, Show, createMemo } from 'solid-js';
 
-const navigation = [
+const baseNavigation = [
   { name: 'Dashboard', href: '/', icon: '🏠' },
   { name: 'Restaurants', href: '/restaurants', icon: '🏪' },
-  // These links are placeholders as their pages are not yet implemented
-  // { name: 'Menu', href: '/restaurants/some-id/menu', icon: '📋' },
-  // { name: 'Tables & QR', href: '/restaurants/some-id/tables', icon: '🏷️' },
-  // { name: 'Orders', href: '/orders', icon: '📦' },
 ];
 
 function SidebarContent() {
   const ui = useUI();
+  const restaurant = useRestaurant();
+
+  const restaurantNavigation = createMemo(() => {
+    if (!restaurant.currentRestaurant) return [];
+    return [
+      { 
+        name: 'Menu Management', 
+        href: `/restaurants/${restaurant.currentRestaurant.id}/menu`, 
+        icon: '📋' 
+      },
+      { 
+        name: 'Tables & QR Codes', 
+        href: `/restaurants/${restaurant.currentRestaurant.id}/tables`, 
+        icon: '🏷️' 
+      },
+      { 
+        name: 'Order Management', 
+        href: `/restaurants/${restaurant.currentRestaurant.id}/orders`, 
+        icon: '📦' 
+      },
+    ];
+  });
   return (
     <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4">
       <div class="flex h-16 shrink-0 items-center">
@@ -23,7 +42,7 @@ function SidebarContent() {
         <ul role="list" class="flex flex-1 flex-col gap-y-7">
           <li>
             <ul role="list" class="-mx-2 space-y-1">
-              <For each={navigation}>
+              <For each={baseNavigation}>
                 {(item) => (
                   <li>
                     <A
@@ -40,6 +59,32 @@ function SidebarContent() {
               </For>
             </ul>
           </li>
+
+          {/* Restaurant-specific navigation */}
+          <Show when={restaurant.currentRestaurant && restaurantNavigation().length > 0}>
+            <li>
+              <div class="text-xs font-semibold leading-6 text-gray-400 uppercase tracking-wider">
+                {restaurant.currentRestaurant?.name}
+              </div>
+              <ul role="list" class="-mx-2 mt-2 space-y-1">
+                <For each={restaurantNavigation()}>
+                  {(item) => (
+                    <li>
+                      <A
+                        href={item.href}
+                        class="text-gray-300 hover:text-white hover:bg-gray-800 group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold"
+                        activeClass="bg-gray-800 text-white"
+                        onClick={() => ui.setSidebarOpen(false)}
+                      >
+                        <span class="text-lg">{item.icon}</span>
+                        {item.name}
+                      </A>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </li>
+          </Show>
         </ul>
       </nav>
     </div>
