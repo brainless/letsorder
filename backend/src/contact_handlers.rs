@@ -21,7 +21,14 @@ impl RateLimiter {
     }
 
     pub fn check_rate_limit(&self, ip: &str, max_requests: usize, window: Duration) -> bool {
-        let mut requests = self.requests.lock().unwrap();
+        // Handle mutex lock poisoning gracefully
+        let mut requests = match self.requests.lock() {
+            Ok(requests) => requests,
+            Err(poisoned) => {
+                log::warn!("Rate limiter mutex was poisoned, recovering...");
+                poisoned.into_inner()
+            }
+        };
         let now = Instant::now();
 
         // Get or create entry for this IP
@@ -86,8 +93,11 @@ pub async fn submit_contact_form(
         })));
     }
 
-    // Basic email validation
-    if !req.email.contains('@') || !req.email.contains('.') {
+    // Enhanced email validation with regex
+    let email_regex = regex::Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+        .expect("Invalid email regex pattern");
+
+    if !email_regex.is_match(&req.email.trim()) {
         return Ok(HttpResponse::BadRequest().json(serde_json::json!({
             "error": "Invalid email format"
         })));

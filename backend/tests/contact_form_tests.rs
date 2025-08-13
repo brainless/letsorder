@@ -244,7 +244,7 @@ async fn test_rate_limiting_basic() {
     // Submit multiple requests quickly (rate limiter allows 5 per hour)
     for i in 0..5 {
         let req = test::TestRequest::post()
-            .uri("/api/contact")
+            .uri("/contact")
             .set_json(&json!({
                 "name": "John Doe",
                 "email": format!("john{}@example.com", i),
