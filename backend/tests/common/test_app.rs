@@ -36,13 +36,26 @@ impl TestApp {
 
     pub async fn cleanup(&self) {
         // Clean up test data between tests
+        let _ = sqlx::query("DELETE FROM contact_submissions")
+            .execute(&self.pool)
+            .await;
         let _ = sqlx::query("DELETE FROM orders").execute(&self.pool).await;
-        let _ = sqlx::query("DELETE FROM menu_items").execute(&self.pool).await;
-        let _ = sqlx::query("DELETE FROM menu_sections").execute(&self.pool).await;
+        let _ = sqlx::query("DELETE FROM menu_items")
+            .execute(&self.pool)
+            .await;
+        let _ = sqlx::query("DELETE FROM menu_sections")
+            .execute(&self.pool)
+            .await;
         let _ = sqlx::query("DELETE FROM tables").execute(&self.pool).await;
-        let _ = sqlx::query("DELETE FROM restaurant_managers").execute(&self.pool).await;
-        let _ = sqlx::query("DELETE FROM manager_invites").execute(&self.pool).await;
-        let _ = sqlx::query("DELETE FROM restaurants").execute(&self.pool).await;
+        let _ = sqlx::query("DELETE FROM restaurant_managers")
+            .execute(&self.pool)
+            .await;
+        let _ = sqlx::query("DELETE FROM manager_invites")
+            .execute(&self.pool)
+            .await;
+        let _ = sqlx::query("DELETE FROM restaurants")
+            .execute(&self.pool)
+            .await;
         let _ = sqlx::query("DELETE FROM users").execute(&self.pool).await;
 
         // Re-seed with fresh test data

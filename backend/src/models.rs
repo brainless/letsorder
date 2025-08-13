@@ -562,3 +562,62 @@ impl From<TableRow> for Table {
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, TS)]
+#[ts(export)]
+pub struct ContactSubmission {
+    pub id: String,
+    pub name: String,
+    pub email: String,
+    pub subject: Option<String>,
+    pub message: String,
+    pub ip_address: Option<String>,
+    pub user_agent: Option<String>,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct ContactSubmissionRow {
+    pub id: String,
+    pub name: String,
+    pub email: String,
+    pub subject: Option<String>,
+    pub message: String,
+    pub ip_address: Option<String>,
+    pub user_agent: Option<String>,
+    pub status: String,
+    pub created_at: NaiveDateTime,
+}
+
+impl From<ContactSubmissionRow> for ContactSubmission {
+    fn from(row: ContactSubmissionRow) -> Self {
+        Self {
+            id: row.id,
+            name: row.name,
+            email: row.email,
+            subject: row.subject,
+            message: row.message,
+            ip_address: row.ip_address,
+            user_agent: row.user_agent,
+            status: row.status,
+            created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct CreateContactRequest {
+    pub name: String,
+    pub email: String,
+    pub subject: Option<String>,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ContactResponse {
+    pub message: String,
+    pub submission_id: String,
+}

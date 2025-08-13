@@ -8,6 +8,7 @@ use sqlx::{Pool, Sqlite};
 use ts_rs::TS;
 
 pub mod auth;
+pub mod contact_handlers;
 pub mod handlers;
 pub mod menu_handlers;
 pub mod models;
@@ -133,6 +134,7 @@ pub fn create_app(
     >,
 > {
     let auth_middleware = HttpAuthentication::bearer(auth::jwt_validator);
+    let rate_limiter = web::Data::new(contact_handlers::RateLimiter::new());
 
     App::new()
         .wrap(
@@ -149,6 +151,7 @@ pub fn create_app(
         )
         .app_data(web::Data::new(pool))
         .app_data(web::Data::new(jwt_manager))
+        .app_data(rate_limiter)
         .route("/health", web::get().to(health))
         .service(
             web::scope("/auth")
@@ -289,6 +292,19 @@ pub fn create_app(
                 .route(
                     "/restaurants/{id}/tables/{table_id}/orders",
                     web::get().to(order_handlers::list_table_orders),
+                )
+                // Contact form management routes (admin only)
+                .route(
+                    "/contact/submissions",
+                    web::get().to(contact_handlers::list_contact_submissions),
+                )
+                .route(
+                    "/contact/submissions/{id}",
+                    web::get().to(contact_handlers::get_contact_submission),
+                )
+                .route(
+                    "/contact/submissions/{id}/status",
+                    web::put().to(contact_handlers::update_contact_submission_status),
                 ),
         )
         // Public routes for joining restaurant
@@ -310,6 +326,11 @@ pub fn create_app(
         .route(
             "/orders/{order_id}",
             web::get().to(order_handlers::get_order),
+        )
+        // Public contact form route
+        .route(
+            "/contact",
+            web::post().to(contact_handlers::submit_contact_form),
         )
 }
 

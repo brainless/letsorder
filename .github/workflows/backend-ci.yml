@@ -53,6 +53,7 @@ jobs:
           sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
           sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
           sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          sqlite3 temp.db < migrations/20250813000004_add_contact_submissions.sql
           cargo sqlx prepare -- --all-targets
         env:
           DATABASE_URL: sqlite:./temp.db
@@ -114,6 +115,7 @@ jobs:
           sqlite3 test.db < migrations/20250131000001_initial_schema.sql
           sqlite3 test.db < migrations/20250131000002_manager_invites.sql
           sqlite3 test.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          sqlite3 test.db < migrations/20250813000004_add_contact_submissions.sql
 
       - name: Verify SQLx queries
         run: cargo sqlx prepare --check
@@ -156,6 +158,7 @@ jobs:
           sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
           sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
           sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          sqlite3 temp.db < migrations/20250813000004_add_contact_submissions.sql
           cargo sqlx prepare -- --all-targets
         env:
           DATABASE_URL: sqlite:./temp.db
