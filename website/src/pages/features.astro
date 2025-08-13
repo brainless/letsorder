@@ -1,5 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+// Get admin registration URL from environment
+const adminRegisterUrl = import.meta.env.PUBLIC_ADMIN_REGISTER_URL || "https://a.letsorder.app/register";
 ---
 
 <Layout
@@ -204,7 +207,7 @@ import Layout from '../layouts/Layout.astro';
         <a href="/live-demo" class="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors">
           Try Live Demo
         </a>
-        <a href="#" class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors">
+        <a href={adminRegisterUrl} class="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors">
           Get Started
         </a>
       </div>
