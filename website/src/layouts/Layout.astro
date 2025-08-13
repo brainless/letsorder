@@ -5,6 +5,9 @@ export interface Props {
 }
 
 const { title, description } = Astro.props;
+
+// Get admin registration URL from environment
+const adminRegisterUrl = import.meta.env.PUBLIC_ADMIN_REGISTER_URL || "https://a.letsorder.app/register";
 ---
 
 <html lang="en">
@@ -32,7 +35,6 @@ const { title, description } = Astro.props;
               <a href="/pricing" class="text-gray-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Pricing</a>
               <a href="/faq" class="text-gray-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">FAQ</a>
               <a href="/live-demo" class="text-gray-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">Live Demo</a>
-              <a href="#" class="bg-primary-400 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-500 transition-colors">Get Started</a>
             </div>
           </div>
           
@@ -53,7 +55,6 @@ const { title, description } = Astro.props;
             <a href="/pricing" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">Pricing</a>
             <a href="/faq" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">FAQ</a>
             <a href="/live-demo" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50">Live Demo</a>
-            <a href="#" class="block mx-3 mt-2 bg-primary-400 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-500 text-center">Get Started</a>
           </div>
         </div>
       </div>
@@ -77,7 +78,7 @@ const { title, description } = Astro.props;
               <a href="/live-demo" class="border-2 border-white text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-white hover:text-primary-600 transition-colors">
                 Live Demo
               </a>
-              <a href="#" class="bg-primary-400 text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-primary-500 transition-colors">
+              <a href={adminRegisterUrl} class="bg-primary-400 text-white px-6 py-3 rounded-lg text-center font-semibold hover:bg-primary-500 transition-colors">
                 Get Started for Free
               </a>
             </div>
@@ -132,51 +133,77 @@ const { title, description } = Astro.props;
         }
         
         // Carousel functionality
+        let currentSlide = 0;
+        const totalSlides = 3;
+        
+        // Desktop carousel
         const carouselContainer = document.getElementById('carousel-container');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
+        
+        // Mobile carousel
+        const carouselContainerMobile = document.getElementById('carousel-container-mobile');
+        const prevBtnMobile = document.getElementById('prev-btn-mobile');
+        const nextBtnMobile = document.getElementById('next-btn-mobile');
+        
+        // Shared elements
         const dots = document.querySelectorAll('.carousel-dot');
         
-        if (carouselContainer && prevBtn && nextBtn) {
-          let currentSlide = 0;
-          const totalSlides = 3;
+        function updateCarousel() {
+          const translateX = -currentSlide * 100;
           
-          function updateCarousel() {
-            const translateX = -currentSlide * 100;
+          // Update desktop carousel
+          if (carouselContainer) {
             carouselContainer.style.transform = `translateX(${translateX}%)`;
-            
-            // Update dots
-            dots.forEach((dot, index) => {
-              if (index === currentSlide) {
-                dot.className = 'carousel-dot w-3 h-3 bg-primary-400 rounded-full';
-              } else {
-                dot.className = 'carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-primary-300';
-              }
-            });
           }
           
-          function nextSlide() {
-            currentSlide = (currentSlide + 1) % totalSlides;
-            updateCarousel();
+          // Update mobile carousel
+          if (carouselContainerMobile) {
+            carouselContainerMobile.style.transform = `translateX(${translateX}%)`;
           }
           
-          function prevSlide() {
-            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-            updateCarousel();
-          }
-          
+          // Update dots
+          dots.forEach((dot, index) => {
+            if (index === currentSlide) {
+              dot.className = 'carousel-dot w-3 h-3 bg-primary-400 rounded-full';
+            } else {
+              dot.className = 'carousel-dot w-3 h-3 bg-gray-300 rounded-full hover:bg-primary-300';
+            }
+          });
+        }
+        
+        function nextSlide() {
+          currentSlide = (currentSlide + 1) % totalSlides;
+          updateCarousel();
+        }
+        
+        function prevSlide() {
+          currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+          updateCarousel();
+        }
+        
+        // Desktop buttons
+        if (nextBtn && prevBtn) {
           nextBtn.addEventListener('click', nextSlide);
           prevBtn.addEventListener('click', prevSlide);
-          
-          // Dot navigation
-          dots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-              currentSlide = index;
-              updateCarousel();
-            });
+        }
+        
+        // Mobile buttons
+        if (nextBtnMobile && prevBtnMobile) {
+          nextBtnMobile.addEventListener('click', nextSlide);
+          prevBtnMobile.addEventListener('click', prevSlide);
+        }
+        
+        // Dot navigation
+        dots.forEach((dot, index) => {
+          dot.addEventListener('click', () => {
+            currentSlide = index;
+            updateCarousel();
           });
-          
-          // Auto-advance carousel
+        });
+        
+        // Auto-advance carousel
+        if (carouselContainer || carouselContainerMobile) {
           setInterval(nextSlide, 5000);
         }
         
