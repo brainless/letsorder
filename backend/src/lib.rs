@@ -328,7 +328,10 @@ pub fn create_app(
             web::get().to(order_handlers::get_order),
         )
         // Public contact form route
-        .route("/contact", web::post().to(contact_handlers::submit_contact_form))
+        .route(
+            "/contact",
+            web::post().to(contact_handlers::submit_contact_form),
+        )
 }
 
 pub async fn run_server() -> std::io::Result<()> {

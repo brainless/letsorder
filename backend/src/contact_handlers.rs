@@ -121,7 +121,7 @@ pub async fn submit_contact_form(
     }
 
     let submission_id = Uuid::new_v4().to_string();
-    
+
     // Pre-process the trimmed values to avoid lifetime issues
     let name_trimmed = req.name.trim();
     let email_trimmed = req.email.trim();
@@ -170,9 +170,7 @@ pub async fn submit_contact_form(
     }
 }
 
-pub async fn list_contact_submissions(
-    pool: web::Data<Pool<Sqlite>>,
-) -> Result<HttpResponse> {
+pub async fn list_contact_submissions(pool: web::Data<Pool<Sqlite>>) -> Result<HttpResponse> {
     // Note: This is a simple implementation. In production, you'd want:
     // 1. Authentication/authorization to limit access
     // 2. Pagination
@@ -182,17 +180,15 @@ pub async fn list_contact_submissions(
         "SELECT id, name, email, subject, message, ip_address, user_agent, status, created_at 
          FROM contact_submissions 
          ORDER BY created_at DESC 
-         LIMIT 100"
+         LIMIT 100",
     )
     .fetch_all(pool.get_ref())
     .await;
 
     match submissions {
         Ok(rows) => {
-            let submissions: Vec<ContactSubmission> = rows
-                .into_iter()
-                .map(ContactSubmission::from)
-                .collect();
+            let submissions: Vec<ContactSubmission> =
+                rows.into_iter().map(ContactSubmission::from).collect();
             Ok(HttpResponse::Ok().json(submissions))
         }
         Err(e) => {
@@ -213,7 +209,7 @@ pub async fn get_contact_submission(
     let submission = sqlx::query_as::<_, ContactSubmissionRow>(
         "SELECT id, name, email, subject, message, ip_address, user_agent, status, created_at 
          FROM contact_submissions 
-         WHERE id = ?"
+         WHERE id = ?",
     )
     .bind(&submission_id)
     .fetch_optional(pool.get_ref())

@@ -8,8 +8,12 @@ use common::test_app::create_test_app;
 #[tokio::test]
 async fn test_submit_contact_form_success() {
     let test_app = create_test_app().await;
-    
-    let app = test::init_service(create_app(test_app.pool.clone(), test_app.jwt_manager.clone())).await;
+
+    let app = test::init_service(create_app(
+        test_app.pool.clone(),
+        test_app.jwt_manager.clone(),
+    ))
+    .await;
 
     let contact_data = json!({
         "name": "John Doe",
@@ -45,8 +49,12 @@ async fn test_submit_contact_form_success() {
 #[tokio::test]
 async fn test_submit_contact_form_validation_errors() {
     let test_app = create_test_app().await;
-    
-    let app = test::init_service(create_app(test_app.pool.clone(), test_app.jwt_manager.clone())).await;
+
+    let app = test::init_service(create_app(
+        test_app.pool.clone(),
+        test_app.jwt_manager.clone(),
+    ))
+    .await;
 
     // Test missing name
     let contact_data = json!({
@@ -112,8 +120,12 @@ async fn test_submit_contact_form_validation_errors() {
 #[tokio::test]
 async fn test_submit_contact_form_length_validation() {
     let test_app = create_test_app().await;
-    
-    let app = test::init_service(create_app(test_app.pool.clone(), test_app.jwt_manager.clone())).await;
+
+    let app = test::init_service(create_app(
+        test_app.pool.clone(),
+        test_app.jwt_manager.clone(),
+    ))
+    .await;
 
     // Test name too long
     let long_name = "a".repeat(101);
@@ -167,8 +179,12 @@ async fn test_submit_contact_form_length_validation() {
 #[tokio::test]
 async fn test_contact_form_with_optional_subject() {
     let test_app = create_test_app().await;
-    
-    let app = test::init_service(create_app(test_app.pool.clone(), test_app.jwt_manager.clone())).await;
+
+    let app = test::init_service(create_app(
+        test_app.pool.clone(),
+        test_app.jwt_manager.clone(),
+    ))
+    .await;
 
     // Test without subject (should work)
     let contact_data = json!({
@@ -212,8 +228,12 @@ async fn test_contact_form_with_optional_subject() {
 #[tokio::test]
 async fn test_rate_limiting_basic() {
     let test_app = create_test_app().await;
-    
-    let app = test::init_service(create_app(test_app.pool.clone(), test_app.jwt_manager.clone())).await;
+
+    let app = test::init_service(create_app(
+        test_app.pool.clone(),
+        test_app.jwt_manager.clone(),
+    ))
+    .await;
 
     let contact_data = json!({
         "name": "John Doe",
@@ -249,8 +269,12 @@ async fn test_rate_limiting_basic() {
 #[tokio::test]
 async fn test_contact_form_data_persistence() {
     let test_app = create_test_app().await;
-    
-    let app = test::init_service(create_app(test_app.pool.clone(), test_app.jwt_manager.clone())).await;
+
+    let app = test::init_service(create_app(
+        test_app.pool.clone(),
+        test_app.jwt_manager.clone(),
+    ))
+    .await;
 
     let contact_data = json!({
         "name": "Test User",
@@ -278,6 +302,9 @@ async fn test_contact_form_data_persistence() {
     assert_eq!(submission.name, "Test User");
     assert_eq!(submission.email, "test@example.com");
     assert_eq!(submission.subject, Some("Test Subject".to_string()));
-    assert_eq!(submission.message, "This is a test message for data persistence.");
+    assert_eq!(
+        submission.message,
+        "This is a test message for data persistence."
+    );
     assert_eq!(submission.status, "new");
 }
