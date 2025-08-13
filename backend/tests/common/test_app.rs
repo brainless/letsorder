@@ -36,6 +36,7 @@ impl TestApp {
 
     pub async fn cleanup(&self) {
         // Clean up test data between tests
+        let _ = sqlx::query("DELETE FROM contact_submissions").execute(&self.pool).await;
         let _ = sqlx::query("DELETE FROM orders").execute(&self.pool).await;
         let _ = sqlx::query("DELETE FROM menu_items").execute(&self.pool).await;
         let _ = sqlx::query("DELETE FROM menu_sections").execute(&self.pool).await;
