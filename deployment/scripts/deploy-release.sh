@@ -315,6 +315,12 @@ SQLX_OFFLINE=true cargo build --release
 BINARY_SIZE=$(du -h target/release/backend | cut -f1)
 log "Built binary size: $BINARY_SIZE"
 
+# Build demo reset binary
+log "Building demo reset binary..."
+SQLX_OFFLINE=true cargo build --release --bin demo_reset
+DEMO_BINARY_SIZE=$(du -h target/release/demo_reset | cut -f1)
+log "Built demo reset binary size: $DEMO_BINARY_SIZE"
+
 # Create database backup if requested
 if [ "$SKIP_BACKUP" != "true" ] && [ -f "$LETSORDER_DIR/data/letsorder.db" ]; then
     log "Creating database backup..."
@@ -348,10 +354,20 @@ if [ -f "$LETSORDER_DIR/bin/backend" ]; then
     cp "$LETSORDER_DIR/bin/backend" "$LETSORDER_DIR/bin/backend.old"
 fi
 
-# Install new binary
-log "Installing new binary..."
+# Install new binaries
+log "Installing new binaries..."
 cp "$REPO_DIR/backend/target/release/backend" "$LETSORDER_DIR/bin/"
+cp "$REPO_DIR/backend/target/release/demo_reset" "$LETSORDER_DIR/bin/"
 chmod +x "$LETSORDER_DIR/bin/backend"
+chmod +x "$LETSORDER_DIR/bin/demo_reset"
+
+# Install demo reset scripts
+log "Installing demo reset scripts..."
+mkdir -p "$LETSORDER_DIR/scripts"
+cp "$REPO_DIR/backend/scripts/reset-demo-data.sh" "$LETSORDER_DIR/scripts/"
+cp "$REPO_DIR/backend/scripts/demo-reset.sql" "$LETSORDER_DIR/scripts/"
+chmod +x "$LETSORDER_DIR/scripts/reset-demo-data.sh"
+chown -R letsorder:letsorder "$LETSORDER_DIR/scripts"
 
 # Install configuration files
 log "Installing configuration files..."
@@ -485,6 +501,41 @@ done
 # Reload nginx
 log "Reloading nginx..."
 sudo systemctl reload nginx
+
+# Set up demo data reset cron job
+log "Setting up demo data reset cron job..."
+CRON_JOB="0 * * * * /opt/letsorder/scripts/reset-demo-data.sh >> /opt/letsorder/logs/demo-cleanup.log 2>&1"
+
+# Create logs directory
+mkdir -p "$LETSORDER_DIR/logs"
+chown letsorder:letsorder "$LETSORDER_DIR/logs"
+chmod 755 "$LETSORDER_DIR/logs"
+
+# Add cron job for letsorder user (check if not already exists)
+if ! sudo -u letsorder crontab -l 2>/dev/null | grep -F "reset-demo-data.sh" >/dev/null; then
+    log "Adding demo reset cron job for letsorder user..."
+    (sudo -u letsorder crontab -l 2>/dev/null; echo "$CRON_JOB") | sudo -u letsorder crontab -
+    log "Demo reset cron job added (runs every hour)"
+else
+    log "Demo reset cron job already exists"
+fi
+
+# Set up log rotation for demo cleanup logs
+log "Setting up log rotation for demo cleanup logs..."
+cat > /tmp/letsorder-demo << EOF
+/opt/letsorder/logs/demo-cleanup.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 644 letsorder letsorder
+}
+EOF
+sudo cp /tmp/letsorder-demo /etc/logrotate.d/letsorder-demo
+rm -f /tmp/letsorder-demo
+log "Log rotation configured for demo cleanup logs"
 
 # Clean up temporary files
 rm -f /tmp/letsorder.service.new /tmp/nginx.conf.new
