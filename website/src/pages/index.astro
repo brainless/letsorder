@@ -1,6 +1,11 @@
 ---
 import Layout from "../layouts/Layout.astro";
 
+// Import screenshot images
+import adminDashboard from "../assets/images/LetsOrder_Admin_Dashboard.png?url";
+import guestMenu from "../assets/images/LetsOrder_Guest_Menu.png?url";
+import qrCodes from "../assets/images/LetsOrder_Admin_QR_Codes.png?url";
+
 // Get admin registration URL from environment
 const adminRegisterUrl =
     import.meta.env.PUBLIC_ADMIN_REGISTER_URL ||
@@ -77,7 +82,7 @@ const adminRegisterUrl =
                         <div class="w-full flex-shrink-0 px-4">
                             <div class="max-w-xs mx-auto">
                                 <img
-                                    src="/screenshots/LetsOrder_Admin_Dashboard.png"
+                                    src={adminDashboard}
                                     alt="Admin Dashboard Screenshot"
                                     class="w-full h-auto rounded-lg shadow-lg border border-gray-200"
                                 />
@@ -99,7 +104,7 @@ const adminRegisterUrl =
                         <div class="w-full flex-shrink-0 px-4">
                             <div class="max-w-xs mx-auto">
                                 <img
-                                    src="/screenshots/LetsOrder_Guest_Menu.png"
+                                    src={guestMenu}
                                     alt="Guest Menu Screenshot"
                                     class="w-full h-auto rounded-lg shadow-lg border border-gray-200"
                                 />
@@ -120,7 +125,7 @@ const adminRegisterUrl =
                         <div class="w-full flex-shrink-0 px-4">
                             <div class="max-w-xs mx-auto">
                                 <img
-                                    src="/screenshots/LetsOrder_Admin_QR_Codes.png"
+                                    src={qrCodes}
                                     alt="QR Codes Screenshot"
                                     class="w-full h-auto rounded-lg shadow-lg border border-gray-200"
                                 />
@@ -187,7 +192,7 @@ const adminRegisterUrl =
                         <div class="w-full flex-shrink-0 px-4">
                             <div class="max-w-sm mx-auto">
                                 <img
-                                    src="/screenshots/LetsOrder_Admin_Dashboard.png"
+                                    src={adminDashboard}
                                     alt="Admin Dashboard Screenshot"
                                     class="w-full h-auto rounded-lg shadow-lg border border-gray-200"
                                 />
@@ -209,7 +214,7 @@ const adminRegisterUrl =
                         <div class="w-full flex-shrink-0 px-4">
                             <div class="max-w-sm mx-auto">
                                 <img
-                                    src="/screenshots/LetsOrder_Guest_Menu.png"
+                                    src={guestMenu}
                                     alt="Guest Menu Screenshot"
                                     class="w-full h-auto rounded-lg shadow-lg border border-gray-200"
                                 />
@@ -230,7 +235,7 @@ const adminRegisterUrl =
                         <div class="w-full flex-shrink-0 px-4">
                             <div class="max-w-sm mx-auto">
                                 <img
-                                    src="/screenshots/LetsOrder_Admin_QR_Codes.png"
+                                    src={qrCodes}
                                     alt="QR Codes Screenshot"
                                     class="w-full h-auto rounded-lg shadow-lg border border-gray-200"
                                 />
