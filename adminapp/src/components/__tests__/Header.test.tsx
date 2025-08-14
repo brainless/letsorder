@@ -20,6 +20,24 @@ const mockUI = {
   closeSidebar: vi.fn(),
 };
 
+const mockRestaurant = {
+  restaurants: [],
+  currentRestaurant: null,
+  managers: [],
+  isLoading: false,
+  error: null,
+  loadUserRestaurants: vi.fn(),
+  createRestaurant: vi.fn(),
+  updateRestaurant: vi.fn(),
+  deleteRestaurant: vi.fn(),
+  loadRestaurantManagers: vi.fn(),
+  inviteManager: vi.fn(),
+  updateManagerPermissions: vi.fn(),
+  removeManager: vi.fn(),
+  setCurrentRestaurant: vi.fn(),
+  clearError: vi.fn(),
+};
+
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => mockAuth,
 }));
@@ -28,8 +46,17 @@ vi.mock('../../contexts/UIContext', () => ({
   useUI: () => mockUI,
 }));
 
+vi.mock('../../contexts/RestaurantContext', () => ({
+  useRestaurant: () => mockRestaurant,
+}));
+
+vi.mock('@solidjs/router', () => ({
+  useNavigate: () => vi.fn(),
+}));
+
 // Now import Header after mocking
 import Header from '../Header';
+
 
 describe('Header Component', () => {
   beforeEach(() => {
@@ -38,11 +65,15 @@ describe('Header Component', () => {
     mockAuth.user = null;
     mockAuth.isAuthenticated = false;
     mockUI.sidebarOpen = false;
+    mockRestaurant.restaurants = [];
+    mockRestaurant.currentRestaurant = null;
   });
 
-  it('renders the application title', () => {
+  it('renders the application title as a link', () => {
     render(() => <Header />);
-    expect(screen.getByText('LetsOrder Admin')).toBeInTheDocument();
+    const adminLink = screen.getByRole('link', { name: 'Admin' });
+    expect(adminLink).toBeInTheDocument();
+    expect(adminLink).toHaveAttribute('href', '/');
   });
 
   it('shows user menu when authenticated', () => {
