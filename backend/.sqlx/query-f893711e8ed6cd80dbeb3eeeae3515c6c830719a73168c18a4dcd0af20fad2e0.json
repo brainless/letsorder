@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM menu_items \n         WHERE section_id IN (\n             SELECT id FROM menu_sections WHERE restaurant_id = 'demo-restaurant-123'\n         )",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "f893711e8ed6cd80dbeb3eeeae3515c6c830719a73168c18a4dcd0af20fad2e0"
+}

@@ -484,6 +484,106 @@ Critical errors: 0
 
 **Automation**: Can be run from CI/CD pipelines or monitoring systems for automated health checks.
 
+## Demo Data Management
+
+### Overview
+
+The deployment system includes automated demo data management for marketing demos. This ensures consistent demo URLs and clean demo experience by periodically resetting demo data.
+
+### Demo URLs
+- **Admin Demo**: `https://a.letsorder.app` (login: `demo@letsorder.app` / `demo123`)
+- **Menu Demo**: `https://m.letsorder.app/restaurant/demo-restaurant-123/table/demo-table-456`
+
+### Demo Data Structure
+- **Restaurant ID**: `demo-restaurant-123` (fixed for consistent URLs)
+- **Table ID**: `demo-table-456` (fixed for consistent URLs)
+- **Table Code**: `DEMO001`
+- **Manager Email**: `demo@letsorder.app`
+- **Manager Password**: `demo123`
+
+### Automated Reset System
+
+**Cron Job**: Demo data is automatically reset every hour on the hour.
+**Log File**: `/opt/letsorder/logs/demo-cleanup.log`
+**Scripts Location**: `/opt/letsorder/scripts/`
+
+### Manual Demo Reset
+
+```bash
+# Reset demo data manually (on server)
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 '/opt/letsorder/scripts/reset-demo-data.sh'
+
+# Reset with custom database path
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 '/opt/letsorder/scripts/reset-demo-data.sh /custom/path/to/database.db'
+
+# Check demo reset logs
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'tail -f /opt/letsorder/logs/demo-cleanup.log'
+```
+
+### Demo Reset Process
+
+The reset process:
+1. **Clears orders** for the demo restaurant
+2. **Resets menu** to default sample items (10 items across 3 sections)
+3. **Recreates manager** with demo credentials
+4. **Preserves structure** (restaurant and table with fixed IDs)
+5. **Verifies success** and logs results
+
+### Demo Reset Components
+
+**Rust Binary** (`/opt/letsorder/bin/demo_reset`):
+- Primary method using proper password hashing (Argon2)
+- Database-safe transactions
+- Comprehensive error handling
+
+**Shell Script** (`/opt/letsorder/scripts/reset-demo-data.sh`):
+- Orchestrates reset process
+- Handles logging and verification
+- Falls back to SQL script if Rust binary unavailable
+
+**SQL Script** (`/opt/letsorder/scripts/demo-reset.sql`):
+- Fallback method for demo reset
+- Used when Rust binary is not available
+
+### Monitoring Demo System
+
+```bash
+# Check cron job status
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'sudo -u letsorder crontab -l'
+
+# Verify demo data exists
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'sqlite3 /opt/letsorder/data/letsorder.db "SELECT id, name FROM restaurants WHERE id = \"demo-restaurant-123\";"'
+
+# Check demo reset logs
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'tail -20 /opt/letsorder/logs/demo-cleanup.log'
+```
+
+### Demo Data Troubleshooting
+
+**Issue**: Demo URLs not working
+```bash
+# Verify demo restaurant exists
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'sqlite3 /opt/letsorder/data/letsorder.db "SELECT COUNT(*) FROM restaurants WHERE id = \"demo-restaurant-123\";"'
+
+# Check table exists
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'sqlite3 /opt/letsorder/data/letsorder.db "SELECT id, unique_code FROM tables WHERE id = \"demo-table-456\";"'
+
+# Manually reset demo data
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 '/opt/letsorder/scripts/reset-demo-data.sh'
+```
+
+**Issue**: Cron job not running
+```bash
+# Check cron job exists
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'sudo -u letsorder crontab -l | grep demo'
+
+# Check cron service status
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 'sudo systemctl status cron'
+
+# Re-add cron job if missing
+ssh -i ~/.ssh/id_rsa letsorder@1.2.3.4 '(sudo -u letsorder crontab -l 2>/dev/null; echo "0 * * * * /opt/letsorder/scripts/reset-demo-data.sh >> /opt/letsorder/logs/demo-cleanup.log 2>&1") | sudo -u letsorder crontab -'
+```
+
 ## Related Resources
 
 - [LetsOrder Project Repository](https://github.com/brainless/letsorder)

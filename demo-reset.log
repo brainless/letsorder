@@ -1,0 +1,77 @@
+2025-08-14 14:09:44 [DEMO-RESET] Starting demo data reset...
+2025-08-14 14:09:44 [DEMO-RESET] Rust binary not found, falling back to SQL script method...
+2025-08-14 14:09:44 [DEMO-RESET] Using fallback password hash for demo user
+2025-08-14 14:12:33 [DEMO-RESET] Starting demo data reset...
+2025-08-14 14:12:33 [DEMO-RESET] Rust binary not found, falling back to SQL script method...
+2025-08-14 14:12:33 [DEMO-RESET] Using fallback password hash for demo user
+2025-08-14 14:12:33 [DEMO-RESET] Executing demo data reset SQL script...
+2025-08-14 14:12:33 [DEMO-RESET] Demo data reset completed successfully using SQL fallback
+2025-08-14 14:12:33 [DEMO-RESET] Demo Access Information:
+2025-08-14 14:12:33 [DEMO-RESET]   Restaurant ID: demo-restaurant-123
+2025-08-14 14:12:33 [DEMO-RESET]   Table ID: demo-table-456
+2025-08-14 14:12:33 [DEMO-RESET]   Manager Email: demo@letsorder.app
+2025-08-14 14:12:33 [DEMO-RESET]   Manager Password: demo123
+2025-08-14 14:12:33 [DEMO-RESET]   Table Code: DEMO001
+2025-08-14 14:12:33 [DEMO-RESET]   Admin URL: https://a.letsorder.app
+2025-08-14 14:12:33 [DEMO-RESET]   Menu URL: https://m.letsorder.app/restaurant/demo-restaurant-123/table/demo-table-456
+2025-08-14 14:12:33 [DEMO-RESET] Verifying demo data...
+2025-08-14 14:12:33 [DEMO-RESET] Demo data verification successful: Restaurant=1, Table=1, User=1, MenuItems=10
+2025-08-14 14:12:33 [DEMO-RESET] Demo data reset process completed
+2025-08-14 14:17:15 [DEMO-RESET] Starting demo data reset...
+2025-08-14 14:17:15 [DEMO-RESET] Using development Rust binary for demo data reset...
+2025-08-14 14:17:15 [DEMO-RESET] Demo data reset completed successfully using development Rust binary
+2025-08-14 14:17:15 [DEMO-RESET] Demo Access Information:
+2025-08-14 14:17:15 [DEMO-RESET]   Restaurant ID: demo-restaurant-123
+2025-08-14 14:17:15 [DEMO-RESET]   Table ID: demo-table-456
+2025-08-14 14:17:15 [DEMO-RESET]   Manager Email: demo@letsorder.app
+2025-08-14 14:17:15 [DEMO-RESET]   Manager Password: demo123
+2025-08-14 14:17:15 [DEMO-RESET]   Table Code: DEMO001
+2025-08-14 14:17:15 [DEMO-RESET]   Admin URL: https://a.letsorder.app
+2025-08-14 14:17:15 [DEMO-RESET]   Menu URL: https://m.letsorder.app/restaurant/demo-restaurant-123/table/demo-table-456
+2025-08-14 14:17:15 [DEMO-RESET] Verifying demo data...
+2025-08-14 14:17:15 [DEMO-RESET] Demo data verification successful: Restaurant=1, Table=1, User=1, MenuItems=10
+2025-08-14 14:17:15 [DEMO-RESET] Demo data reset process completed
+2025-08-14 14:58:03 [DEMO-RESET] Starting demo data reset...
+2025-08-14 14:58:03 [DEMO-RESET] Using development Rust binary for demo data reset...
+2025-08-14 14:58:03 [DEMO-RESET] Demo data reset completed successfully using development Rust binary
+2025-08-14 14:58:03 [DEMO-RESET] Demo Access Information:
+2025-08-14 14:58:03 [DEMO-RESET]   Restaurant ID: demo-restaurant-123
+2025-08-14 14:58:03 [DEMO-RESET]   Table ID: demo-table-456
+2025-08-14 14:58:03 [DEMO-RESET]   Manager Email: demo@letsorder.app
+2025-08-14 14:58:03 [DEMO-RESET]   Manager Password: demo123
+2025-08-14 14:58:03 [DEMO-RESET]   Table Code: DEMO001
+2025-08-14 14:58:03 [DEMO-RESET]   Admin URL: https://a.letsorder.app
+2025-08-14 14:58:03 [DEMO-RESET]   Menu URL: https://m.letsorder.app/restaurant/demo-restaurant-123/table/demo-table-456
+2025-08-14 14:58:03 [DEMO-RESET] Verifying demo data...
+2025-08-14 14:58:04 [DEMO-RESET] Demo data verification successful: Restaurant=1, Table=1, User=1, MenuItems=10
+2025-08-14 14:58:04 [DEMO-RESET] Demo data reset process completed
+2025-08-14 14:58:10 [DEMO-RESET] Starting demo data reset...
+2025-08-14 14:58:10 [DEMO-RESET] Using development Rust binary for demo data reset...
+2025-08-14 14:58:10 [DEMO-RESET] Demo data reset completed successfully using development Rust binary
+2025-08-14 14:58:10 [DEMO-RESET] Demo Access Information:
+2025-08-14 14:58:10 [DEMO-RESET]   Restaurant ID: demo-restaurant-123
+2025-08-14 14:58:10 [DEMO-RESET]   Table ID: demo-table-456
+2025-08-14 14:58:10 [DEMO-RESET]   Manager Email: demo@letsorder.app
+2025-08-14 14:58:10 [DEMO-RESET]   Manager Password: demo123
+2025-08-14 14:58:10 [DEMO-RESET]   Table Code: DEMO001
+2025-08-14 14:58:10 [DEMO-RESET]   Admin URL: https://a.letsorder.app
+2025-08-14 14:58:10 [DEMO-RESET]   Menu URL: https://m.letsorder.app/restaurant/demo-restaurant-123/table/demo-table-456
+2025-08-14 14:58:10 [DEMO-RESET] Verifying demo data...
+2025-08-14 14:58:10 [DEMO-RESET] Demo data verification successful: Restaurant=1, Table=1, User=1, MenuItems=10
+2025-08-14 14:58:10 [DEMO-RESET] Demo data reset process completed
+2025-08-14 15:02:28 [DEMO-RESET] Starting demo data reset...
+2025-08-14 15:02:28 [DEMO-RESET] Rust binary not found, falling back to SQL script method...
+2025-08-14 15:02:28 [DEMO-RESET] Using fallback password hash for demo user
+2025-08-14 15:02:28 [DEMO-RESET] Executing demo data reset SQL script...
+2025-08-14 15:02:28 [DEMO-RESET] Demo data reset completed successfully using SQL fallback
+2025-08-14 15:02:28 [DEMO-RESET] Demo Access Information:
+2025-08-14 15:02:28 [DEMO-RESET]   Restaurant ID: demo-restaurant-123
+2025-08-14 15:02:28 [DEMO-RESET]   Table ID: demo-table-456
+2025-08-14 15:02:28 [DEMO-RESET]   Manager Email: demo@letsorder.app
+2025-08-14 15:02:28 [DEMO-RESET]   Manager Password: demo123
+2025-08-14 15:02:28 [DEMO-RESET]   Table Code: DEMO001
+2025-08-14 15:02:28 [DEMO-RESET]   Admin URL: https://a.letsorder.app
+2025-08-14 15:02:28 [DEMO-RESET]   Menu URL: https://m.letsorder.app/restaurant/demo-restaurant-123/table/demo-table-456
+2025-08-14 15:02:28 [DEMO-RESET] Verifying demo data...
+2025-08-14 15:02:28 [DEMO-RESET] Demo data verification successful: Restaurant=1, Table=1, User=1, MenuItems=10
+2025-08-14 15:02:28 [DEMO-RESET] Demo data reset process completed
