@@ -20,12 +20,34 @@ const mockUI = {
   closeSidebar: vi.fn(),
 };
 
+const mockRestaurant = {
+  restaurants: [],
+  currentRestaurant: null,
+  managers: [],
+  isLoading: false,
+  error: null,
+  loadUserRestaurants: vi.fn(),
+  createRestaurant: vi.fn(),
+  updateRestaurant: vi.fn(),
+  deleteRestaurant: vi.fn(),
+  loadRestaurantManagers: vi.fn(),
+  inviteManager: vi.fn(),
+  updateManagerPermissions: vi.fn(),
+  removeManager: vi.fn(),
+  setCurrentRestaurant: vi.fn(),
+  clearError: vi.fn(),
+};
+
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => mockAuth,
 }));
 
 vi.mock('../../contexts/UIContext', () => ({
   useUI: () => mockUI,
+}));
+
+vi.mock('../../contexts/RestaurantContext', () => ({
+  useRestaurant: () => mockRestaurant,
 }));
 
 // Now import Header after mocking
@@ -38,6 +60,8 @@ describe('Header Component', () => {
     mockAuth.user = null;
     mockAuth.isAuthenticated = false;
     mockUI.sidebarOpen = false;
+    mockRestaurant.restaurants = [];
+    mockRestaurant.currentRestaurant = null;
   });
 
   it('renders the application title', () => {
