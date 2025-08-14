@@ -364,10 +364,26 @@ chmod +x "$LETSORDER_DIR/bin/demo_reset"
 # Install demo reset scripts
 log "Installing demo reset scripts..."
 mkdir -p "$LETSORDER_DIR/scripts"
+
+# Install shell script (always update for potential fixes)
+if [ ! -f "$LETSORDER_DIR/scripts/reset-demo-data.sh" ]; then
+    log "Installing demo reset shell script..."
+else
+    log "Updating demo reset shell script..."
+fi
 cp "$REPO_DIR/backend/scripts/reset-demo-data.sh" "$LETSORDER_DIR/scripts/"
-cp "$REPO_DIR/backend/scripts/demo-reset.sql" "$LETSORDER_DIR/scripts/"
 chmod +x "$LETSORDER_DIR/scripts/reset-demo-data.sh"
+
+# Install SQL script (always update for potential fixes)
+if [ ! -f "$LETSORDER_DIR/scripts/demo-reset.sql" ]; then
+    log "Installing demo reset SQL script..."
+else
+    log "Updating demo reset SQL script..."
+fi
+cp "$REPO_DIR/backend/scripts/demo-reset.sql" "$LETSORDER_DIR/scripts/"
+
 chown -R letsorder:letsorder "$LETSORDER_DIR/scripts"
+log "Demo reset scripts installed/updated"
 
 # Install configuration files
 log "Installing configuration files..."
@@ -522,7 +538,10 @@ fi
 
 # Set up log rotation for demo cleanup logs
 log "Setting up log rotation for demo cleanup logs..."
-cat > /tmp/letsorder-demo << EOF
+LOGROTATE_CONFIG="/etc/logrotate.d/letsorder-demo"
+if [ ! -f "$LOGROTATE_CONFIG" ]; then
+    log "Creating log rotation configuration..."
+    cat > /tmp/letsorder-demo << EOF
 /opt/letsorder/logs/demo-cleanup.log {
     daily
     rotate 7
@@ -533,9 +552,12 @@ cat > /tmp/letsorder-demo << EOF
     create 644 letsorder letsorder
 }
 EOF
-sudo cp /tmp/letsorder-demo /etc/logrotate.d/letsorder-demo
-rm -f /tmp/letsorder-demo
-log "Log rotation configured for demo cleanup logs"
+    sudo cp /tmp/letsorder-demo "$LOGROTATE_CONFIG"
+    rm -f /tmp/letsorder-demo
+    log "Log rotation configuration created"
+else
+    log "Log rotation configuration already exists"
+fi
 
 # Clean up temporary files
 rm -f /tmp/letsorder.service.new /tmp/nginx.conf.new
