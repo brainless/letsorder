@@ -36,7 +36,7 @@ if [[ ! -f "$SQL_SCRIPT" ]]; then
 fi
 
 # Use Rust binary for demo data reset (preferred method)
-if command -v /opt/letsorder/bin/demo_reset >/dev/null 2>&1; then
+if [[ -x /opt/letsorder/bin/demo_reset ]]; then
     log "Using Rust binary for demo data reset..."
     if /opt/letsorder/bin/demo_reset --database-url="sqlite:$DB_PATH" --password="$DEMO_PASSWORD"; then
         log "Demo data reset completed successfully using Rust binary"
@@ -57,8 +57,8 @@ else
     # Fallback to SQL script method
     log "Rust binary not found, falling back to SQL script method..."
     
-    # Generate password hash - fallback to pre-computed hash
-    DEMO_PASSWORD_HASH='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBdN7FwcVBxRhK'
+    # Generate password hash - fallback to pre-computed Argon2 hash for "demo123"
+    DEMO_PASSWORD_HASH='$argon2id$v=19$m=19456,t=2,p=1$P1M5X5QOmd1I4JtqbkxHcw$qbq3aeXHucs3TenzMJoQd/IRxLleP4siIqcYqO+cZ/A'
     log "Using fallback password hash for demo user"
 
     # Create a temporary SQL file with the password hash substituted
@@ -91,10 +91,16 @@ log "  Menu URL: https://m.letsorder.app/restaurant/demo-restaurant-123/table/de
 
 # Verify the demo data was created correctly
 log "Verifying demo data..."
-RESTAURANT_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM restaurants WHERE id = 'demo-restaurant-123';")
-TABLE_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM tables WHERE id = 'demo-table-456';")
-USER_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM users WHERE email = '$DEMO_USER_EMAIL';")
-MENU_ITEMS_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM menu_items WHERE section_id IN (SELECT id FROM menu_sections WHERE restaurant_id = 'demo-restaurant-123');")
+RESTAURANT_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM restaurants WHERE id = 'demo-restaurant-123';" 2>/dev/null || echo "0")
+TABLE_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM tables WHERE id = 'demo-table-456';" 2>/dev/null || echo "0")
+USER_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM users WHERE email = '$DEMO_USER_EMAIL';" 2>/dev/null || echo "0")
+MENU_ITEMS_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM menu_items WHERE section_id IN (SELECT id FROM menu_sections WHERE restaurant_id = 'demo-restaurant-123');" 2>/dev/null || echo "0")
+
+# Ensure counts are numeric (default to 0 if empty)
+RESTAURANT_COUNT=${RESTAURANT_COUNT:-0}
+TABLE_COUNT=${TABLE_COUNT:-0}
+USER_COUNT=${USER_COUNT:-0}
+MENU_ITEMS_COUNT=${MENU_ITEMS_COUNT:-0}
 
 if [[ "$RESTAURANT_COUNT" -eq 1 && "$TABLE_COUNT" -eq 1 && "$USER_COUNT" -eq 1 && "$MENU_ITEMS_COUNT" -gt 0 ]]; then
     log "Demo data verification successful: Restaurant=$RESTAURANT_COUNT, Table=$TABLE_COUNT, User=$USER_COUNT, MenuItems=$MENU_ITEMS_COUNT"

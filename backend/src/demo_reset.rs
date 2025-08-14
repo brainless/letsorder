@@ -120,7 +120,7 @@ async fn reset_demo_data(pool: &Pool<Sqlite>, password_hash: &str) -> Result<(),
 
     // Create demo user with fixed credentials
     sqlx::query!(
-        "INSERT INTO users (id, email, phone, password_hash) VALUES (?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO users (id, email, phone, password_hash) VALUES (?, ?, ?, ?)",
         "demo-user-789",
         "demo@letsorder.app",
         "+1234567890",
@@ -131,7 +131,7 @@ async fn reset_demo_data(pool: &Pool<Sqlite>, password_hash: &str) -> Result<(),
 
     // Create demo restaurant with fixed ID
     sqlx::query!(
-        "INSERT INTO restaurants (id, name, address, establishment_year, google_maps_link) 
+        "INSERT OR REPLACE INTO restaurants (id, name, address, establishment_year, google_maps_link) 
          VALUES (?, ?, ?, ?, ?)",
         "demo-restaurant-123",
         "Demo Restaurant",
@@ -144,7 +144,7 @@ async fn reset_demo_data(pool: &Pool<Sqlite>, password_hash: &str) -> Result<(),
 
     // Link demo user as restaurant manager
     sqlx::query!(
-        "INSERT INTO restaurant_managers (restaurant_id, user_id, role, can_manage_menu) 
+        "INSERT OR REPLACE INTO restaurant_managers (restaurant_id, user_id, role, can_manage_menu) 
          VALUES (?, ?, ?, ?)",
         "demo-restaurant-123",
         "demo-user-789",
@@ -156,7 +156,7 @@ async fn reset_demo_data(pool: &Pool<Sqlite>, password_hash: &str) -> Result<(),
 
     // Create demo table with fixed ID
     sqlx::query!(
-        "INSERT INTO tables (id, restaurant_id, name, unique_code) VALUES (?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO tables (id, restaurant_id, name, unique_code) VALUES (?, ?, ?, ?)",
         "demo-table-456",
         "demo-restaurant-123",
         "Demo Table",
@@ -174,7 +174,7 @@ async fn reset_demo_data(pool: &Pool<Sqlite>, password_hash: &str) -> Result<(),
 
     for (section_id, name, display_order) in sections {
         sqlx::query!(
-            "INSERT INTO menu_sections (id, restaurant_id, name, display_order) 
+            "INSERT OR REPLACE INTO menu_sections (id, restaurant_id, name, display_order) 
              VALUES (?, ?, ?, ?)",
             section_id,
             "demo-restaurant-123",
@@ -274,7 +274,7 @@ async fn reset_demo_data(pool: &Pool<Sqlite>, password_hash: &str) -> Result<(),
 
     for (item_id, section_id, name, description, price, display_order) in menu_items {
         sqlx::query!(
-            "INSERT INTO menu_items (id, section_id, name, description, price, available, display_order) 
+            "INSERT OR REPLACE INTO menu_items (id, section_id, name, description, price, available, display_order) 
              VALUES (?, ?, ?, ?, ?, ?, ?)",
             item_id,
             section_id,
