@@ -11,6 +11,10 @@ path = "src/setup_db.rs"
 name = "generate_types"
 path = "src/generate_types.rs"
 
+[[bin]]
+name = "demo_reset"
+path = "src/demo_reset.rs"
+
 [dependencies]
 actix-web = "4.4"
 actix-cors = "0.7"
@@ -33,6 +37,7 @@ image = "0.24"
 base64 = "0.21"
 regex = "1.10"
 ts-rs = { version = "8.1", features = ["serde-compat", "uuid-impl", "chrono-impl"] }
+clap = { version = "4.0", features = ["derive"] }
 
 [dev-dependencies]
 tokio-test = "0.4"
