@@ -1,4 +1,5 @@
-import { createSignal, Show, For } from 'solid-js';
+import { createSignal, Show, For, createEffect } from 'solid-js';
+import { useParams, useNavigate } from '@solidjs/router';
 import { useRestaurant } from '../contexts/RestaurantContext';
 import RestaurantList from '../components/restaurant/RestaurantList';
 import RestaurantForm from '../components/restaurant/RestaurantForm';
@@ -9,9 +10,29 @@ type ViewMode = 'list' | 'create' | 'edit' | 'details';
 
 function RestaurantDashboard() {
   const restaurant = useRestaurant();
+  const params = useParams();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = createSignal<ViewMode>('list');
   const [editingRestaurant, setEditingRestaurant] =
     createSignal<Restaurant | null>(null);
+
+  // Handle URL-based restaurant selection
+  createEffect(() => {
+    const restaurantId = params.restaurantId;
+    if (restaurantId && restaurant.restaurants.length > 0) {
+      const foundRestaurant = restaurant.restaurants.find(r => r.id === restaurantId);
+      if (foundRestaurant) {
+        restaurant.setCurrentRestaurant(foundRestaurant);
+        setViewMode('details');
+      } else {
+        // Restaurant not found, redirect to list
+        navigate('/restaurants', { replace: true });
+      }
+    } else if (!restaurantId) {
+      // No restaurant ID in URL, show list view
+      setViewMode('list');
+    }
+  });
 
   const handleCreateNew = () => {
     setEditingRestaurant(null);
@@ -24,8 +45,7 @@ function RestaurantDashboard() {
   };
 
   const handleView = (restaurantToView: Restaurant) => {
-    restaurant.setCurrentRestaurant(restaurantToView);
-    setViewMode('details');
+    navigate(`/restaurants/${restaurantToView.id}`);
   };
 
   const handleFormSuccess = (newRestaurant: Restaurant) => {
@@ -39,8 +59,7 @@ function RestaurantDashboard() {
   };
 
   const handleBackToList = () => {
-    setViewMode('list');
-    restaurant.setCurrentRestaurant(null);
+    navigate('/restaurants');
   };
 
   return (

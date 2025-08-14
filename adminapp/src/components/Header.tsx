@@ -1,4 +1,5 @@
 import { createSignal, Show, For } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 import { useRestaurant } from '../contexts/RestaurantContext';
@@ -9,6 +10,7 @@ function Header() {
   const auth = useAuth();
   const ui = useUI();
   const restaurant = useRestaurant();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     auth.logout();
@@ -18,6 +20,9 @@ function Header() {
   const handleRestaurantSelect = (selectedRestaurant: typeof restaurant.currentRestaurant) => {
     restaurant.setCurrentRestaurant(selectedRestaurant);
     setRestaurantMenuOpen(false);
+    if (selectedRestaurant) {
+      navigate(`/restaurants/${selectedRestaurant.id}`);
+    }
   };
 
   const getUserInitials = () => {
@@ -57,9 +62,12 @@ function Header() {
 
       <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <div class="relative flex flex-1">
-          <h1 class="text-xl font-semibold text-gray-900 self-center">
-            LetsOrder Admin
-          </h1>
+          <a
+            href="/"
+            class="text-xl font-semibold text-gray-900 self-center hover:text-gray-700 transition-colors"
+          >
+            Admin
+          </a>
         </div>
 
         {/* Restaurant selector dropdown */}

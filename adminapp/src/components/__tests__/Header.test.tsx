@@ -50,8 +50,13 @@ vi.mock('../../contexts/RestaurantContext', () => ({
   useRestaurant: () => mockRestaurant,
 }));
 
+vi.mock('@solidjs/router', () => ({
+  useNavigate: () => vi.fn(),
+}));
+
 // Now import Header after mocking
 import Header from '../Header';
+
 
 describe('Header Component', () => {
   beforeEach(() => {
@@ -64,9 +69,11 @@ describe('Header Component', () => {
     mockRestaurant.currentRestaurant = null;
   });
 
-  it('renders the application title', () => {
+  it('renders the application title as a link', () => {
     render(() => <Header />);
-    expect(screen.getByText('LetsOrder Admin')).toBeInTheDocument();
+    const adminLink = screen.getByRole('link', { name: 'Admin' });
+    expect(adminLink).toBeInTheDocument();
+    expect(adminLink).toHaveAttribute('href', '/');
   });
 
   it('shows user menu when authenticated', () => {

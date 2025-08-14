@@ -25,6 +25,11 @@ function App() {
             <RestaurantDashboard />
           </ProtectedRoute>
         )} />
+        <Route path="/restaurants/:restaurantId" component={() => (
+          <ProtectedRoute>
+            <RestaurantDashboard />
+          </ProtectedRoute>
+        )} />
         <Route path="/restaurants/:restaurantId/tables" component={() => (
           <ProtectedRoute>
             <TableDashboard />
