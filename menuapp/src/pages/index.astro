@@ -2,21 +2,79 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Menu - Restaurant">
+<Layout title="Let's Order - Menu Management &amp; Ordering">
 	<div class="space-y-6">
 		<header class="text-center">
-			<h1 class="text-2xl font-bold text-gray-900 mb-2">Welcome to our Restaurant</h1>
-			<p class="text-gray-600 text-sm">Browse our menu and place your order</p>
+			<h1 class="text-3xl font-bold text-gray-900 mb-4">Let's Order</h1>
+			<p class="text-lg text-gray-700 mb-2">Complete Menu Management &amp; Ordering for Restaurants</p>
+			<p class="text-gray-600">Streamline your restaurant operations with QR code menus, instant ordering, and powerful management tools.</p>
 		</header>
 
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-			<h2 class="text-lg font-semibold mb-3">Menu</h2>
-			<p class="text-gray-500 text-center py-8">Loading menu items...</p>
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+			<h2 class="text-xl font-semibold mb-4 text-gray-900">🚀 Features</h2>
+			
+			<div class="space-y-4">
+				<div>
+					<h3 class="text-lg font-medium text-gray-800 mb-2">For Restaurant Managers</h3>
+					<ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+						<li><strong>Dynamic Menu Management</strong> - Create and organize menus with drag-and-drop</li>
+						<li><strong>QR Code Generation</strong> - Generate unique QR codes for each table</li>
+						<li><strong>Real-time Order Tracking</strong> - View and manage orders as they come in</li>
+						<li><strong>Team Collaboration</strong> - Multiple managers with customizable permissions</li>
+					</ul>
+				</div>
+				
+				<div>
+					<h3 class="text-lg font-medium text-gray-800 mb-2">For Your Customers</h3>
+					<ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+						<li><strong>Instant QR Code Access</strong> - Customers scan and order immediately</li>
+						<li><strong>Mobile-First Design</strong> - Optimized for smartphones</li>
+						<li><strong>Simple Ordering Process</strong> - No app download or account creation required</li>
+						<li><strong>Real-time Updates</strong> - Live menu availability and order status</li>
+					</ul>
+				</div>
+			</div>
 		</div>
 
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-			<h2 class="text-lg font-semibold mb-3">Your Order</h2>
-			<p class="text-gray-500 text-center py-4">No items in cart</p>
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+			<h2 class="text-xl font-semibold mb-4 text-gray-900">💰 Pricing</h2>
+			<ul class="list-disc list-inside space-y-2 text-gray-600">
+				<li><strong>30-Day Free Trial</strong> - Full access, no credit card required</li>
+				<li><strong>$60/year</strong> - Everything included for up to 100 tables</li>
+				<li><strong>Enterprise</strong> - Custom pricing for larger venues</li>
+			</ul>
+		</div>
+
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+			<h2 class="text-xl font-semibold mb-4 text-gray-900">🏁 Getting Started</h2>
+			<ol class="list-decimal list-inside space-y-2 text-gray-600">
+				<li><a href="https://a.letsorder.app/register" class="text-blue-600 hover:text-blue-800 underline">Start Your Free Trial</a></li>
+				<li><strong>Register Your Restaurant</strong> - Need 2+ managers for security</li>
+				<li><strong>Create Your Menu</strong> - Add sections and items</li>
+				<li><strong>Generate QR Codes</strong> - For each table/room</li>
+				<li><strong>Start Receiving Orders!</strong></li>
+			</ol>
+		</div>
+
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+			<h2 class="text-xl font-semibold mb-4 text-gray-900">🎯 Perfect For</h2>
+			<ul class="list-disc list-inside grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-600 text-sm">
+				<li>Restaurants of all sizes</li>
+				<li>Hotels with room service</li>
+				<li>Cafes and bars</li>
+				<li>Food courts</li>
+				<li class="col-span-1 sm:col-span-2">Any venue serving food & drinks</li>
+			</ul>
+		</div>
+
+		<div class="text-center">
+			<a href="https://a.letsorder.app/register" 
+			   class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+				Start Your Free Trial Today!
+			</a>
+			<p class="text-gray-500 text-sm mt-2">
+				Visit <a href="https://letsorder.app" class="text-blue-600 hover:text-blue-800 underline">letsorder.app</a> for more info
+			</p>
 		</div>
 	</div>
 </Layout>
