@@ -10,23 +10,21 @@ export interface Props extends MenuItem {
 const { id, name, description, price, sectionName } = Astro.props;
 ---
 
-<div class="border-b border-gray-100 pb-4 last:border-b-0">
-  <div class="flex justify-between items-start gap-4">
-    <div class="flex-1 min-w-0">
-      <h3 class="font-medium text-gray-900 text-base leading-5">{name}</h3>
-      {description && (
-        <p class="text-sm text-gray-600 mt-1 leading-5">{description}</p>
-      )}
-    </div>
-    <div class="flex-shrink-0 text-right">
-      <p class="font-semibold text-gray-900 text-base mb-2">${price.toFixed(2)}</p>
-      <AddToCartButton 
-        id={id}
-        name={name}
-        description={description}
-        price={price}
-        sectionName={sectionName}
-      />
-    </div>
+<div class="flex justify-between items-start p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+  <div class="flex-1 min-w-0 mr-4">
+    <h3 class="text-lg font-medium text-gray-900 mb-1">{name}</h3>
+    {description && (
+      <p class="text-sm text-gray-600 mb-2">{description}</p>
+    )}
+    <p class="text-lg font-semibold text-blue-600">${price.toFixed(2)}</p>
+  </div>
+  <div class="flex-shrink-0">
+    <AddToCartButton 
+      id={id}
+      name={name}
+      description={description}
+      price={price}
+      sectionName={sectionName}
+    />
   </div>
 </div>
