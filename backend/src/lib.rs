@@ -9,6 +9,7 @@ use ts_rs::TS;
 
 pub mod auth;
 pub mod contact_handlers;
+pub mod email_service;
 pub mod handlers;
 pub mod menu_handlers;
 pub mod models;
@@ -23,6 +24,7 @@ pub struct Settings {
     pub database: DatabaseSettings,
     pub litestream: Option<LitestreamSettings>,
     pub jwt: JwtSettings,
+    pub email: Option<EmailSettings>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -47,6 +49,15 @@ pub struct LitestreamSettings {
 pub struct JwtSettings {
     pub secret: String,
     pub expiration_hours: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EmailSettings {
+    pub api_key: String,
+    pub from_email: String,
+    pub template_path: String,
+    pub admin_email: String,
+    pub enabled: bool,
 }
 
 impl Settings {
@@ -76,6 +87,13 @@ impl Default for Settings {
                 secret: "default-secret-change-in-production".to_string(),
                 expiration_hours: 24,
             },
+            email: Some(EmailSettings {
+                api_key: "your-resend-api-key-here".to_string(),
+                from_email: "noreply@letsorder.app".to_string(),
+                template_path: "./email_template.txt".to_string(),
+                admin_email: "admin@letsorder.app".to_string(),
+                enabled: false,
+            }),
         }
     }
 }

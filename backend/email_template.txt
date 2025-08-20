@@ -1,0 +1,16 @@
+Hello {{user_name}},
+
+{{action_text}}
+
+{{verification_link}}{{reset_link}}{{message_content}}
+
+{{ticket_id}}{{response_content}}
+
+Best regards,
+The LetsOrder Team
+
+---
+This email was sent by LetsOrder - Restaurant Menu & Ordering System
+If you have any questions, please contact our support team.
+
+© 2024 LetsOrder. All rights reserved.
