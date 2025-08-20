@@ -2,7 +2,7 @@ use backend::email_service::{EmailService, EmailType, EmailRequest};
 use std::collections::HashMap;
 use tokio_test;
 
-#[tokio_test::test]
+#[tokio::test]
 async fn test_email_service_initialization() {
     // Test email service creation with basic config
     let result = EmailService::new(
@@ -15,7 +15,7 @@ async fn test_email_service_initialization() {
     assert!(result.is_err());
 }
 
-#[tokio_test::test]
+#[tokio::test]
 async fn test_email_template_generation() {
     // Create a test template file
     std::fs::create_dir_all("./tests/fixtures").unwrap_or_default();

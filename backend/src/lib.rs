@@ -66,6 +66,7 @@ impl Settings {
         let settings = config::Config::builder()
             .add_source(config::File::with_name("settings").required(false))
             .add_source(config::File::with_name("local.settings").required(false))
+            .add_source(config::Environment::with_prefix("LETSORDER"))
             .build()?;
 
         settings.try_deserialize()
