@@ -4,7 +4,7 @@ use crate::models::{
 };
 use crate::Settings;
 use actix_web::{web, HttpRequest, HttpResponse, Result};
-use log::{error, info, warn};
+use log::{error, info};
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Mutex;

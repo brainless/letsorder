@@ -1,5 +1,5 @@
 use log::{error, info};
-use resend_rs::{Resend, ResendError};
+use resend_rs::{Resend, types::CreateEmailBaseOptions};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -12,7 +12,8 @@ pub struct EmailService {
     template: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub enum EmailType {
     EmailVerification,
     PasswordReset,
@@ -59,35 +60,31 @@ impl EmailService {
         // Generate email content from template
         let email_body = self.generate_email_content(&request)?;
 
-        // Send email via Resend
-        let email = resend_rs::Email {
-            from: &self.from_email,
-            to: vec![&request.to],
-            subject: &request.subject,
-            text: Some(&email_body),
-            html: None, // Text-only emails as per requirements
-        };
+        // Send email via Resend - use builder pattern
+        let email_request = CreateEmailBaseOptions::new(
+            self.from_email.clone(),
+            vec![request.to.clone()],
+            request.subject.clone(),
+        )
+        .with_text(&email_body);
+        // HTML is None by default for text-only emails
 
-        match self.client.send(&email).await {
+        match self.client.emails.send(email_request).await {
             Ok(response) => {
                 info!("Email sent successfully: {}", response.id);
                 Ok(EmailResponse {
                     success: true,
                     message: "Email sent successfully".to_string(),
-                    email_id: Some(response.id),
-                })
-            },
-            Err(ResendError::ApiError(err)) => {
-                error!("Failed to send email: {:?}", err);
-                Ok(EmailResponse {
-                    success: false,
-                    message: format!("Failed to send email: {}", err.message.unwrap_or("Unknown error".to_string())),
-                    email_id: None,
+                    email_id: Some(response.id.to_string()),
                 })
             },
             Err(err) => {
                 error!("Email service error: {:?}", err);
-                Err(Box::new(err))
+                Ok(EmailResponse {
+                    success: false,
+                    message: format!("Failed to send email: {}", err),
+                    email_id: None,
+                })
             }
         }
     }

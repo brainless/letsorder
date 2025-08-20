@@ -1,4 +1,4 @@
-use crate::email_service::{EmailService, EmailType};
+use crate::email_service::EmailService;
 use crate::models::*;
 use crate::Settings;
 use actix_web::{web, HttpResponse, Result};
@@ -14,12 +14,13 @@ pub async fn create_email_verification_token(
 ) -> Result<String, sqlx::Error> {
     let token = Uuid::new_v4().to_string();
     let expires_at = Utc::now() + Duration::hours(24); // 24 hour expiry
+    let expires_at_naive = expires_at.naive_utc();
 
     sqlx::query!(
         "INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
         user_id,
         token,
-        expires_at.naive_utc()
+        expires_at_naive
     )
     .execute(pool)
     .await?;
@@ -35,11 +36,12 @@ pub async fn verify_email_token(
     let token = &request.token;
 
     // Find the token and check if it's valid
+    let now_naive = Utc::now().naive_utc();
     let token_record = match sqlx::query_as!(
         EmailVerificationTokenRow,
         "SELECT * FROM email_verification_tokens WHERE token = ? AND used_at IS NULL AND expires_at > ?",
         token,
-        Utc::now().naive_utc()
+        now_naive
     )
     .fetch_optional(pool.get_ref())
     .await
@@ -90,9 +92,10 @@ pub async fn verify_email_token(
     }
 
     // Mark token as used
+    let used_at_naive = Utc::now().naive_utc();
     if let Err(e) = sqlx::query!(
         "UPDATE email_verification_tokens SET used_at = ? WHERE token = ?",
-        Utc::now().naive_utc(),
+        used_at_naive,
         token
     )
     .execute(&mut *tx)
@@ -245,12 +248,13 @@ pub async fn create_password_reset_token(
 ) -> Result<String, sqlx::Error> {
     let token = Uuid::new_v4().to_string();
     let expires_at = Utc::now() + Duration::hours(2); // 2 hour expiry for password reset
+    let expires_at_naive = expires_at.naive_utc();
 
     sqlx::query!(
         "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
         user_id,
         token,
-        expires_at.naive_utc()
+        expires_at_naive
     )
     .execute(pool)
     .await?;
@@ -366,12 +370,13 @@ pub async fn confirm_password_reset(
     let token = &request.token;
     let new_password = &request.new_password;
 
-    // Find the token and check if it's valid
+    // Find the token and check if it's valid  
+    let now_naive = Utc::now().naive_utc();
     let token_record = match sqlx::query_as!(
         PasswordResetTokenRow,
         "SELECT * FROM password_reset_tokens WHERE token = ? AND used_at IS NULL AND expires_at > ?",
         token,
-        Utc::now().naive_utc()
+        now_naive
     )
     .fetch_optional(pool.get_ref())
     .await
@@ -394,12 +399,14 @@ pub async fn confirm_password_reset(
     };
 
     // Hash the new password
-    let password_hash = match argon2::hash_encoded(
-        new_password.as_bytes(),
-        &rand::random::<[u8; 32]>(),
-        &argon2::Config::default(),
-    ) {
-        Ok(hash) => hash,
+    use argon2::{Argon2, PasswordHasher};
+    use argon2::password_hash::{rand_core::OsRng, SaltString};
+    
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = Argon2::default();
+    
+    let password_hash = match argon2.hash_password(new_password.as_bytes(), &salt) {
+        Ok(hash) => hash.to_string(),
         Err(e) => {
             error!("Failed to hash password: {}", e);
             return Ok(HttpResponse::InternalServerError().json(PasswordResetResponse {
@@ -439,9 +446,10 @@ pub async fn confirm_password_reset(
     }
 
     // Mark token as used
+    let used_at_naive = Utc::now().naive_utc();
     if let Err(e) = sqlx::query!(
         "UPDATE password_reset_tokens SET used_at = ? WHERE token = ?",
-        Utc::now().naive_utc(),
+        used_at_naive,
         token
     )
     .execute(&mut *tx)
@@ -473,7 +481,7 @@ pub async fn confirm_password_reset(
 
 // Support ticket handling
 pub async fn send_support_ticket(
-    pool: web::Data<Pool<Sqlite>>,
+    _pool: web::Data<Pool<Sqlite>>,
     settings: web::Data<Settings>,
     request: web::Json<CreateSupportTicketRequest>,
 ) -> Result<HttpResponse> {

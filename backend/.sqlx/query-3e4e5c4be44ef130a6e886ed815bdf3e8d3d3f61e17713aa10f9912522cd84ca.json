@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, email, phone, password_hash FROM users WHERE email = ?",
+  "query": "SELECT * FROM users WHERE email = ?",
   "describe": {
     "columns": [
       {
@@ -22,6 +22,16 @@
         "name": "password_hash",
         "ordinal": 3,
         "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 4,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "email_verified",
+        "ordinal": 5,
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -31,8 +41,10 @@
       true,
       false,
       true,
+      false,
+      false,
       false
     ]
   },
-  "hash": "bc7ef4b69251ed06ba5ed6d86c0baa37686af3c9e2726c662062c56ea2d0a9b2"
+  "hash": "3e4e5c4be44ef130a6e886ed815bdf3e8d3d3f61e17713aa10f9912522cd84ca"
 }

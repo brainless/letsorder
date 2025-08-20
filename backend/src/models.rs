@@ -9,6 +9,7 @@ pub struct User {
     pub email: String,
     pub phone: Option<String>,
     pub password_hash: String,
+    pub email_verified: bool,
     pub created_at: DateTime<Utc>,
 }
 
@@ -18,6 +19,7 @@ pub struct UserRow {
     pub email: String,
     pub phone: Option<String>,
     pub password_hash: String,
+    pub email_verified: bool,
     pub created_at: NaiveDateTime,
 }
 
@@ -28,6 +30,7 @@ impl From<UserRow> for User {
             email: row.email,
             phone: row.phone,
             password_hash: row.password_hash,
+            email_verified: row.email_verified,
             created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
         }
     }
