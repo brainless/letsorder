@@ -667,10 +667,12 @@ pub async fn join_restaurant(
     let user_id = match existing_user {
         Ok(Some(user)) => {
             // User exists, verify they're not already a manager
+            let default_user_id = String::new();
+            let user_id = user.id.as_ref().unwrap_or(&default_user_id);
             let existing_manager = sqlx::query!(
                 "SELECT COUNT(*) as count FROM restaurant_managers WHERE restaurant_id = ? AND user_id = ?",
                 restaurant_id,
-                user.id
+                user_id
             )
             .fetch_optional(&mut *tx)
             .await;
@@ -714,7 +716,7 @@ pub async fn join_restaurant(
             .await;
 
             match result {
-                Ok(_) => new_user_id,
+                Ok(_) => Some(new_user_id),
                 Err(e) => {
                     log::error!("Database error creating user: {e}");
                     return Ok(HttpResponse::InternalServerError().json(serde_json::json!({

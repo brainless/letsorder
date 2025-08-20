@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM users WHERE email = 'demo@letsorder.app'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "52017f342821525eb28704b19e03ab6ba39eb760ca964265dc5a8f68cb6ce759"
+}
