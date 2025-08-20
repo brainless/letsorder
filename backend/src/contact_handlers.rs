@@ -1,7 +1,10 @@
+use crate::email_service::EmailService;
 use crate::models::{
     ContactResponse, ContactSubmission, ContactSubmissionRow, CreateContactRequest,
 };
+use crate::Settings;
 use actix_web::{web, HttpRequest, HttpResponse, Result};
+use log::{error, info};
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -52,6 +55,7 @@ pub async fn submit_contact_form(
     rate_limiter: web::Data<RateLimiter>,
     req: web::Json<CreateContactRequest>,
     http_req: HttpRequest,
+    settings: web::Data<Settings>,
 ) -> Result<HttpResponse> {
     // Extract IP address
     let ip_address = http_req
@@ -155,14 +159,47 @@ pub async fn submit_contact_form(
 
     match result {
         Ok(_) => {
-            // TODO: Send email notification here
-            // For now, we just log it
-            log::info!(
+            info!(
                 "New contact form submission from {} ({}): {}",
                 name_trimmed,
                 email_trimmed,
                 subject_trimmed.unwrap_or("No subject")
             );
+
+            // Send email notification to admin if email service is enabled
+            if let Some(ref email_config) = settings.email {
+                if email_config.enabled {
+                    match EmailService::new(
+                        email_config.api_key.clone(),
+                        email_config.from_email.clone(),
+                        email_config.template_path.clone(),
+                    ) {
+                        Ok(email_service) => {
+                            let mut submission_data = HashMap::new();
+                            submission_data.insert("submitter_name".to_string(), name_trimmed.to_string());
+                            submission_data.insert("submitter_email".to_string(), email_trimmed.to_string());
+                            submission_data.insert("subject".to_string(), subject_trimmed.unwrap_or("No subject").to_string());
+                            submission_data.insert("message".to_string(), message_trimmed.to_string());
+                            submission_data.insert("submission_id".to_string(), submission_id.clone());
+                            submission_data.insert("ip_address".to_string(), ip_address.clone());
+                            
+                            // Send admin notification email asynchronously
+                            match email_service.send_contact_form_notification(
+                                email_config.admin_email.clone(),
+                                submission_data,
+                            ).await {
+                                Ok(_) => info!("Admin notification email sent successfully"),
+                                Err(e) => error!("Failed to send admin notification email: {}", e),
+                            }
+                        }
+                        Err(e) => error!("Failed to initialize email service: {}", e),
+                    }
+                } else {
+                    info!("Email service disabled, skipping admin notification");
+                }
+            } else {
+                info!("Email service not configured, skipping admin notification");
+            }
 
             let response = ContactResponse {
                 message: "Thank you for your message! We'll get back to you soon.".to_string(),

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE email_verification_tokens SET used_at = ? WHERE token = ? AND used_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "0c66a4b396872e2c64d680f6b15a53ea1017647b3040645c48c40b0d79d956c9"
+}

@@ -9,26 +9,29 @@ pub struct User {
     pub email: String,
     pub phone: Option<String>,
     pub password_hash: String,
+    pub email_verified: bool,
     pub created_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, FromRow)]
 pub struct UserRow {
-    pub id: String,
-    pub email: String,
+    pub id: Option<String>,
+    pub email: Option<String>,
     pub phone: Option<String>,
-    pub password_hash: String,
-    pub created_at: NaiveDateTime,
+    pub password_hash: Option<String>,
+    pub email_verified: Option<bool>,
+    pub created_at: Option<NaiveDateTime>,
 }
 
 impl From<UserRow> for User {
     fn from(row: UserRow) -> Self {
         Self {
-            id: row.id,
-            email: row.email,
+            id: row.id.unwrap_or_default(),
+            email: row.email.unwrap_or_default(),
             phone: row.phone,
-            password_hash: row.password_hash,
-            created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
+            password_hash: row.password_hash.unwrap_or_default(),
+            email_verified: row.email_verified.unwrap_or(false),
+            created_at: DateTime::from_naive_utc_and_offset(row.created_at.unwrap_or_default(), Utc),
         }
     }
 }
@@ -620,4 +623,149 @@ pub struct CreateContactRequest {
 pub struct ContactResponse {
     pub message: String,
     pub submission_id: String,
+}
+
+// Email verification models
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, TS)]
+#[ts(export)]
+pub struct EmailVerificationToken {
+    pub id: String,
+    pub user_id: String,
+    pub token: String,
+    pub expires_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub used_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct EmailVerificationTokenRow {
+    pub id: Option<String>,
+    pub user_id: Option<String>,
+    pub token: Option<String>,
+    pub expires_at: Option<NaiveDateTime>,
+    pub created_at: Option<NaiveDateTime>,
+    pub used_at: Option<NaiveDateTime>,
+}
+
+impl From<EmailVerificationTokenRow> for EmailVerificationToken {
+    fn from(row: EmailVerificationTokenRow) -> Self {
+        Self {
+            id: row.id.unwrap_or_default(),
+            user_id: row.user_id.unwrap_or_default(),
+            token: row.token.unwrap_or_default(),
+            expires_at: DateTime::from_naive_utc_and_offset(row.expires_at.unwrap_or_default(), Utc),
+            created_at: DateTime::from_naive_utc_and_offset(row.created_at.unwrap_or_default(), Utc),
+            used_at: row.used_at.map(|dt| DateTime::from_naive_utc_and_offset(dt, Utc)),
+        }
+    }
+}
+
+// Password reset models
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, TS)]
+#[ts(export)]
+pub struct PasswordResetToken {
+    pub id: String,
+    pub user_id: String,
+    pub token: String,
+    pub expires_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub used_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct PasswordResetTokenRow {
+    pub id: Option<String>,
+    pub user_id: Option<String>,
+    pub token: Option<String>,
+    pub expires_at: Option<NaiveDateTime>,
+    pub created_at: Option<NaiveDateTime>,
+    pub used_at: Option<NaiveDateTime>,
+}
+
+impl From<PasswordResetTokenRow> for PasswordResetToken {
+    fn from(row: PasswordResetTokenRow) -> Self {
+        Self {
+            id: row.id.unwrap_or_default(),
+            user_id: row.user_id.unwrap_or_default(),
+            token: row.token.unwrap_or_default(),
+            expires_at: DateTime::from_naive_utc_and_offset(row.expires_at.unwrap_or_default(), Utc),
+            created_at: DateTime::from_naive_utc_and_offset(row.created_at.unwrap_or_default(), Utc),
+            used_at: row.used_at.map(|dt| DateTime::from_naive_utc_and_offset(dt, Utc)),
+        }
+    }
+}
+
+// Request/response models for email operations
+#[derive(Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct EmailVerificationRequest {
+    pub token: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct EmailVerificationResponse {
+    pub success: bool,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ResendVerificationRequest {
+    pub email: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct PasswordResetRequest {
+    pub email: String,
+}
+
+#[derive(Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct PasswordResetConfirmRequest {
+    pub token: String,
+    #[serde(skip_serializing)]
+    pub new_password: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct PasswordResetResponse {
+    pub success: bool,
+    pub message: String,
+}
+
+// Support ticket models
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct CreateSupportTicketRequest {
+    pub name: String,
+    pub email: String,
+    pub subject: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct SupportTicketResponse {
+    pub success: bool,
+    pub message: String,
+    pub ticket_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct SendSupportResponseRequest {
+    pub ticket_id: String,
+    pub user_email: String,
+    pub user_name: String,
+    pub response: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct SupportResponseEmailResponse {
+    pub success: bool,
+    pub message: String,
 }

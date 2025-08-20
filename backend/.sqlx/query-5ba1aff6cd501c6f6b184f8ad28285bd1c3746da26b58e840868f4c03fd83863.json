@@ -1,10 +1,10 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT available FROM menu_items WHERE id = ?",
+  "query": "SELECT email_verified FROM users WHERE id = ?",
   "describe": {
     "columns": [
       {
-        "name": "available",
+        "name": "email_verified",
         "ordinal": 0,
         "type_info": "Bool"
       }
@@ -16,5 +16,5 @@
       false
     ]
   },
-  "hash": "75b81b9768428effd2132aa51631c661f386b37c4b0a21476218a1225d4ca7e6"
+  "hash": "5ba1aff6cd501c6f6b184f8ad28285bd1c3746da26b58e840868f4c03fd83863"
 }
