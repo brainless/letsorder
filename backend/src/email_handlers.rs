@@ -4,43 +4,53 @@ use crate::Settings;
 use actix_web::{web, HttpResponse, Result};
 use chrono::{Duration, Utc};
 use log::{error, info, warn};
+use sha2::{Digest, Sha256};
 use sqlx::{Pool, Sqlite};
 use std::collections::HashMap;
 use uuid::Uuid;
+
+fn hash_token(token: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(token.as_bytes());
+    format!("{:x}", hasher.finalize())
+}
 
 pub async fn create_email_verification_token(
     pool: &Pool<Sqlite>,
     user_id: &str,
 ) -> Result<String, sqlx::Error> {
     let token = Uuid::new_v4().to_string();
+    let token_hash = hash_token(&token);
     let expires_at = Utc::now() + Duration::hours(24); // 24 hour expiry
     let expires_at_naive = expires_at.naive_utc();
 
     sqlx::query!(
         "INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
         user_id,
-        token,
+        token_hash,
         expires_at_naive
     )
     .execute(pool)
     .await?;
 
+    // Return the original token (not the hash) so it can be sent in email
     Ok(token)
 }
 
 pub async fn verify_email_token(
     pool: web::Data<Pool<Sqlite>>,
     request: web::Json<EmailVerificationRequest>,
-    settings: web::Data<Settings>,
+    _settings: web::Data<Settings>,
 ) -> Result<HttpResponse> {
     let token = &request.token;
+    let token_hash = hash_token(token);
 
     // Find the token and check if it's valid
     let now_naive = Utc::now().naive_utc();
     let token_record = match sqlx::query_as!(
         EmailVerificationTokenRow,
         "SELECT * FROM email_verification_tokens WHERE token = ? AND used_at IS NULL AND expires_at > ?",
-        token,
+        token_hash,
         now_naive
     )
     .fetch_optional(pool.get_ref())
@@ -76,9 +86,11 @@ pub async fn verify_email_token(
     };
 
     // Update user as verified
+    let default_id = String::new();
+    let user_id = token_record.user_id.as_ref().unwrap_or(&default_id);
     if let Err(e) = sqlx::query!(
         "UPDATE users SET email_verified = TRUE WHERE id = ?",
-        token_record.user_id
+        user_id
     )
     .execute(&mut *tx)
     .await
@@ -94,9 +106,9 @@ pub async fn verify_email_token(
     // Mark token as used
     let used_at_naive = Utc::now().naive_utc();
     if let Err(e) = sqlx::query!(
-        "UPDATE email_verification_tokens SET used_at = ? WHERE token = ?",
+        "UPDATE email_verification_tokens SET used_at = ? WHERE token = ? AND used_at IS NULL",
         used_at_naive,
-        token
+        token_hash
     )
     .execute(&mut *tx)
     .await
@@ -117,7 +129,7 @@ pub async fn verify_email_token(
         }));
     }
 
-    info!("Email verified successfully for user: {}", token_record.user_id);
+    info!("Email verified successfully for user: {}", token_record.user_id.as_ref().unwrap_or(&String::new()));
 
     Ok(HttpResponse::Ok().json(EmailVerificationResponse {
         success: true,
@@ -189,7 +201,9 @@ pub async fn resend_verification_email(
     }
 
     // Create new verification token
-    let token = match create_email_verification_token(pool.get_ref(), &user.id).await {
+    let default_user_id = String::new();
+    let user_id = user.id.as_ref().unwrap_or(&default_user_id);
+    let token = match create_email_verification_token(pool.get_ref(), user_id).await {
         Ok(token) => token,
         Err(e) => {
             error!("Failed to create verification token: {}", e);
@@ -220,13 +234,14 @@ pub async fn resend_verification_email(
     // TODO: Replace with actual frontend URL
     let verification_link = format!("https://admin.letsorder.app/verify-email?token={}", token);
     
+    let user_email = user.email.clone().unwrap_or_default();
     match email_service.send_email_verification(
-        user.email.clone(),
+        user_email.clone(),
         verification_link,
-        user.email.clone(), // Using email as name since we don't have separate name field
+        user_email.clone(), // Using email as name since we don't have separate name field
     ).await {
         Ok(_) => {
-            info!("Verification email sent to: {}", user.email);
+            info!("Verification email sent to: {}", user_email);
             Ok(HttpResponse::Ok().json(EmailVerificationResponse {
                 success: true,
                 message: "Verification email sent successfully".to_string(),
@@ -247,18 +262,20 @@ pub async fn create_password_reset_token(
     user_id: &str,
 ) -> Result<String, sqlx::Error> {
     let token = Uuid::new_v4().to_string();
+    let token_hash = hash_token(&token);
     let expires_at = Utc::now() + Duration::hours(2); // 2 hour expiry for password reset
     let expires_at_naive = expires_at.naive_utc();
 
     sqlx::query!(
         "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
         user_id,
-        token,
+        token_hash,
         expires_at_naive
     )
     .execute(pool)
     .await?;
 
+    // Return the original token (not the hash) so it can be sent in email
     Ok(token)
 }
 
@@ -310,7 +327,9 @@ pub async fn request_password_reset(
     };
 
     // Create password reset token
-    let token = match create_password_reset_token(pool.get_ref(), &user.id).await {
+    let default_user_id = String::new();
+    let user_id = user.id.as_ref().unwrap_or(&default_user_id);
+    let token = match create_password_reset_token(pool.get_ref(), user_id).await {
         Ok(token) => token,
         Err(e) => {
             error!("Failed to create password reset token: {}", e);
@@ -341,13 +360,14 @@ pub async fn request_password_reset(
     // TODO: Replace with actual frontend URL
     let reset_link = format!("https://admin.letsorder.app/reset-password?token={}", token);
     
+    let user_email = user.email.clone().unwrap_or_default();
     match email_service.send_password_reset(
-        user.email.clone(),
+        user_email.clone(),
         reset_link,
-        user.email.clone(), // Using email as name since we don't have separate name field
+        user_email.clone(), // Using email as name since we don't have separate name field
     ).await {
         Ok(_) => {
-            info!("Password reset email sent to: {}", user.email);
+            info!("Password reset email sent to: {}", user_email);
             Ok(HttpResponse::Ok().json(PasswordResetResponse {
                 success: true,
                 message: "Password reset email sent successfully".to_string(),
@@ -371,11 +391,12 @@ pub async fn confirm_password_reset(
     let new_password = &request.new_password;
 
     // Find the token and check if it's valid  
+    let token_hash = hash_token(token);
     let now_naive = Utc::now().naive_utc();
     let token_record = match sqlx::query_as!(
         PasswordResetTokenRow,
         "SELECT * FROM password_reset_tokens WHERE token = ? AND used_at IS NULL AND expires_at > ?",
-        token,
+        token_hash,
         now_naive
     )
     .fetch_optional(pool.get_ref())
@@ -429,10 +450,12 @@ pub async fn confirm_password_reset(
     };
 
     // Update user password
+    let default_id = String::new();
+    let user_id = token_record.user_id.as_ref().unwrap_or(&default_id);
     if let Err(e) = sqlx::query!(
         "UPDATE users SET password_hash = ? WHERE id = ?",
         password_hash,
-        token_record.user_id
+        user_id
     )
     .execute(&mut *tx)
     .await
@@ -448,9 +471,9 @@ pub async fn confirm_password_reset(
     // Mark token as used
     let used_at_naive = Utc::now().naive_utc();
     if let Err(e) = sqlx::query!(
-        "UPDATE password_reset_tokens SET used_at = ? WHERE token = ?",
+        "UPDATE password_reset_tokens SET used_at = ? WHERE token = ? AND used_at IS NULL",
         used_at_naive,
-        token
+        token_hash
     )
     .execute(&mut *tx)
     .await
@@ -471,7 +494,7 @@ pub async fn confirm_password_reset(
         }));
     }
 
-    info!("Password reset successfully for user: {}", token_record.user_id);
+    info!("Password reset successfully for user: {}", token_record.user_id.as_ref().unwrap_or(&String::new()));
 
     Ok(HttpResponse::Ok().json(PasswordResetResponse {
         success: true,

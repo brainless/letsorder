@@ -39,6 +39,7 @@ regex = "1.10"
 ts-rs = { version = "8.1", features = ["serde-compat", "uuid-impl", "chrono-impl"] }
 clap = { version = "4.0", features = ["derive"] }
 resend-rs = "0.16"
+sha2 = "0.10"
 
 [dev-dependencies]
 tokio-test = "0.4"
