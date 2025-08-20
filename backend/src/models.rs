@@ -621,3 +621,147 @@ pub struct ContactResponse {
     pub message: String,
     pub submission_id: String,
 }
+
+// Email verification models
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, TS)]
+#[ts(export)]
+pub struct EmailVerificationToken {
+    pub id: String,
+    pub user_id: String,
+    pub token: String,
+    pub expires_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub used_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct EmailVerificationTokenRow {
+    pub id: String,
+    pub user_id: String,
+    pub token: String,
+    pub expires_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
+    pub used_at: Option<NaiveDateTime>,
+}
+
+impl From<EmailVerificationTokenRow> for EmailVerificationToken {
+    fn from(row: EmailVerificationTokenRow) -> Self {
+        Self {
+            id: row.id,
+            user_id: row.user_id,
+            token: row.token,
+            expires_at: DateTime::from_naive_utc_and_offset(row.expires_at, Utc),
+            created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
+            used_at: row.used_at.map(|dt| DateTime::from_naive_utc_and_offset(dt, Utc)),
+        }
+    }
+}
+
+// Password reset models
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, TS)]
+#[ts(export)]
+pub struct PasswordResetToken {
+    pub id: String,
+    pub user_id: String,
+    pub token: String,
+    pub expires_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub used_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, FromRow)]
+pub struct PasswordResetTokenRow {
+    pub id: String,
+    pub user_id: String,
+    pub token: String,
+    pub expires_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
+    pub used_at: Option<NaiveDateTime>,
+}
+
+impl From<PasswordResetTokenRow> for PasswordResetToken {
+    fn from(row: PasswordResetTokenRow) -> Self {
+        Self {
+            id: row.id,
+            user_id: row.user_id,
+            token: row.token,
+            expires_at: DateTime::from_naive_utc_and_offset(row.expires_at, Utc),
+            created_at: DateTime::from_naive_utc_and_offset(row.created_at, Utc),
+            used_at: row.used_at.map(|dt| DateTime::from_naive_utc_and_offset(dt, Utc)),
+        }
+    }
+}
+
+// Request/response models for email operations
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct EmailVerificationRequest {
+    pub token: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct EmailVerificationResponse {
+    pub success: bool,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ResendVerificationRequest {
+    pub email: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct PasswordResetRequest {
+    pub email: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct PasswordResetConfirmRequest {
+    pub token: String,
+    pub new_password: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct PasswordResetResponse {
+    pub success: bool,
+    pub message: String,
+}
+
+// Support ticket models
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct CreateSupportTicketRequest {
+    pub name: String,
+    pub email: String,
+    pub subject: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct SupportTicketResponse {
+    pub success: bool,
+    pub message: String,
+    pub ticket_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct SendSupportResponseRequest {
+    pub ticket_id: String,
+    pub user_email: String,
+    pub user_name: String,
+    pub response: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct SupportResponseEmailResponse {
+    pub success: bool,
+    pub message: String,
+}

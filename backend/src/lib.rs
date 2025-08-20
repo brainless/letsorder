@@ -9,6 +9,7 @@ use ts_rs::TS;
 
 pub mod auth;
 pub mod contact_handlers;
+pub mod email_handlers;
 pub mod email_service;
 pub mod handlers;
 pub mod menu_handlers;
@@ -18,7 +19,7 @@ pub mod qr_handlers;
 pub mod seed;
 pub mod table_handlers;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Settings {
     pub server: ServerSettings,
     pub database: DatabaseSettings,
@@ -27,31 +28,31 @@ pub struct Settings {
     pub email: Option<EmailSettings>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ServerSettings {
     pub host: String,
     pub port: u16,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct DatabaseSettings {
     pub url: String,
     pub max_connections: Option<u32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct LitestreamSettings {
     pub replica_url: String,
     pub sync_interval: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct JwtSettings {
     pub secret: String,
     pub expiration_hours: u64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct EmailSettings {
     pub api_key: String,
     pub from_email: String,
@@ -140,6 +141,7 @@ pub async fn health() -> Result<HttpResponse> {
 pub fn create_app(
     pool: Pool<Sqlite>,
     jwt_manager: JwtManager,
+    settings: Settings,
 ) -> App<
     impl actix_web::dev::ServiceFactory<
         actix_web::dev::ServiceRequest,
@@ -169,6 +171,7 @@ pub fn create_app(
         )
         .app_data(web::Data::new(pool))
         .app_data(web::Data::new(jwt_manager))
+        .app_data(web::Data::new(settings))
         .app_data(rate_limiter)
         .route("/health", web::get().to(health))
         .service(
@@ -323,6 +326,11 @@ pub fn create_app(
                 .route(
                     "/contact/submissions/{id}/status",
                     web::put().to(contact_handlers::update_contact_submission_status),
+                )
+                // Support ticket management routes (admin only)
+                .route(
+                    "/support/response",
+                    web::post().to(email_handlers::send_support_response),
                 ),
         )
         // Public routes for joining restaurant
@@ -349,6 +357,28 @@ pub fn create_app(
         .route(
             "/contact",
             web::post().to(contact_handlers::submit_contact_form),
+        )
+        // Email verification routes (public)
+        .route(
+            "/auth/verify-email",
+            web::post().to(email_handlers::verify_email_token),
+        )
+        .route(
+            "/auth/resend-verification",
+            web::post().to(email_handlers::resend_verification_email),
+        )
+        .route(
+            "/auth/request-password-reset",
+            web::post().to(email_handlers::request_password_reset),
+        )
+        .route(
+            "/auth/confirm-password-reset",
+            web::post().to(email_handlers::confirm_password_reset),
+        )
+        // Support ticket routes (public)
+        .route(
+            "/support/ticket",
+            web::post().to(email_handlers::send_support_ticket),
         )
 }
 
@@ -378,7 +408,7 @@ pub async fn run_server() -> std::io::Result<()> {
     let bind_address = format!("{}:{}", settings.server.host, settings.server.port);
     info!("Starting server at http://{bind_address}");
 
-    HttpServer::new(move || create_app(pool.clone(), jwt_manager.clone()))
+    HttpServer::new(move || create_app(pool.clone(), jwt_manager.clone(), settings.clone()))
         .bind(&bind_address)?
         .run()
         .await
