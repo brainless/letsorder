@@ -12,14 +12,22 @@ class MenuDisplay {
   private tableCode: string;
 
   constructor() {
+    console.log('[MenuDisplay] Constructor called');
+    
     // Get restaurant and table codes from window data
     const pageData = (window as any).menuPageData;
+    console.log('[MenuDisplay] Page data:', pageData);
+    
     if (!pageData || !pageData.restaurantCode || !pageData.tableCode) {
+      console.error('[MenuDisplay] Missing page data');
       throw new Error('Restaurant and table codes not found');
     }
     
     this.restaurantCode = pageData.restaurantCode;
     this.tableCode = pageData.tableCode;
+    
+    console.log('[MenuDisplay] Restaurant code:', this.restaurantCode);
+    console.log('[MenuDisplay] Table code:', this.tableCode);
     
     this.searchInput = document.getElementById('menu-search') as HTMLInputElement;
     this.menuSections = document.querySelectorAll('.menu-section');
@@ -32,11 +40,15 @@ class MenuDisplay {
 
   private async initializeMenu(): Promise<void> {
     try {
+      console.log('[MenuDisplay] Starting menu initialization');
       this.showLoading();
       
       // Import the API function
-      const { fetchMenu } = await import('../lib/api.js');
+      console.log('[MenuDisplay] Importing API module');
+      const { fetchMenu } = await import('../lib/api.ts');
+      console.log('[MenuDisplay] API module imported, fetching menu');
       const menuData = await fetchMenu(this.restaurantCode, this.tableCode);
+      console.log('[MenuDisplay] Menu data received:', menuData);
       
       if (!menuData.restaurant) {
         this.showError('Restaurant not found');
