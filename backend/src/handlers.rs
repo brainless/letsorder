@@ -17,7 +17,7 @@ pub async fn register(
 ) -> Result<HttpResponse> {
     // Check if user already exists
     let existing_user = sqlx::query_as::<_, UserRow>(
-        "SELECT id, email, phone, password_hash, created_at FROM users WHERE email = ?",
+        "SELECT id, email, phone, password_hash, email_verified, created_at FROM users WHERE email = ?",
     )
     .bind(&req.email)
     .fetch_optional(pool.get_ref())
@@ -65,7 +65,7 @@ pub async fn register(
         Ok(_) => {
             // Fetch the created user
             let user_row = sqlx::query_as::<_, UserRow>(
-                "SELECT id, email, phone, password_hash, created_at FROM users WHERE id = ?",
+                "SELECT id, email, phone, password_hash, email_verified, created_at FROM users WHERE id = ?",
             )
             .bind(&user_id)
             .fetch_one(pool.get_ref())
@@ -115,7 +115,7 @@ pub async fn login(
 ) -> Result<HttpResponse> {
     // Find user by email
     let user_row = sqlx::query_as::<_, UserRow>(
-        "SELECT id, email, phone, password_hash, created_at FROM users WHERE email = ?",
+        "SELECT id, email, phone, password_hash, email_verified, created_at FROM users WHERE email = ?",
     )
     .bind(&req.email)
     .fetch_optional(pool.get_ref())
@@ -658,7 +658,7 @@ pub async fn join_restaurant(
 
     // Check if user already exists
     let existing_user = sqlx::query_as::<_, UserRow>(
-        "SELECT id, email, phone, password_hash, created_at FROM users WHERE email = ?",
+        "SELECT id, email, phone, password_hash, email_verified, created_at FROM users WHERE email = ?",
     )
     .bind(&req.email)
     .fetch_optional(&mut *tx)
