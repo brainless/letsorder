@@ -1,25 +1,332 @@
 /**
- * Optimized Menu Display functionality with minimal JavaScript
+ * Optimized Menu Display functionality with client-side rendering
  */
-export class MenuDisplay {
+class MenuDisplay {
   private searchInput: HTMLInputElement | null;
   private menuSections: NodeListOf<Element>;
   private menuItems: NodeListOf<Element>;
   private searchResultsSummary: HTMLElement | null;
   private noSearchResults: HTMLElement | null;
   private searchDebounceTimer: number = 0;
+  private restaurantCode: string;
+  private tableCode: string;
 
   constructor() {
+    console.log('[MenuDisplay] Constructor called');
+    
+    // Get restaurant and table codes from window data
+    const pageData = (window as any).menuPageData;
+    console.log('[MenuDisplay] Page data:', pageData);
+    
+    if (!pageData || !pageData.restaurantCode || !pageData.tableCode) {
+      console.error('[MenuDisplay] Missing page data');
+      throw new Error('Restaurant and table codes not found');
+    }
+    
+    this.restaurantCode = pageData.restaurantCode;
+    this.tableCode = pageData.tableCode;
+    
+    console.log('[MenuDisplay] Restaurant code:', this.restaurantCode);
+    console.log('[MenuDisplay] Table code:', this.tableCode);
+    
     this.searchInput = document.getElementById('menu-search') as HTMLInputElement;
     this.menuSections = document.querySelectorAll('.menu-section');
     this.menuItems = document.querySelectorAll('.menu-item-wrapper');
     this.searchResultsSummary = document.getElementById('search-results-summary');
     this.noSearchResults = document.getElementById('no-search-results');
     
-    this.initializeSearch();
-    this.initializeKeyboardNavigation();
-    this.initializeLazyLoading();
+    this.initializeMenu();
   }
+
+  private async initializeMenu(): Promise<void> {
+    try {
+      console.log('[MenuDisplay] Starting menu initialization');
+      this.showLoading();
+      
+      // Import the API function
+      console.log('[MenuDisplay] Importing API module');
+      const { fetchMenu } = await import('../lib/api.ts');
+      console.log('[MenuDisplay] API module imported, fetching menu');
+      const menuData = await fetchMenu(this.restaurantCode, this.tableCode);
+      console.log('[MenuDisplay] Menu data received:', menuData);
+      
+      if (!menuData.restaurant) {
+        this.showError('Restaurant not found');
+        return;
+      }
+      
+      if (!menuData.sections || menuData.sections.length === 0) {
+        this.showEmptyMenu(menuData.restaurant.name);
+        return;
+      }
+      
+      this.renderMenu(menuData);
+      this.initializeSearch();
+      this.initializeKeyboardNavigation();
+      this.initializeAddToCartButtons();
+      this.showMenu();
+      
+    } catch (error) {
+      console.error('Failed to load menu:', error);
+      this.showError('Failed to load menu. Please try refreshing the page.');
+    }
+  }
+
+  private renderMenu(menuData: any): void {
+    // Update restaurant header
+    const restaurantName = document.getElementById('restaurant-name');
+    const restaurantAddress = document.getElementById('restaurant-address');
+    
+    if (restaurantName) {
+      restaurantName.textContent = menuData.restaurant.name;
+    }
+    
+    if (restaurantAddress && menuData.restaurant.address) {
+      restaurantAddress.textContent = menuData.restaurant.address;
+    } else if (restaurantAddress) {
+      restaurantAddress.style.display = 'none';
+    }
+
+    // Render menu sections
+    const sectionsContainer = document.getElementById('menu-sections');
+    if (!sectionsContainer) return;
+
+    const sectionsHTML = menuData.sections.map((section: any) => `
+      <section 
+        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 menu-section" 
+        data-section-id="${section.id}"
+        role="region"
+        aria-labelledby="section-title-${section.id}"
+      >
+        <h2 
+          class="text-xl font-semibold text-gray-900 mb-4 section-title" 
+          id="section-title-${section.id}"
+        >
+          ${section.name}
+        </h2>
+        
+        ${section.items && section.items.length > 0 ? `
+          <div class="space-y-4 section-items" role="list" aria-label="${section.name} items">
+            ${section.items.map((item: any) => this.generateMenuItemHTML(item, section.name)).join('')}
+          </div>
+        ` : `
+          <p class="text-gray-500 text-center py-4 italic">No items available in this section</p>
+        `}
+      </section>
+    `).join('');
+
+    sectionsContainer.innerHTML = sectionsHTML;
+
+    // Update collections after rendering
+    this.menuSections = document.querySelectorAll('.menu-section');
+    this.menuItems = document.querySelectorAll('.menu-item-wrapper');
+  }
+
+  private generateMenuItemHTML(item: any, sectionName: string): string {
+    return `
+      <div role="listitem" class="menu-item-wrapper" data-item-name="${item.name.toLowerCase()}" data-item-description="${(item.description || '').toLowerCase()}">
+        <div class="flex justify-between items-start p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+          <div class="flex-1 min-w-0 mr-4">
+            <h3 class="text-lg font-medium text-gray-900 mb-1">${item.name}</h3>
+            ${item.description ? `<p class="text-sm text-gray-600 mb-2">${item.description}</p>` : ''}
+            <p class="text-lg font-semibold text-blue-600">$${item.price.toFixed(2)}</p>
+          </div>
+          <div class="flex-shrink-0">
+            <div class="add-to-cart-container" data-item-id="${item.id}">
+              <!-- Quantity selector (initially hidden) -->
+              <div class="quantity-selector hidden items-center space-x-2 h-[32px]">
+                <button 
+                  type="button"
+                  class="quantity-btn decrease-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-full w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0"
+                  aria-label="Decrease quantity of ${item.name}"
+                  data-action="decrease"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                  </svg>
+                </button>
+                
+                <span class="quantity-display font-medium text-gray-900 min-w-[2ch] text-center text-sm px-2" role="status" aria-live="polite">
+                  0
+                </span>
+                
+                <button 
+                  type="button"
+                  class="quantity-btn increase-btn bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0"
+                  aria-label="Increase quantity of ${item.name}"
+                  data-action="increase"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Initial "Add" button -->
+              <button 
+                type="button"
+                class="add-btn bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 min-w-[60px] h-[32px] flex items-center justify-center"
+                data-item-id="${item.id}"
+                data-item-name="${item.name}"
+                data-item-description="${item.description || ''}"
+                data-item-price="${item.price}"
+                data-section-name="${sectionName}"
+                aria-label="Add ${item.name} to cart"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private async initializeAddToCartButtons(): Promise<void> {
+    console.log('[MenuDisplay] Initializing Add to Cart buttons');
+    try {
+      const { getCartInstance } = await import('../lib/cart.ts');
+      const containers = document.querySelectorAll('.add-to-cart-container');
+      console.log('[MenuDisplay] Found', containers.length, 'add-to-cart containers');
+      
+      containers.forEach((container) => {
+        try {
+          console.log('[MenuDisplay] Initializing container:', container);
+          this.initializeAddToCartButton(container as HTMLElement, getCartInstance);
+        } catch (error) {
+          console.error('Failed to initialize AddToCartButton container:', error);
+        }
+      });
+    } catch (error) {
+      console.error('Failed to import cart functionality:', error);
+    }
+  }
+
+  private initializeAddToCartButton(container: HTMLElement, getCartInstance: any): void {
+    const addButton = container.querySelector('.add-btn') as HTMLButtonElement;
+    const quantitySelector = container.querySelector('.quantity-selector') as HTMLElement;
+    const quantityDisplay = container.querySelector('.quantity-display') as HTMLElement;
+    const decreaseBtn = container.querySelector('.decrease-btn') as HTMLButtonElement;
+    const increaseBtn = container.querySelector('.increase-btn') as HTMLButtonElement;
+
+    if (!addButton || !quantitySelector || !quantityDisplay || !decreaseBtn || !increaseBtn) {
+      console.error('Required elements not found in AddToCartButton container');
+      return;
+    }
+
+    // Get menu item data from button attributes
+    const itemId = addButton.dataset.itemId || '';
+    const itemName = addButton.dataset.itemName || '';
+    const itemDescription = addButton.dataset.itemDescription || '';
+    const itemPrice = parseFloat(addButton.dataset.itemPrice || '0');
+    const sectionName = addButton.dataset.sectionName;
+
+    const menuItem = {
+      id: itemId,
+      name: itemName,
+      description: itemDescription,
+      price: itemPrice
+    };
+
+    // Get cart instance
+    const cart = getCartInstance(this.restaurantCode, this.tableCode);
+
+    // Initial add button
+    addButton.addEventListener('click', () => {
+      console.log('[MenuDisplay] Add button clicked for:', itemName);
+      cart.addItem(menuItem, 1, sectionName);
+      this.updateButtonDisplay(container, cart, menuItem.id);
+      this.showSuccessAnimation(addButton, itemName);
+    });
+
+    // Quantity controls
+    decreaseBtn.addEventListener('click', () => {
+      const currentQuantity = cart.getItemQuantity(menuItem.id);
+      if (currentQuantity > 0) {
+        cart.updateQuantity(menuItem.id, currentQuantity - 1);
+        this.updateButtonDisplay(container, cart, menuItem.id);
+      }
+    });
+
+    increaseBtn.addEventListener('click', () => {
+      const currentQuantity = cart.getItemQuantity(menuItem.id);
+      cart.updateQuantity(menuItem.id, currentQuantity + 1);
+      this.updateButtonDisplay(container, cart, menuItem.id);
+    });
+
+    // Initialize display
+    this.updateButtonDisplay(container, cart, menuItem.id);
+
+    // Subscribe to cart changes
+    cart.subscribe(() => {
+      this.updateButtonDisplay(container, cart, menuItem.id);
+    });
+  }
+
+  private updateButtonDisplay(container: HTMLElement, cart: any, itemId: string): void {
+    const addButton = container.querySelector('.add-btn') as HTMLElement;
+    const quantitySelector = container.querySelector('.quantity-selector') as HTMLElement;
+    const quantityDisplay = container.querySelector('.quantity-display') as HTMLElement;
+    const decreaseBtn = container.querySelector('.decrease-btn') as HTMLButtonElement;
+    
+    const quantity = cart.getItemQuantity(itemId);
+    
+    if (quantity > 0) {
+      // Show quantity selector, hide add button
+      addButton.classList.add('hidden');
+      quantitySelector.classList.remove('hidden');
+      quantitySelector.classList.add('flex');
+      quantityDisplay.textContent = quantity.toString();
+      
+      // Update ARIA label for quantity display
+      const itemName = (addButton as HTMLButtonElement).dataset.itemName || 'item';
+      quantityDisplay.setAttribute('aria-label', `${quantity} ${itemName} in cart`);
+      
+      // Disable decrease button if quantity is 1
+      if (decreaseBtn) {
+        decreaseBtn.disabled = quantity <= 1;
+        decreaseBtn.classList.toggle('opacity-50', quantity <= 1);
+      }
+    } else {
+      // Show add button, hide quantity selector
+      addButton.classList.remove('hidden');
+      quantitySelector.classList.add('hidden');
+      quantitySelector.classList.remove('flex');
+    }
+  }
+
+  private showSuccessAnimation(button: HTMLElement, itemName: string): void {
+    // Simple success animation
+    button.classList.add('animate-pulse');
+    setTimeout(() => {
+      button.classList.remove('animate-pulse');
+    }, 300);
+
+    // Show toast notification
+    this.showToast(`Added ${itemName} to cart`);
+  }
+
+  private showToast(message: string): void {
+    // Create and show a simple toast notification
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50 transition-opacity duration-300';
+    toast.textContent = message;
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 300);
+    }, 3000);
+  }
+
 
   private initializeSearch(): void {
     if (!this.searchInput) return;
@@ -231,6 +538,18 @@ export class MenuDisplay {
     if (errorMessage && message) errorMessage.textContent = message;
   }
 
+  public showEmptyMenu(restaurantName: string): void {
+    const loading = document.getElementById('menu-loading');
+    const sections = document.getElementById('menu-sections');
+    const error = document.getElementById('menu-error');
+    const empty = document.getElementById('menu-empty');
+    
+    if (loading) loading.style.display = 'none';
+    if (sections) sections.style.display = 'none';
+    if (error) error.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+  }
+
   public showMenu(): void {
     const loading = document.getElementById('menu-loading');
     const sections = document.getElementById('menu-sections');
@@ -250,111 +569,8 @@ export class MenuDisplay {
       if (empty) empty.style.display = 'block';
     }
   }
-
-  private initializeLazyLoading(): void {
-    // Use Intersection Observer for lazy loading menu sections
-    if (!('IntersectionObserver' in window)) {
-      // Fallback for older browsers - load all sections immediately
-      this.loadAllSections();
-      return;
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const section = entry.target as HTMLElement;
-          this.loadLazySection(section);
-          observer.unobserve(section);
-        }
-      });
-    }, {
-      rootMargin: '50px 0px', // Start loading when section is 50px from viewport
-      threshold: 0.1
-    });
-
-    // Observe all lazy sections
-    document.querySelectorAll('.lazy-content').forEach(section => {
-      observer.observe(section.closest('.lazy-section') as Element);
-    });
-  }
-
-  private loadLazySection(section: HTMLElement): void {
-    const lazyContent = section.querySelector('.lazy-content');
-    if (!lazyContent) return;
-
-    const itemsData = lazyContent.getAttribute('data-section-items');
-    const sectionName = lazyContent.getAttribute('data-section-name');
-    
-    if (!itemsData || !sectionName) return;
-
-    try {
-      const items = JSON.parse(itemsData);
-      const itemsContainer = lazyContent.parentElement;
-      
-      if (itemsContainer) {
-        // Create menu items HTML
-        const itemsHTML = items.map((item: any) => `
-          <div role="listitem" class="menu-item-wrapper" data-item-name="${item.name.toLowerCase()}" data-item-description="${(item.description || '').toLowerCase()}">
-            <div class="flex justify-between items-start p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-              <div class="flex-1 min-w-0 mr-4">
-                <h3 class="text-lg font-medium text-gray-900 mb-1">${item.name}</h3>
-                ${item.description ? `<p class="text-sm text-gray-600 mb-2">${item.description}</p>` : ''}
-                <p class="text-lg font-semibold text-blue-600">$${item.price.toFixed(2)}</p>
-              </div>
-              <button 
-                type="button"
-                class="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-                data-item-id="${item.id}"
-                data-item-name="${item.name}"
-                data-item-price="${item.price}"
-                data-section-name="${sectionName}"
-                aria-label="Add ${item.name} to cart"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        `).join('');
-        
-        // Replace lazy content with actual items
-        itemsContainer.innerHTML = itemsHTML;
-        
-        // Update menuItems collection
-        this.menuItems = document.querySelectorAll('.menu-item-wrapper');
-        
-        // Initialize keyboard navigation for new items
-        this.initializeKeyboardNavigation();
-      }
-    } catch (error) {
-      console.warn('Failed to load lazy section:', error);
-      // Remove loading indicator on error
-      if (lazyContent.parentElement) {
-        lazyContent.parentElement.innerHTML = '<p class="text-gray-500 text-center py-4 italic">Failed to load menu items</p>';
-      }
-    }
-  }
-
-  private loadAllSections(): void {
-    // Fallback for browsers without Intersection Observer
-    document.querySelectorAll('.lazy-section').forEach(section => {
-      this.loadLazySection(section as HTMLElement);
-    });
-  }
 }
 
-// Initialize only when needed - use intersection observer for lazy loading
-const initializeMenuDisplay = () => {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => new MenuDisplay());
-  } else {
-    new MenuDisplay();
-  }
-};
-
-// Only initialize if we're on a menu page
-if (document.querySelector('[data-menu-display]')) {
-  initializeMenuDisplay();
-}
-
-// Export for external use
+// Export the class for external use
+export { MenuDisplay };
 export default MenuDisplay;

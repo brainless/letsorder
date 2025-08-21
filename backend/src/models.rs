@@ -31,7 +31,10 @@ impl From<UserRow> for User {
             phone: row.phone,
             password_hash: row.password_hash.unwrap_or_default(),
             email_verified: row.email_verified.unwrap_or(false),
-            created_at: DateTime::from_naive_utc_and_offset(row.created_at.unwrap_or_default(), Utc),
+            created_at: DateTime::from_naive_utc_and_offset(
+                row.created_at.unwrap_or_default(),
+                Utc,
+            ),
         }
     }
 }
@@ -653,9 +656,17 @@ impl From<EmailVerificationTokenRow> for EmailVerificationToken {
             id: row.id.unwrap_or_default(),
             user_id: row.user_id.unwrap_or_default(),
             token: row.token.unwrap_or_default(),
-            expires_at: DateTime::from_naive_utc_and_offset(row.expires_at.unwrap_or_default(), Utc),
-            created_at: DateTime::from_naive_utc_and_offset(row.created_at.unwrap_or_default(), Utc),
-            used_at: row.used_at.map(|dt| DateTime::from_naive_utc_and_offset(dt, Utc)),
+            expires_at: DateTime::from_naive_utc_and_offset(
+                row.expires_at.unwrap_or_default(),
+                Utc,
+            ),
+            created_at: DateTime::from_naive_utc_and_offset(
+                row.created_at.unwrap_or_default(),
+                Utc,
+            ),
+            used_at: row
+                .used_at
+                .map(|dt| DateTime::from_naive_utc_and_offset(dt, Utc)),
         }
     }
 }
@@ -688,9 +699,17 @@ impl From<PasswordResetTokenRow> for PasswordResetToken {
             id: row.id.unwrap_or_default(),
             user_id: row.user_id.unwrap_or_default(),
             token: row.token.unwrap_or_default(),
-            expires_at: DateTime::from_naive_utc_and_offset(row.expires_at.unwrap_or_default(), Utc),
-            created_at: DateTime::from_naive_utc_and_offset(row.created_at.unwrap_or_default(), Utc),
-            used_at: row.used_at.map(|dt| DateTime::from_naive_utc_and_offset(dt, Utc)),
+            expires_at: DateTime::from_naive_utc_and_offset(
+                row.expires_at.unwrap_or_default(),
+                Utc,
+            ),
+            created_at: DateTime::from_naive_utc_and_offset(
+                row.created_at.unwrap_or_default(),
+                Utc,
+            ),
+            used_at: row
+                .used_at
+                .map(|dt| DateTime::from_naive_utc_and_offset(dt, Utc)),
         }
     }
 }

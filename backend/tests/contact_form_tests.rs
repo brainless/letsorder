@@ -12,6 +12,7 @@ async fn test_submit_contact_form_success() {
     let app = test::init_service(create_app(
         test_app.pool.clone(),
         test_app.jwt_manager.clone(),
+        test_app.settings.clone(),
     ))
     .await;
 
@@ -53,6 +54,7 @@ async fn test_submit_contact_form_validation_errors() {
     let app = test::init_service(create_app(
         test_app.pool.clone(),
         test_app.jwt_manager.clone(),
+        test_app.settings.clone(),
     ))
     .await;
 
@@ -124,6 +126,7 @@ async fn test_submit_contact_form_length_validation() {
     let app = test::init_service(create_app(
         test_app.pool.clone(),
         test_app.jwt_manager.clone(),
+        test_app.settings.clone(),
     ))
     .await;
 
@@ -183,6 +186,7 @@ async fn test_contact_form_with_optional_subject() {
     let app = test::init_service(create_app(
         test_app.pool.clone(),
         test_app.jwt_manager.clone(),
+        test_app.settings.clone(),
     ))
     .await;
 
@@ -232,6 +236,7 @@ async fn test_rate_limiting_basic() {
     let app = test::init_service(create_app(
         test_app.pool.clone(),
         test_app.jwt_manager.clone(),
+        test_app.settings.clone(),
     ))
     .await;
 
@@ -273,6 +278,7 @@ async fn test_contact_form_data_persistence() {
     let app = test::init_service(create_app(
         test_app.pool.clone(),
         test_app.jwt_manager.clone(),
+        test_app.settings.clone(),
     ))
     .await;
 

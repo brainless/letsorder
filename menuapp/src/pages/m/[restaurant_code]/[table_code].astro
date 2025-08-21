@@ -6,216 +6,139 @@ import FloatingCartIndicator from '../../../components/FloatingCartIndicator.ast
 import NotFound from '../../../components/NotFound.astro';
 import NetworkError from '../../../components/NetworkError.astro';
 import EmptyMenu from '../../../components/EmptyMenu.astro';
-import { fetchMenu } from '../../../lib/api';
-import type { MenuData } from '../../../types/menu';
-
-// Server-side rendering enabled - no need for getStaticPaths
 
 const { restaurant_code, table_code } = Astro.params;
-
-console.log('[MENU DEBUG] Route accessed with params:', { restaurant_code, table_code });
-console.log('[MENU DEBUG] Full Astro.params:', Astro.params);
-console.log('[MENU DEBUG] Astro.url:', Astro.url.toString());
-
-// Default fallback data for development and static builds
-const fallbackMenuData: MenuData = {
-  restaurant: {
-    name: "Sample Restaurant",
-    code: restaurant_code || 'sample',
-    address: "123 Sample Street, Sample City"
-  },
-  table: {
-    code: table_code || 'table1',
-    name: `Table ${table_code || 'Sample'}`
-  },
-  sections: [
-    {
-      id: 1,
-      name: "Starters",
-      items: [
-        {
-          id: 1,
-          name: "Caesar Salad",
-          description: "Fresh romaine lettuce with parmesan and croutons",
-          price: 12.99
-        },
-        {
-          id: 2,
-          name: "Garlic Bread",
-          description: "Toasted bread with garlic butter",
-          price: 8.99
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: "Main Courses",
-      items: [
-        {
-          id: 3,
-          name: "Grilled Salmon",
-          description: "Fresh Atlantic salmon with seasonal vegetables",
-          price: 24.99
-        },
-        {
-          id: 4,
-          name: "Beef Steak",
-          description: "Prime ribeye with mashed potatoes",
-          price: 32.99
-        }
-      ]
-    }
-  ]
-};
 
 // Validate required parameters
 if (!restaurant_code || !table_code) {
   return Astro.redirect('/');
 }
 
-// Error states for rendering
-let errorType: 'none' | 'network' | 'not_found_restaurant' | 'not_found_table' | 'empty_menu' = 'none';
-let menuData: MenuData = fallbackMenuData;
-let hasApiError = false;
+const pageTitle = `Menu - ${restaurant_code} - ${table_code}`;
 
-console.log('[MENU DEBUG] Attempting to fetch menu for:', { restaurant_code, table_code });
+// Script content with interpolated values
+const scriptContent = `
+console.log('[SCRIPT] Script is executing');
 
-try {
-  const apiResponse = await fetchMenu(restaurant_code, table_code);
-  console.log('[MENU DEBUG] Successfully fetched menu data:', apiResponse);
-  
-  // Check if restaurant was found and if menu has sections
-  if (!apiResponse.restaurant) {
-    errorType = 'not_found_restaurant';
-  } else if (!apiResponse.sections || apiResponse.sections.length === 0) {
-    // Menu exists but is empty
-    errorType = 'empty_menu';
-    menuData = {
-      restaurant: {
-        name: apiResponse.restaurant.name,
-        code: restaurant_code,
-        address: apiResponse.restaurant.address
-      },
-      table: {
-        code: table_code,
-        name: `Table ${table_code}`
-      },
-      sections: []
-    };
-  } else {
-    // Transform API response to match expected MenuData interface
-    menuData = {
-      restaurant: {
-        name: apiResponse.restaurant.name,
-        code: restaurant_code,
-        address: apiResponse.restaurant.address
-      },
-      table: {
-        code: table_code,
-        name: `Table ${table_code}`
-      },
-      sections: apiResponse.sections || []
-    };
-    console.log('[MENU DEBUG] Transformed menu data:', menuData);
-  }
-} catch (error) {
-  console.error('[MENU DEBUG] Failed to fetch menu data:', error);
-  
-  // Determine error type based on error message or status
-  if (error instanceof Error) {
-    if (error.message.includes('404') || error.message.includes('not found')) {
-      // 404 could mean either restaurant or table not found
-      // For now, use restaurant not found as the generic "not found" error
-      errorType = 'not_found_restaurant';
-    } else if (error.message.includes('network') || error.message.includes('fetch')) {
-      errorType = 'network';
+// Pass restaurant and table codes to the client
+window.menuPageData = {
+  restaurantCode: "${restaurant_code}",
+  tableCode: "${table_code}"
+};
+
+console.log('[SCRIPT] menuPageData set:', window.menuPageData);
+
+// Import and initialize menu display
+console.log('[SCRIPT] Starting module import...');
+import('/src/scripts/menu-display.ts').then((module) => {
+  console.log('[SCRIPT] Module loaded successfully:', module);
+  console.log('[SCRIPT] Available exports:', Object.keys(module));
+  try {
+    console.log('[SCRIPT] Initializing MenuDisplay...');
+    // Try default export first, then named export
+    const MenuDisplayClass = module.default || module.MenuDisplay;
+    console.log('[SCRIPT] MenuDisplay class:', MenuDisplayClass);
+    if (MenuDisplayClass) {
+      new MenuDisplayClass();
+      console.log('[SCRIPT] MenuDisplay initialized successfully');
     } else {
-      errorType = 'network'; // Default to network error for unknown API errors
+      console.error('[SCRIPT] MenuDisplay class not found in module exports');
     }
-  } else {
-    errorType = 'network';
+  } catch (error) {
+    console.error('[SCRIPT] Failed to initialize MenuDisplay:', error);
   }
-  
-  hasApiError = true;
-  console.log('[MENU DEBUG] Error type determined:', errorType);
-}
+}).catch((error) => {
+  console.error('[SCRIPT] Failed to load menu-display script:', error);
+});
 
-const pageTitle = `${menuData.restaurant.name} - ${menuData.table.name}`;
+// Load performance monitor separately
+import('/src/scripts/performance-monitor.ts').catch(() => {
+  console.warn('Failed to load performance monitor script');
+});
+`;
 ---
 
 <Layout title={pageTitle}>
-  {errorType === 'not_found_restaurant' && (
-    <NotFound 
-      resourceType="restaurant" 
-      showHome={true}
-    />
-  )}
+  <!-- Menu will be loaded client-side -->
+  <MenuDisplay />
 
-  {errorType === 'not_found_table' && (
-    <NotFound 
-      resourceType="table" 
-      showHome={true}
-    />
-  )}
-
-  {errorType === 'network' && (
-    <NetworkError 
-      showRetry={true}
-    />
-  )}
-
-  {errorType === 'empty_menu' && (
-    <EmptyMenu 
-      restaurantName={menuData.restaurant.name}
-      showRetry={true}
-    />
-  )}
-
-  {errorType === 'none' && (
-    <>
-      {hasApiError && (
-      <div class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4" role="alert">
-        <div class="flex items-center">
-          <svg class="h-5 w-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-          </svg>
-          <p class="text-yellow-700 font-medium">Using sample menu data</p>
-        </div>
-        <p class="text-yellow-600 text-sm mt-1">Could not connect to the menu server. Displaying sample data for demonstration.</p>
-      </div>
-    )}
-
-    <MenuDisplay menuData={menuData} />
-
-    <!-- Cart Summary (Fixed at bottom on mobile, inline on desktop) -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:relative md:border-t-0 md:bg-transparent md:p-0 mt-8 z-30">
-      <div class="max-w-md mx-auto">
-        <CartSummary 
-          showSpecialRequests={true}
-          showCheckoutButton={true}
-          className="md:shadow-sm"
-        />
-      </div>
+  <!-- Cart Summary (Fixed at bottom on mobile, inline on desktop) -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:relative md:border-t-0 md:bg-transparent md:p-0 mt-8 z-30">
+    <div class="max-w-md mx-auto">
+      <CartSummary 
+        showSpecialRequests={true}
+        showCheckoutButton={true}
+        className="md:shadow-sm"
+      />
     </div>
+  </div>
 
-    <!-- Floating Cart Indicator (shows when cart has items) -->
-    <FloatingCartIndicator position="bottom-right" />
+  <!-- Floating Cart Indicator (shows when cart has items) -->
+  <FloatingCartIndicator position="bottom-right" />
 
-    <!-- Spacer for fixed cart summary on mobile -->
-    <div class="h-60 md:hidden"></div>
+  <!-- Spacer for fixed cart summary on mobile -->
+  <div class="h-60 md:hidden"></div>
 
-    <!-- Load optimized menu display script -->
-    <script>
-      Promise.all([
-        import('../../../scripts/menu-display.js'),
-        import('../../../scripts/performance-monitor.js')
-      ]).then(() => {
-        // Menu display and performance monitoring are automatically initialized
-      }).catch(() => {
-        // Graceful fallback if scripts fail to load
-        console.warn('Failed to load performance scripts');
-      });
-    </script>
-    </>
-  )}
+  <!-- Load menu display script with restaurant and table codes -->
+  <script type="module" set:html={scriptContent}></script>
+  
+  <!-- Additional styles for AddToCartButton animations -->
+  <style>
+    .add-to-cart-container {
+      display: inline-block;
+      min-height: 32px;
+    }
+
+    .quantity-selector {
+      display: none;
+      align-items: center;
+      height: 32px;
+    }
+
+    .quantity-selector.flex {
+      display: flex;
+    }
+
+    .add-btn {
+      height: 32px;
+      min-width: 60px;
+    }
+
+    .quantity-btn:disabled {
+      cursor: not-allowed;
+    }
+
+    /* Smooth transitions */
+    .quantity-display {
+      transition: all 0.2s ease;
+    }
+
+    /* Animation classes */
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .animate-pulse {
+      animation: pulse 0.3s ease-in-out;
+    }
+
+    /* Toast notification styles */
+    .toast {
+      transform: translateY(-100%);
+      opacity: 0;
+      animation: slideDown 0.3s ease-out forwards;
+    }
+
+    @keyframes slideDown {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
 </Layout>

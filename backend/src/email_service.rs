@@ -1,5 +1,5 @@
 use log::{error, info};
-use resend_rs::{Resend, types::CreateEmailBaseOptions};
+use resend_rs::{types::CreateEmailBaseOptions, Resend};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -40,9 +40,13 @@ pub struct EmailResponse {
 }
 
 impl EmailService {
-    pub fn new(api_key: String, from_email: String, template_path: String) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(
+        api_key: String,
+        from_email: String,
+        template_path: String,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let client = Resend::new(&api_key);
-        
+
         // Load email template
         let template = fs::read_to_string(template_path)
             .map_err(|e| format!("Failed to read email template: {}", e))?;
@@ -54,8 +58,15 @@ impl EmailService {
         })
     }
 
-    pub async fn send_email(&self, request: EmailRequest) -> Result<EmailResponse, Box<dyn std::error::Error>> {
-        info!("Sending {} email to {}", self.email_type_string(&request.email_type), request.to);
+    pub async fn send_email(
+        &self,
+        request: EmailRequest,
+    ) -> Result<EmailResponse, Box<dyn std::error::Error>> {
+        info!(
+            "Sending {} email to {}",
+            self.email_type_string(&request.email_type),
+            request.to
+        );
 
         // Generate email content from template
         let email_body = self.generate_email_content(&request)?;
@@ -77,7 +88,7 @@ impl EmailService {
                     message: "Email sent successfully".to_string(),
                     email_id: Some(response.id.to_string()),
                 })
-            },
+            }
             Err(err) => {
                 error!("Email service error: {:?}", err);
                 Ok(EmailResponse {
@@ -89,7 +100,10 @@ impl EmailService {
         }
     }
 
-    fn generate_email_content(&self, request: &EmailRequest) -> Result<String, Box<dyn std::error::Error>> {
+    fn generate_email_content(
+        &self,
+        request: &EmailRequest,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         let mut content = self.template.clone();
 
         // Replace template placeholders with actual data
@@ -99,7 +113,10 @@ impl EmailService {
         }
 
         // Add email type specific content
-        content = content.replace("{{email_type}}", &self.email_type_string(&request.email_type));
+        content = content.replace(
+            "{{email_type}}",
+            &self.email_type_string(&request.email_type),
+        );
 
         Ok(content)
     }
@@ -115,11 +132,19 @@ impl EmailService {
     }
 
     // Email type specific methods
-    pub async fn send_email_verification(&self, to: String, verification_link: String, user_name: String) -> Result<EmailResponse, Box<dyn std::error::Error>> {
+    pub async fn send_email_verification(
+        &self,
+        to: String,
+        verification_link: String,
+        user_name: String,
+    ) -> Result<EmailResponse, Box<dyn std::error::Error>> {
         let mut template_data = HashMap::new();
         template_data.insert("user_name".to_string(), user_name);
         template_data.insert("verification_link".to_string(), verification_link);
-        template_data.insert("action_text".to_string(), "Please verify your email address by clicking the link below:".to_string());
+        template_data.insert(
+            "action_text".to_string(),
+            "Please verify your email address by clicking the link below:".to_string(),
+        );
 
         let request = EmailRequest {
             to,
@@ -131,11 +156,19 @@ impl EmailService {
         self.send_email(request).await
     }
 
-    pub async fn send_password_reset(&self, to: String, reset_link: String, user_name: String) -> Result<EmailResponse, Box<dyn std::error::Error>> {
+    pub async fn send_password_reset(
+        &self,
+        to: String,
+        reset_link: String,
+        user_name: String,
+    ) -> Result<EmailResponse, Box<dyn std::error::Error>> {
         let mut template_data = HashMap::new();
         template_data.insert("user_name".to_string(), user_name);
         template_data.insert("reset_link".to_string(), reset_link);
-        template_data.insert("action_text".to_string(), "Click the link below to reset your password:".to_string());
+        template_data.insert(
+            "action_text".to_string(),
+            "Click the link below to reset your password:".to_string(),
+        );
 
         let request = EmailRequest {
             to,
@@ -147,9 +180,16 @@ impl EmailService {
         self.send_email(request).await
     }
 
-    pub async fn send_contact_form_notification(&self, admin_email: String, submission_data: HashMap<String, String>) -> Result<EmailResponse, Box<dyn std::error::Error>> {
+    pub async fn send_contact_form_notification(
+        &self,
+        admin_email: String,
+        submission_data: HashMap<String, String>,
+    ) -> Result<EmailResponse, Box<dyn std::error::Error>> {
         let mut template_data = submission_data.clone();
-        template_data.insert("action_text".to_string(), "A new contact form submission has been received:".to_string());
+        template_data.insert(
+            "action_text".to_string(),
+            "A new contact form submission has been received:".to_string(),
+        );
 
         let request = EmailRequest {
             to: admin_email,
@@ -161,9 +201,16 @@ impl EmailService {
         self.send_email(request).await
     }
 
-    pub async fn send_support_ticket(&self, to: String, ticket_data: HashMap<String, String>) -> Result<EmailResponse, Box<dyn std::error::Error>> {
+    pub async fn send_support_ticket(
+        &self,
+        to: String,
+        ticket_data: HashMap<String, String>,
+    ) -> Result<EmailResponse, Box<dyn std::error::Error>> {
         let mut template_data = ticket_data.clone();
-        template_data.insert("action_text".to_string(), "Your support ticket has been created:".to_string());
+        template_data.insert(
+            "action_text".to_string(),
+            "Your support ticket has been created:".to_string(),
+        );
 
         let request = EmailRequest {
             to,
@@ -175,9 +222,16 @@ impl EmailService {
         self.send_email(request).await
     }
 
-    pub async fn send_support_response(&self, to: String, response_data: HashMap<String, String>) -> Result<EmailResponse, Box<dyn std::error::Error>> {
+    pub async fn send_support_response(
+        &self,
+        to: String,
+        response_data: HashMap<String, String>,
+    ) -> Result<EmailResponse, Box<dyn std::error::Error>> {
         let mut template_data = response_data.clone();
-        template_data.insert("action_text".to_string(), "You have received a response to your support ticket:".to_string());
+        template_data.insert(
+            "action_text".to_string(),
+            "You have received a response to your support ticket:".to_string(),
+        );
 
         let request = EmailRequest {
             to,

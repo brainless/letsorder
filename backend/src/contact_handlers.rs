@@ -176,18 +176,28 @@ pub async fn submit_contact_form(
                     ) {
                         Ok(email_service) => {
                             let mut submission_data = HashMap::new();
-                            submission_data.insert("submitter_name".to_string(), name_trimmed.to_string());
-                            submission_data.insert("submitter_email".to_string(), email_trimmed.to_string());
-                            submission_data.insert("subject".to_string(), subject_trimmed.unwrap_or("No subject").to_string());
-                            submission_data.insert("message".to_string(), message_trimmed.to_string());
-                            submission_data.insert("submission_id".to_string(), submission_id.clone());
+                            submission_data
+                                .insert("submitter_name".to_string(), name_trimmed.to_string());
+                            submission_data
+                                .insert("submitter_email".to_string(), email_trimmed.to_string());
+                            submission_data.insert(
+                                "subject".to_string(),
+                                subject_trimmed.unwrap_or("No subject").to_string(),
+                            );
+                            submission_data
+                                .insert("message".to_string(), message_trimmed.to_string());
+                            submission_data
+                                .insert("submission_id".to_string(), submission_id.clone());
                             submission_data.insert("ip_address".to_string(), ip_address.clone());
-                            
+
                             // Send admin notification email asynchronously
-                            match email_service.send_contact_form_notification(
-                                email_config.admin_email.clone(),
-                                submission_data,
-                            ).await {
+                            match email_service
+                                .send_contact_form_notification(
+                                    email_config.admin_email.clone(),
+                                    submission_data,
+                                )
+                                .await
+                            {
                                 Ok(_) => info!("Admin notification email sent successfully"),
                                 Err(e) => error!("Failed to send admin notification email: {}", e),
                             }

@@ -57,7 +57,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("  Manager Password: {}", password);
     println!("  Table Code: DEMO001");
     println!("  Admin URL: https://a.letsorder.app");
-    println!("  Menu URL: https://m.letsorder.app/restaurant/demo-restaurant-123/table/demo-table-456");
+    println!(
+        "  Menu URL: https://m.letsorder.app/restaurant/demo-restaurant-123/table/demo-table-456"
+    );
 
     Ok(())
 }
@@ -87,11 +89,9 @@ async fn reset_demo_data(pool: &Pool<Sqlite>, password_hash: &str) -> Result<(),
     .await?;
 
     // Clear existing menu sections for demo restaurant
-    sqlx::query!(
-        "DELETE FROM menu_sections WHERE restaurant_id = 'demo-restaurant-123'"
-    )
-    .execute(&mut *tx)
-    .await?;
+    sqlx::query!("DELETE FROM menu_sections WHERE restaurant_id = 'demo-restaurant-123'")
+        .execute(&mut *tx)
+        .await?;
 
     // Clear existing tables (except the demo table) for demo restaurant
     sqlx::query!(
@@ -102,11 +102,9 @@ async fn reset_demo_data(pool: &Pool<Sqlite>, password_hash: &str) -> Result<(),
     .await?;
 
     // Clear existing manager associations
-    sqlx::query!(
-        "DELETE FROM restaurant_managers WHERE restaurant_id = 'demo-restaurant-123'"
-    )
-    .execute(&mut *tx)
-    .await?;
+    sqlx::query!("DELETE FROM restaurant_managers WHERE restaurant_id = 'demo-restaurant-123'")
+        .execute(&mut *tx)
+        .await?;
 
     // Clear the demo user if it exists
     sqlx::query!("DELETE FROM users WHERE email = 'demo@letsorder.app'")
