@@ -18,26 +18,41 @@ const pageTitle = `Menu - ${restaurant_code} - ${table_code}`;
 
 // Script content with interpolated values
 const scriptContent = `
+console.log('[SCRIPT] Script is executing');
+
 // Pass restaurant and table codes to the client
 window.menuPageData = {
   restaurantCode: "${restaurant_code}",
   tableCode: "${table_code}"
 };
 
+console.log('[SCRIPT] menuPageData set:', window.menuPageData);
+
 // Import and initialize menu display
-import('../../../scripts/menu-display.ts').then((module) => {
+console.log('[SCRIPT] Starting module import...');
+import('/src/scripts/menu-display.ts').then((module) => {
+  console.log('[SCRIPT] Module loaded successfully:', module);
+  console.log('[SCRIPT] Available exports:', Object.keys(module));
   try {
-    // Explicitly initialize MenuDisplay
-    new module.MenuDisplay();
+    console.log('[SCRIPT] Initializing MenuDisplay...');
+    // Try default export first, then named export
+    const MenuDisplayClass = module.default || module.MenuDisplay;
+    console.log('[SCRIPT] MenuDisplay class:', MenuDisplayClass);
+    if (MenuDisplayClass) {
+      new MenuDisplayClass();
+      console.log('[SCRIPT] MenuDisplay initialized successfully');
+    } else {
+      console.error('[SCRIPT] MenuDisplay class not found in module exports');
+    }
   } catch (error) {
-    console.error('Failed to initialize MenuDisplay:', error);
+    console.error('[SCRIPT] Failed to initialize MenuDisplay:', error);
   }
 }).catch((error) => {
-  console.error('Failed to load menu-display script:', error);
+  console.error('[SCRIPT] Failed to load menu-display script:', error);
 });
 
 // Load performance monitor separately
-import('../../../scripts/performance-monitor.ts').catch(() => {
+import('/src/scripts/performance-monitor.ts').catch(() => {
   console.warn('Failed to load performance monitor script');
 });
 `;
