@@ -34,6 +34,7 @@ fn create_test_user(id: &str, email: &str) -> User {
         email: email.to_string(),
         phone: Some("+1234567890".to_string()),
         password_hash: "dummy_hash".to_string(),
+        email_verified: false,
         created_at: Utc::now(),
     }
 }
@@ -454,6 +455,7 @@ async fn test_user_login_valid_credentials() {
         email: user_row.email,
         phone: user_row.phone,
         password_hash: user_row.password_hash,
+        email_verified: user_row.email_verified.unwrap_or(false),
         created_at: Utc::now(),
     };
 

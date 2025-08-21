@@ -1,5 +1,5 @@
 use actix_web::{test, web, App};
-use backend::{auth::JwtManager, init_database, seed_database_if_empty};
+use backend::{auth::JwtManager, init_database, seed_database_if_empty, Settings};
 use sqlx::{Pool, Sqlite};
 use std::sync::Once;
 
@@ -8,6 +8,7 @@ static INIT: Once = Once::new();
 pub struct TestApp {
     pub pool: Pool<Sqlite>,
     pub jwt_manager: JwtManager,
+    pub settings: Settings,
 }
 
 impl TestApp {
@@ -31,7 +32,9 @@ impl TestApp {
             24, // 24 hours expiration
         );
 
-        Self { pool, jwt_manager }
+        let settings = Settings::default();
+
+        Self { pool, jwt_manager, settings }
     }
 
     pub async fn cleanup(&self) {
