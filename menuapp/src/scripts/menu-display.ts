@@ -183,22 +183,27 @@ class MenuDisplay {
   }
 
   private async initializeAddToCartButtons(): Promise<void> {
-    // Dynamically import and initialize AddToCartButton instances
-    const containers = document.querySelectorAll('.add-to-cart-container');
+    console.log('[MenuDisplay] Initializing Add to Cart buttons');
     
-    containers.forEach(async (container) => {
+    // Use the existing AddToCartButton.astro initialization system
+    // by dispatching custom events for each container
+    const containers = document.querySelectorAll('.add-to-cart-container');
+    console.log('[MenuDisplay] Found', containers.length, 'add-to-cart containers');
+    
+    containers.forEach((container) => {
       try {
-        // The AddToCartButton logic is embedded in the component's script tag
-        // We need to trigger its initialization for dynamically created buttons
+        console.log('[MenuDisplay] Dispatching addToCartButtonInit event for:', container);
         const event = new CustomEvent('addToCartButtonInit', {
-          detail: { container }
+          detail: { container },
+          bubbles: true
         });
-        container.dispatchEvent(event);
+        document.dispatchEvent(event);
       } catch (error) {
-        console.error('Failed to initialize AddToCartButton:', error);
+        console.error('Failed to dispatch addToCartButtonInit event:', error);
       }
     });
   }
+
 
   private initializeSearch(): void {
     if (!this.searchInput) return;
