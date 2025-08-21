@@ -46,14 +46,21 @@ const pageTitle = `Menu - ${restaurant_code} - ${table_code}`;
       tableCode: table_code
     };
 
-    Promise.all([
-      import('../../../scripts/menu-display.js'),
-      import('../../../scripts/performance-monitor.js')
-    ]).then(() => {
-      // Menu display and performance monitoring are automatically initialized
-    }).catch(() => {
-      // Graceful fallback if scripts fail to load
-      console.warn('Failed to load performance scripts');
+    // Import and initialize menu display
+    import('../../../scripts/menu-display.ts').then((module) => {
+      try {
+        // Explicitly initialize MenuDisplay
+        new module.MenuDisplay();
+      } catch (error) {
+        console.error('Failed to initialize MenuDisplay:', error);
+      }
+    }).catch((error) => {
+      console.error('Failed to load menu-display script:', error);
+    });
+
+    // Load performance monitor separately
+    import('../../../scripts/performance-monitor.js').catch(() => {
+      console.warn('Failed to load performance monitor script');
     });
   </script>
 </Layout>

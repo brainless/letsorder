@@ -1,7 +1,7 @@
 /**
  * Optimized Menu Display functionality with client-side rendering
  */
-export class MenuDisplay {
+class MenuDisplay {
   private searchInput: HTMLInputElement | null;
   private menuSections: NodeListOf<Element>;
   private menuItems: NodeListOf<Element>;
@@ -431,19 +431,6 @@ export class MenuDisplay {
   }
 }
 
-// Initialize menu display
-const initializeMenuDisplay = () => {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => new MenuDisplay());
-  } else {
-    new MenuDisplay();
-  }
-};
-
-// Only initialize if we're on a menu page
-if (document.querySelector('[data-menu-display]')) {
-  initializeMenuDisplay();
-}
-
-// Export for external use
+// Export the class for external use
+export { MenuDisplay };
 export default MenuDisplay;
