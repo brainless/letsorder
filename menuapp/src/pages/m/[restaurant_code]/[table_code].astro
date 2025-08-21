@@ -15,6 +15,32 @@ if (!restaurant_code || !table_code) {
 }
 
 const pageTitle = `Menu - ${restaurant_code} - ${table_code}`;
+
+// Script content with interpolated values
+const scriptContent = `
+// Pass restaurant and table codes to the client
+window.menuPageData = {
+  restaurantCode: "${restaurant_code}",
+  tableCode: "${table_code}"
+};
+
+// Import and initialize menu display
+import('../../../scripts/menu-display.ts').then((module) => {
+  try {
+    // Explicitly initialize MenuDisplay
+    new module.MenuDisplay();
+  } catch (error) {
+    console.error('Failed to initialize MenuDisplay:', error);
+  }
+}).catch((error) => {
+  console.error('Failed to load menu-display script:', error);
+});
+
+// Load performance monitor separately
+import('../../../scripts/performance-monitor.ts').catch(() => {
+  console.warn('Failed to load performance monitor script');
+});
+`;
 ---
 
 <Layout title={pageTitle}>
@@ -39,28 +65,5 @@ const pageTitle = `Menu - ${restaurant_code} - ${table_code}`;
   <div class="h-60 md:hidden"></div>
 
   <!-- Load menu display script with restaurant and table codes -->
-  <script define:vars={{ restaurant_code, table_code }}>
-    // Pass restaurant and table codes to the client
-    window.menuPageData = {
-      restaurantCode: restaurant_code,
-      tableCode: table_code
-    };
-
-    // Import and initialize menu display
-    import('../../../scripts/menu-display.ts').then((module) => {
-      try {
-        // Explicitly initialize MenuDisplay
-        new module.MenuDisplay();
-      } catch (error) {
-        console.error('Failed to initialize MenuDisplay:', error);
-      }
-    }).catch((error) => {
-      console.error('Failed to load menu-display script:', error);
-    });
-
-    // Load performance monitor separately
-    import('../../../scripts/performance-monitor.js').catch(() => {
-      console.warn('Failed to load performance monitor script');
-    });
-  </script>
+  <script type="module" set:html={scriptContent}></script>
 </Layout>
