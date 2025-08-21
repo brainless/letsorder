@@ -1,5 +1,5 @@
 /**
- * Optimized Menu Display functionality with minimal JavaScript
+ * Optimized Menu Display functionality with client-side rendering
  */
 export class MenuDisplay {
   private searchInput: HTMLInputElement | null;
@@ -8,17 +8,184 @@ export class MenuDisplay {
   private searchResultsSummary: HTMLElement | null;
   private noSearchResults: HTMLElement | null;
   private searchDebounceTimer: number = 0;
+  private restaurantCode: string;
+  private tableCode: string;
 
   constructor() {
+    // Get restaurant and table codes from window data
+    const pageData = (window as any).menuPageData;
+    if (!pageData || !pageData.restaurantCode || !pageData.tableCode) {
+      throw new Error('Restaurant and table codes not found');
+    }
+    
+    this.restaurantCode = pageData.restaurantCode;
+    this.tableCode = pageData.tableCode;
+    
     this.searchInput = document.getElementById('menu-search') as HTMLInputElement;
     this.menuSections = document.querySelectorAll('.menu-section');
     this.menuItems = document.querySelectorAll('.menu-item-wrapper');
     this.searchResultsSummary = document.getElementById('search-results-summary');
     this.noSearchResults = document.getElementById('no-search-results');
     
-    this.initializeSearch();
-    this.initializeKeyboardNavigation();
-    this.initializeLazyLoading();
+    this.initializeMenu();
+  }
+
+  private async initializeMenu(): Promise<void> {
+    try {
+      this.showLoading();
+      
+      // Import the API function
+      const { fetchMenu } = await import('../lib/api.js');
+      const menuData = await fetchMenu(this.restaurantCode, this.tableCode);
+      
+      if (!menuData.restaurant) {
+        this.showError('Restaurant not found');
+        return;
+      }
+      
+      if (!menuData.sections || menuData.sections.length === 0) {
+        this.showEmptyMenu(menuData.restaurant.name);
+        return;
+      }
+      
+      this.renderMenu(menuData);
+      this.initializeSearch();
+      this.initializeKeyboardNavigation();
+      this.initializeAddToCartButtons();
+      this.showMenu();
+      
+    } catch (error) {
+      console.error('Failed to load menu:', error);
+      this.showError('Failed to load menu. Please try refreshing the page.');
+    }
+  }
+
+  private renderMenu(menuData: any): void {
+    // Update restaurant header
+    const restaurantName = document.getElementById('restaurant-name');
+    const restaurantAddress = document.getElementById('restaurant-address');
+    
+    if (restaurantName) {
+      restaurantName.textContent = menuData.restaurant.name;
+    }
+    
+    if (restaurantAddress && menuData.restaurant.address) {
+      restaurantAddress.textContent = menuData.restaurant.address;
+    } else if (restaurantAddress) {
+      restaurantAddress.style.display = 'none';
+    }
+
+    // Render menu sections
+    const sectionsContainer = document.getElementById('menu-sections');
+    if (!sectionsContainer) return;
+
+    const sectionsHTML = menuData.sections.map((section: any) => `
+      <section 
+        class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 menu-section" 
+        data-section-id="${section.id}"
+        role="region"
+        aria-labelledby="section-title-${section.id}"
+      >
+        <h2 
+          class="text-xl font-semibold text-gray-900 mb-4 section-title" 
+          id="section-title-${section.id}"
+        >
+          ${section.name}
+        </h2>
+        
+        ${section.items && section.items.length > 0 ? `
+          <div class="space-y-4 section-items" role="list" aria-label="${section.name} items">
+            ${section.items.map((item: any) => this.generateMenuItemHTML(item, section.name)).join('')}
+          </div>
+        ` : `
+          <p class="text-gray-500 text-center py-4 italic">No items available in this section</p>
+        `}
+      </section>
+    `).join('');
+
+    sectionsContainer.innerHTML = sectionsHTML;
+
+    // Update collections after rendering
+    this.menuSections = document.querySelectorAll('.menu-section');
+    this.menuItems = document.querySelectorAll('.menu-item-wrapper');
+  }
+
+  private generateMenuItemHTML(item: any, sectionName: string): string {
+    return `
+      <div role="listitem" class="menu-item-wrapper" data-item-name="${item.name.toLowerCase()}" data-item-description="${(item.description || '').toLowerCase()}">
+        <div class="flex justify-between items-start p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+          <div class="flex-1 min-w-0 mr-4">
+            <h3 class="text-lg font-medium text-gray-900 mb-1">${item.name}</h3>
+            ${item.description ? `<p class="text-sm text-gray-600 mb-2">${item.description}</p>` : ''}
+            <p class="text-lg font-semibold text-blue-600">$${item.price.toFixed(2)}</p>
+          </div>
+          <div class="flex-shrink-0">
+            <div class="add-to-cart-container" data-item-id="${item.id}">
+              <!-- Quantity selector (initially hidden) -->
+              <div class="quantity-selector hidden items-center space-x-2 h-[32px]">
+                <button 
+                  type="button"
+                  class="quantity-btn decrease-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-full w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0"
+                  aria-label="Decrease quantity of ${item.name}"
+                  data-action="decrease"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                  </svg>
+                </button>
+                
+                <span class="quantity-display font-medium text-gray-900 min-w-[2ch] text-center text-sm px-2" role="status" aria-live="polite">
+                  0
+                </span>
+                
+                <button 
+                  type="button"
+                  class="quantity-btn increase-btn bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0"
+                  aria-label="Increase quantity of ${item.name}"
+                  data-action="increase"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Initial "Add" button -->
+              <button 
+                type="button"
+                class="add-btn bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 min-w-[60px] h-[32px] flex items-center justify-center"
+                data-item-id="${item.id}"
+                data-item-name="${item.name}"
+                data-item-description="${item.description || ''}"
+                data-item-price="${item.price}"
+                data-section-name="${sectionName}"
+                aria-label="Add ${item.name} to cart"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private async initializeAddToCartButtons(): Promise<void> {
+    // Dynamically import and initialize AddToCartButton instances
+    const containers = document.querySelectorAll('.add-to-cart-container');
+    
+    containers.forEach(async (container) => {
+      try {
+        // The AddToCartButton logic is embedded in the component's script tag
+        // We need to trigger its initialization for dynamically created buttons
+        const event = new CustomEvent('addToCartButtonInit', {
+          detail: { container }
+        });
+        container.dispatchEvent(event);
+      } catch (error) {
+        console.error('Failed to initialize AddToCartButton:', error);
+      }
+    });
   }
 
   private initializeSearch(): void {
@@ -231,6 +398,18 @@ export class MenuDisplay {
     if (errorMessage && message) errorMessage.textContent = message;
   }
 
+  public showEmptyMenu(restaurantName: string): void {
+    const loading = document.getElementById('menu-loading');
+    const sections = document.getElementById('menu-sections');
+    const error = document.getElementById('menu-error');
+    const empty = document.getElementById('menu-empty');
+    
+    if (loading) loading.style.display = 'none';
+    if (sections) sections.style.display = 'none';
+    if (error) error.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+  }
+
   public showMenu(): void {
     const loading = document.getElementById('menu-loading');
     const sections = document.getElementById('menu-sections');
@@ -250,99 +429,9 @@ export class MenuDisplay {
       if (empty) empty.style.display = 'block';
     }
   }
-
-  private initializeLazyLoading(): void {
-    // Use Intersection Observer for lazy loading menu sections
-    if (!('IntersectionObserver' in window)) {
-      // Fallback for older browsers - load all sections immediately
-      this.loadAllSections();
-      return;
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const section = entry.target as HTMLElement;
-          this.loadLazySection(section);
-          observer.unobserve(section);
-        }
-      });
-    }, {
-      rootMargin: '50px 0px', // Start loading when section is 50px from viewport
-      threshold: 0.1
-    });
-
-    // Observe all lazy sections
-    document.querySelectorAll('.lazy-content').forEach(section => {
-      observer.observe(section.closest('.lazy-section') as Element);
-    });
-  }
-
-  private loadLazySection(section: HTMLElement): void {
-    const lazyContent = section.querySelector('.lazy-content');
-    if (!lazyContent) return;
-
-    const itemsData = lazyContent.getAttribute('data-section-items');
-    const sectionName = lazyContent.getAttribute('data-section-name');
-    
-    if (!itemsData || !sectionName) return;
-
-    try {
-      const items = JSON.parse(itemsData);
-      const itemsContainer = lazyContent.parentElement;
-      
-      if (itemsContainer) {
-        // Create menu items HTML
-        const itemsHTML = items.map((item: any) => `
-          <div role="listitem" class="menu-item-wrapper" data-item-name="${item.name.toLowerCase()}" data-item-description="${(item.description || '').toLowerCase()}">
-            <div class="flex justify-between items-start p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-              <div class="flex-1 min-w-0 mr-4">
-                <h3 class="text-lg font-medium text-gray-900 mb-1">${item.name}</h3>
-                ${item.description ? `<p class="text-sm text-gray-600 mb-2">${item.description}</p>` : ''}
-                <p class="text-lg font-semibold text-blue-600">$${item.price.toFixed(2)}</p>
-              </div>
-              <button 
-                type="button"
-                class="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-                data-item-id="${item.id}"
-                data-item-name="${item.name}"
-                data-item-price="${item.price}"
-                data-section-name="${sectionName}"
-                aria-label="Add ${item.name} to cart"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        `).join('');
-        
-        // Replace lazy content with actual items
-        itemsContainer.innerHTML = itemsHTML;
-        
-        // Update menuItems collection
-        this.menuItems = document.querySelectorAll('.menu-item-wrapper');
-        
-        // Initialize keyboard navigation for new items
-        this.initializeKeyboardNavigation();
-      }
-    } catch (error) {
-      console.warn('Failed to load lazy section:', error);
-      // Remove loading indicator on error
-      if (lazyContent.parentElement) {
-        lazyContent.parentElement.innerHTML = '<p class="text-gray-500 text-center py-4 italic">Failed to load menu items</p>';
-      }
-    }
-  }
-
-  private loadAllSections(): void {
-    // Fallback for browsers without Intersection Observer
-    document.querySelectorAll('.lazy-section').forEach(section => {
-      this.loadLazySection(section as HTMLElement);
-    });
-  }
 }
 
-// Initialize only when needed - use intersection observer for lazy loading
+// Initialize menu display
 const initializeMenuDisplay = () => {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => new MenuDisplay());

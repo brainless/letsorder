@@ -262,6 +262,18 @@ const { id, name, description, price, sectionName, className = '' } = Astro.prop
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
+
+  // Listen for custom events from dynamic content
+  document.addEventListener('addToCartButtonInit', (event: any) => {
+    const container = event.detail?.container;
+    if (container && container.classList?.contains('add-to-cart-container')) {
+      try {
+        new AddToCartButton(container as HTMLElement);
+      } catch (error) {
+        console.error('Failed to initialize AddToCartButton from custom event:', error);
+      }
+    }
+  });
 </script>
 
 <style>
