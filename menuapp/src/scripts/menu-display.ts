@@ -184,24 +184,147 @@ class MenuDisplay {
 
   private async initializeAddToCartButtons(): Promise<void> {
     console.log('[MenuDisplay] Initializing Add to Cart buttons');
-    
-    // Use the existing AddToCartButton.astro initialization system
-    // by dispatching custom events for each container
-    const containers = document.querySelectorAll('.add-to-cart-container');
-    console.log('[MenuDisplay] Found', containers.length, 'add-to-cart containers');
-    
-    containers.forEach((container) => {
-      try {
-        console.log('[MenuDisplay] Dispatching addToCartButtonInit event for:', container);
-        const event = new CustomEvent('addToCartButtonInit', {
-          detail: { container },
-          bubbles: true
-        });
-        document.dispatchEvent(event);
-      } catch (error) {
-        console.error('Failed to dispatch addToCartButtonInit event:', error);
+    try {
+      const { getCartInstance } = await import('../lib/cart.ts');
+      const containers = document.querySelectorAll('.add-to-cart-container');
+      console.log('[MenuDisplay] Found', containers.length, 'add-to-cart containers');
+      
+      containers.forEach((container) => {
+        try {
+          console.log('[MenuDisplay] Initializing container:', container);
+          this.initializeAddToCartButton(container as HTMLElement, getCartInstance);
+        } catch (error) {
+          console.error('Failed to initialize AddToCartButton container:', error);
+        }
+      });
+    } catch (error) {
+      console.error('Failed to import cart functionality:', error);
+    }
+  }
+
+  private initializeAddToCartButton(container: HTMLElement, getCartInstance: any): void {
+    const addButton = container.querySelector('.add-btn') as HTMLButtonElement;
+    const quantitySelector = container.querySelector('.quantity-selector') as HTMLElement;
+    const quantityDisplay = container.querySelector('.quantity-display') as HTMLElement;
+    const decreaseBtn = container.querySelector('.decrease-btn') as HTMLButtonElement;
+    const increaseBtn = container.querySelector('.increase-btn') as HTMLButtonElement;
+
+    if (!addButton || !quantitySelector || !quantityDisplay || !decreaseBtn || !increaseBtn) {
+      console.error('Required elements not found in AddToCartButton container');
+      return;
+    }
+
+    // Get menu item data from button attributes
+    const itemId = addButton.dataset.itemId || '';
+    const itemName = addButton.dataset.itemName || '';
+    const itemDescription = addButton.dataset.itemDescription || '';
+    const itemPrice = parseFloat(addButton.dataset.itemPrice || '0');
+    const sectionName = addButton.dataset.sectionName;
+
+    const menuItem = {
+      id: itemId,
+      name: itemName,
+      description: itemDescription,
+      price: itemPrice
+    };
+
+    // Get cart instance
+    const cart = getCartInstance(this.restaurantCode, this.tableCode);
+
+    // Initial add button
+    addButton.addEventListener('click', () => {
+      console.log('[MenuDisplay] Add button clicked for:', itemName);
+      cart.addItem(menuItem, 1, sectionName);
+      this.updateButtonDisplay(container, cart, menuItem.id);
+      this.showSuccessAnimation(addButton, itemName);
+    });
+
+    // Quantity controls
+    decreaseBtn.addEventListener('click', () => {
+      const currentQuantity = cart.getItemQuantity(menuItem.id);
+      if (currentQuantity > 0) {
+        cart.updateQuantity(menuItem.id, currentQuantity - 1);
+        this.updateButtonDisplay(container, cart, menuItem.id);
       }
     });
+
+    increaseBtn.addEventListener('click', () => {
+      const currentQuantity = cart.getItemQuantity(menuItem.id);
+      cart.updateQuantity(menuItem.id, currentQuantity + 1);
+      this.updateButtonDisplay(container, cart, menuItem.id);
+    });
+
+    // Initialize display
+    this.updateButtonDisplay(container, cart, menuItem.id);
+
+    // Subscribe to cart changes
+    cart.subscribe(() => {
+      this.updateButtonDisplay(container, cart, menuItem.id);
+    });
+  }
+
+  private updateButtonDisplay(container: HTMLElement, cart: any, itemId: string): void {
+    const addButton = container.querySelector('.add-btn') as HTMLElement;
+    const quantitySelector = container.querySelector('.quantity-selector') as HTMLElement;
+    const quantityDisplay = container.querySelector('.quantity-display') as HTMLElement;
+    const decreaseBtn = container.querySelector('.decrease-btn') as HTMLButtonElement;
+    
+    const quantity = cart.getItemQuantity(itemId);
+    
+    if (quantity > 0) {
+      // Show quantity selector, hide add button
+      addButton.classList.add('hidden');
+      quantitySelector.classList.remove('hidden');
+      quantitySelector.classList.add('flex');
+      quantityDisplay.textContent = quantity.toString();
+      
+      // Update ARIA label for quantity display
+      const itemName = (addButton as HTMLButtonElement).dataset.itemName || 'item';
+      quantityDisplay.setAttribute('aria-label', `${quantity} ${itemName} in cart`);
+      
+      // Disable decrease button if quantity is 1
+      if (decreaseBtn) {
+        decreaseBtn.disabled = quantity <= 1;
+        decreaseBtn.classList.toggle('opacity-50', quantity <= 1);
+      }
+    } else {
+      // Show add button, hide quantity selector
+      addButton.classList.remove('hidden');
+      quantitySelector.classList.add('hidden');
+      quantitySelector.classList.remove('flex');
+    }
+  }
+
+  private showSuccessAnimation(button: HTMLElement, itemName: string): void {
+    // Simple success animation
+    button.classList.add('animate-pulse');
+    setTimeout(() => {
+      button.classList.remove('animate-pulse');
+    }, 300);
+
+    // Show toast notification
+    this.showToast(`Added ${itemName} to cart`);
+  }
+
+  private showToast(message: string): void {
+    // Create and show a simple toast notification
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50 transition-opacity duration-300';
+    toast.textContent = message;
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 300);
+    }, 3000);
   }
 
 
