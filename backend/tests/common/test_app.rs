@@ -34,7 +34,11 @@ impl TestApp {
 
         let settings = Settings::default();
 
-        Self { pool, jwt_manager, settings }
+        Self {
+            pool,
+            jwt_manager,
+            settings,
+        }
     }
 
     pub async fn cleanup(&self) {

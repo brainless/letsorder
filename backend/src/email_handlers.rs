@@ -78,10 +78,12 @@ pub async fn verify_email_token(
         Ok(tx) => tx,
         Err(e) => {
             error!("Failed to start transaction: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(EmailVerificationResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(EmailVerificationResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                }),
+            );
         }
     };
 
@@ -97,10 +99,12 @@ pub async fn verify_email_token(
     {
         error!("Failed to update user verification status: {}", e);
         let _ = tx.rollback().await;
-        return Ok(HttpResponse::InternalServerError().json(EmailVerificationResponse {
-            success: false,
-            message: "Internal server error".to_string(),
-        }));
+        return Ok(
+            HttpResponse::InternalServerError().json(EmailVerificationResponse {
+                success: false,
+                message: "Internal server error".to_string(),
+            }),
+        );
     }
 
     // Mark token as used
@@ -115,21 +119,28 @@ pub async fn verify_email_token(
     {
         error!("Failed to mark token as used: {}", e);
         let _ = tx.rollback().await;
-        return Ok(HttpResponse::InternalServerError().json(EmailVerificationResponse {
-            success: false,
-            message: "Internal server error".to_string(),
-        }));
+        return Ok(
+            HttpResponse::InternalServerError().json(EmailVerificationResponse {
+                success: false,
+                message: "Internal server error".to_string(),
+            }),
+        );
     }
 
     if let Err(e) = tx.commit().await {
         error!("Failed to commit transaction: {}", e);
-        return Ok(HttpResponse::InternalServerError().json(EmailVerificationResponse {
-            success: false,
-            message: "Internal server error".to_string(),
-        }));
+        return Ok(
+            HttpResponse::InternalServerError().json(EmailVerificationResponse {
+                success: false,
+                message: "Internal server error".to_string(),
+            }),
+        );
     }
 
-    info!("Email verified successfully for user: {}", token_record.user_id.as_ref().unwrap_or(&String::new()));
+    info!(
+        "Email verified successfully for user: {}",
+        token_record.user_id.as_ref().unwrap_or(&String::new())
+    );
 
     Ok(HttpResponse::Ok().json(EmailVerificationResponse {
         success: true,
@@ -144,28 +155,28 @@ pub async fn resend_verification_email(
 ) -> Result<HttpResponse> {
     if let Some(ref email_config) = settings.email {
         if !email_config.enabled {
-            return Ok(HttpResponse::ServiceUnavailable().json(EmailVerificationResponse {
-                success: false,
-                message: "Email service is currently disabled".to_string(),
-            }));
+            return Ok(
+                HttpResponse::ServiceUnavailable().json(EmailVerificationResponse {
+                    success: false,
+                    message: "Email service is currently disabled".to_string(),
+                }),
+            );
         }
     } else {
-        return Ok(HttpResponse::ServiceUnavailable().json(EmailVerificationResponse {
-            success: false,
-            message: "Email service is not configured".to_string(),
-        }));
+        return Ok(
+            HttpResponse::ServiceUnavailable().json(EmailVerificationResponse {
+                success: false,
+                message: "Email service is not configured".to_string(),
+            }),
+        );
     }
 
     let email = &request.email;
 
     // Check if user exists and is not already verified
-    let user = match sqlx::query_as!(
-        UserRow,
-        "SELECT * FROM users WHERE email = ?",
-        email
-    )
-    .fetch_optional(pool.get_ref())
-    .await
+    let user = match sqlx::query_as!(UserRow, "SELECT * FROM users WHERE email = ?", email)
+        .fetch_optional(pool.get_ref())
+        .await
     {
         Ok(Some(user)) => user,
         Ok(None) => {
@@ -177,21 +188,20 @@ pub async fn resend_verification_email(
         }
         Err(e) => {
             error!("Database error during user lookup: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(EmailVerificationResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(EmailVerificationResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                }),
+            );
         }
     };
 
     // Check if user is already verified
-    let is_verified = sqlx::query_scalar!(
-        "SELECT email_verified FROM users WHERE id = ?",
-        user.id
-    )
-    .fetch_one(pool.get_ref())
-    .await
-    .unwrap_or(false);
+    let is_verified = sqlx::query_scalar!("SELECT email_verified FROM users WHERE id = ?", user.id)
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap_or(false);
 
     if is_verified {
         return Ok(HttpResponse::BadRequest().json(EmailVerificationResponse {
@@ -207,10 +217,12 @@ pub async fn resend_verification_email(
         Ok(token) => token,
         Err(e) => {
             error!("Failed to create verification token: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(EmailVerificationResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(EmailVerificationResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                }),
+            );
         }
     };
 
@@ -224,22 +236,27 @@ pub async fn resend_verification_email(
         Ok(service) => service,
         Err(e) => {
             error!("Failed to initialize email service: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(EmailVerificationResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(EmailVerificationResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                }),
+            );
         }
     };
 
     // TODO: Replace with actual frontend URL
     let verification_link = format!("https://admin.letsorder.app/verify-email?token={}", token);
-    
+
     let user_email = user.email.clone().unwrap_or_default();
-    match email_service.send_email_verification(
-        user_email.clone(),
-        verification_link,
-        user_email.clone(), // Using email as name since we don't have separate name field
-    ).await {
+    match email_service
+        .send_email_verification(
+            user_email.clone(),
+            verification_link,
+            user_email.clone(), // Using email as name since we don't have separate name field
+        )
+        .await
+    {
         Ok(_) => {
             info!("Verification email sent to: {}", user_email);
             Ok(HttpResponse::Ok().json(EmailVerificationResponse {
@@ -249,10 +266,12 @@ pub async fn resend_verification_email(
         }
         Err(e) => {
             error!("Failed to send verification email: {}", e);
-            Ok(HttpResponse::InternalServerError().json(EmailVerificationResponse {
-                success: false,
-                message: "Failed to send verification email".to_string(),
-            }))
+            Ok(
+                HttpResponse::InternalServerError().json(EmailVerificationResponse {
+                    success: false,
+                    message: "Failed to send verification email".to_string(),
+                }),
+            )
         }
     }
 }
@@ -286,28 +305,28 @@ pub async fn request_password_reset(
 ) -> Result<HttpResponse> {
     if let Some(ref email_config) = settings.email {
         if !email_config.enabled {
-            return Ok(HttpResponse::ServiceUnavailable().json(PasswordResetResponse {
-                success: false,
-                message: "Email service is currently disabled".to_string(),
-            }));
+            return Ok(
+                HttpResponse::ServiceUnavailable().json(PasswordResetResponse {
+                    success: false,
+                    message: "Email service is currently disabled".to_string(),
+                }),
+            );
         }
     } else {
-        return Ok(HttpResponse::ServiceUnavailable().json(PasswordResetResponse {
-            success: false,
-            message: "Email service is not configured".to_string(),
-        }));
+        return Ok(
+            HttpResponse::ServiceUnavailable().json(PasswordResetResponse {
+                success: false,
+                message: "Email service is not configured".to_string(),
+            }),
+        );
     }
 
     let email = &request.email;
 
     // Check if user exists
-    let user = match sqlx::query_as!(
-        UserRow,
-        "SELECT * FROM users WHERE email = ?",
-        email
-    )
-    .fetch_optional(pool.get_ref())
-    .await
+    let user = match sqlx::query_as!(UserRow, "SELECT * FROM users WHERE email = ?", email)
+        .fetch_optional(pool.get_ref())
+        .await
     {
         Ok(Some(user)) => user,
         Ok(None) => {
@@ -319,10 +338,12 @@ pub async fn request_password_reset(
         }
         Err(e) => {
             error!("Database error during user lookup: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(PasswordResetResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(PasswordResetResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                }),
+            );
         }
     };
 
@@ -333,10 +354,12 @@ pub async fn request_password_reset(
         Ok(token) => token,
         Err(e) => {
             error!("Failed to create password reset token: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(PasswordResetResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(PasswordResetResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                }),
+            );
         }
     };
 
@@ -350,22 +373,27 @@ pub async fn request_password_reset(
         Ok(service) => service,
         Err(e) => {
             error!("Failed to initialize email service: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(PasswordResetResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(PasswordResetResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                }),
+            );
         }
     };
 
     // TODO: Replace with actual frontend URL
     let reset_link = format!("https://admin.letsorder.app/reset-password?token={}", token);
-    
+
     let user_email = user.email.clone().unwrap_or_default();
-    match email_service.send_password_reset(
-        user_email.clone(),
-        reset_link,
-        user_email.clone(), // Using email as name since we don't have separate name field
-    ).await {
+    match email_service
+        .send_password_reset(
+            user_email.clone(),
+            reset_link,
+            user_email.clone(), // Using email as name since we don't have separate name field
+        )
+        .await
+    {
         Ok(_) => {
             info!("Password reset email sent to: {}", user_email);
             Ok(HttpResponse::Ok().json(PasswordResetResponse {
@@ -375,10 +403,12 @@ pub async fn request_password_reset(
         }
         Err(e) => {
             error!("Failed to send password reset email: {}", e);
-            Ok(HttpResponse::InternalServerError().json(PasswordResetResponse {
-                success: false,
-                message: "Failed to send password reset email".to_string(),
-            }))
+            Ok(
+                HttpResponse::InternalServerError().json(PasswordResetResponse {
+                    success: false,
+                    message: "Failed to send password reset email".to_string(),
+                }),
+            )
         }
     }
 }
@@ -390,7 +420,7 @@ pub async fn confirm_password_reset(
     let token = &request.token;
     let new_password = &request.new_password;
 
-    // Find the token and check if it's valid  
+    // Find the token and check if it's valid
     let token_hash = hash_token(token);
     let now_naive = Utc::now().naive_utc();
     let token_record = match sqlx::query_as!(
@@ -420,20 +450,22 @@ pub async fn confirm_password_reset(
     };
 
     // Hash the new password
-    use argon2::{Argon2, PasswordHasher};
     use argon2::password_hash::{rand_core::OsRng, SaltString};
-    
+    use argon2::{Argon2, PasswordHasher};
+
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
-    
+
     let password_hash = match argon2.hash_password(new_password.as_bytes(), &salt) {
         Ok(hash) => hash.to_string(),
         Err(e) => {
             error!("Failed to hash password: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(PasswordResetResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(PasswordResetResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                }),
+            );
         }
     };
 
@@ -442,10 +474,12 @@ pub async fn confirm_password_reset(
         Ok(tx) => tx,
         Err(e) => {
             error!("Failed to start transaction: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(PasswordResetResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(PasswordResetResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                }),
+            );
         }
     };
 
@@ -462,10 +496,12 @@ pub async fn confirm_password_reset(
     {
         error!("Failed to update user password: {}", e);
         let _ = tx.rollback().await;
-        return Ok(HttpResponse::InternalServerError().json(PasswordResetResponse {
-            success: false,
-            message: "Internal server error".to_string(),
-        }));
+        return Ok(
+            HttpResponse::InternalServerError().json(PasswordResetResponse {
+                success: false,
+                message: "Internal server error".to_string(),
+            }),
+        );
     }
 
     // Mark token as used
@@ -480,21 +516,28 @@ pub async fn confirm_password_reset(
     {
         error!("Failed to mark token as used: {}", e);
         let _ = tx.rollback().await;
-        return Ok(HttpResponse::InternalServerError().json(PasswordResetResponse {
-            success: false,
-            message: "Internal server error".to_string(),
-        }));
+        return Ok(
+            HttpResponse::InternalServerError().json(PasswordResetResponse {
+                success: false,
+                message: "Internal server error".to_string(),
+            }),
+        );
     }
 
     if let Err(e) = tx.commit().await {
         error!("Failed to commit transaction: {}", e);
-        return Ok(HttpResponse::InternalServerError().json(PasswordResetResponse {
-            success: false,
-            message: "Internal server error".to_string(),
-        }));
+        return Ok(
+            HttpResponse::InternalServerError().json(PasswordResetResponse {
+                success: false,
+                message: "Internal server error".to_string(),
+            }),
+        );
     }
 
-    info!("Password reset successfully for user: {}", token_record.user_id.as_ref().unwrap_or(&String::new()));
+    info!(
+        "Password reset successfully for user: {}",
+        token_record.user_id.as_ref().unwrap_or(&String::new())
+    );
 
     Ok(HttpResponse::Ok().json(PasswordResetResponse {
         success: true,
@@ -510,25 +553,32 @@ pub async fn send_support_ticket(
 ) -> Result<HttpResponse> {
     if let Some(ref email_config) = settings.email {
         if !email_config.enabled {
-            return Ok(HttpResponse::ServiceUnavailable().json(SupportTicketResponse {
-                success: false,
-                message: "Email service is currently disabled".to_string(),
-                ticket_id: None,
-            }));
+            return Ok(
+                HttpResponse::ServiceUnavailable().json(SupportTicketResponse {
+                    success: false,
+                    message: "Email service is currently disabled".to_string(),
+                    ticket_id: None,
+                }),
+            );
         }
     } else {
-        return Ok(HttpResponse::ServiceUnavailable().json(SupportTicketResponse {
-            success: false,
-            message: "Email service is not configured".to_string(),
-            ticket_id: None,
-        }));
+        return Ok(
+            HttpResponse::ServiceUnavailable().json(SupportTicketResponse {
+                success: false,
+                message: "Email service is not configured".to_string(),
+                ticket_id: None,
+            }),
+        );
     }
 
     // Create support ticket record (this would typically be stored in database)
     let ticket_id = Uuid::new_v4().to_string();
-    
+
     // TODO: Store support ticket in database
-    info!("Support ticket created: {} from {}", ticket_id, request.email);
+    info!(
+        "Support ticket created: {} from {}",
+        ticket_id, request.email
+    );
 
     // Send support ticket confirmation email
     let email_config = settings.email.as_ref().unwrap();
@@ -540,11 +590,13 @@ pub async fn send_support_ticket(
         Ok(service) => service,
         Err(e) => {
             error!("Failed to initialize email service: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(SupportTicketResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-                ticket_id: None,
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(SupportTicketResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                    ticket_id: None,
+                }),
+            );
         }
     };
 
@@ -556,34 +608,43 @@ pub async fn send_support_ticket(
     ticket_data.insert("ticket_id".to_string(), ticket_id.clone());
 
     // Send confirmation email to user
-    match email_service.send_support_ticket(
-        request.email.clone(),
-        ticket_data.clone(),
-    ).await {
+    match email_service
+        .send_support_ticket(request.email.clone(), ticket_data.clone())
+        .await
+    {
         Ok(_) => {
             // Also send notification to admin
             let mut admin_data = ticket_data.clone();
-            admin_data.insert("action_text".to_string(), "New support ticket received:".to_string());
-            
-            let _ = email_service.send_contact_form_notification(
-                email_config.admin_email.clone(),
-                admin_data,
-            ).await;
+            admin_data.insert(
+                "action_text".to_string(),
+                "New support ticket received:".to_string(),
+            );
 
-            info!("Support ticket email sent to: {} (ID: {})", request.email, ticket_id);
+            let _ = email_service
+                .send_contact_form_notification(email_config.admin_email.clone(), admin_data)
+                .await;
+
+            info!(
+                "Support ticket email sent to: {} (ID: {})",
+                request.email, ticket_id
+            );
             Ok(HttpResponse::Ok().json(SupportTicketResponse {
                 success: true,
-                message: "Support ticket created successfully. You will receive a confirmation email.".to_string(),
+                message:
+                    "Support ticket created successfully. You will receive a confirmation email."
+                        .to_string(),
                 ticket_id: Some(ticket_id),
             }))
         }
         Err(e) => {
             error!("Failed to send support ticket email: {}", e);
-            Ok(HttpResponse::InternalServerError().json(SupportTicketResponse {
-                success: false,
-                message: "Failed to send support ticket email".to_string(),
-                ticket_id: None,
-            }))
+            Ok(
+                HttpResponse::InternalServerError().json(SupportTicketResponse {
+                    success: false,
+                    message: "Failed to send support ticket email".to_string(),
+                    ticket_id: None,
+                }),
+            )
         }
     }
 }
@@ -594,16 +655,20 @@ pub async fn send_support_response(
 ) -> Result<HttpResponse> {
     if let Some(ref email_config) = settings.email {
         if !email_config.enabled {
-            return Ok(HttpResponse::ServiceUnavailable().json(SupportResponseEmailResponse {
-                success: false,
-                message: "Email service is currently disabled".to_string(),
-            }));
+            return Ok(
+                HttpResponse::ServiceUnavailable().json(SupportResponseEmailResponse {
+                    success: false,
+                    message: "Email service is currently disabled".to_string(),
+                }),
+            );
         }
     } else {
-        return Ok(HttpResponse::ServiceUnavailable().json(SupportResponseEmailResponse {
-            success: false,
-            message: "Email service is not configured".to_string(),
-        }));
+        return Ok(
+            HttpResponse::ServiceUnavailable().json(SupportResponseEmailResponse {
+                success: false,
+                message: "Email service is not configured".to_string(),
+            }),
+        );
     }
 
     let email_config = settings.email.as_ref().unwrap();
@@ -615,10 +680,12 @@ pub async fn send_support_response(
         Ok(service) => service,
         Err(e) => {
             error!("Failed to initialize email service: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(SupportResponseEmailResponse {
-                success: false,
-                message: "Internal server error".to_string(),
-            }));
+            return Ok(
+                HttpResponse::InternalServerError().json(SupportResponseEmailResponse {
+                    success: false,
+                    message: "Internal server error".to_string(),
+                }),
+            );
         }
     };
 
@@ -627,12 +694,15 @@ pub async fn send_support_response(
     response_data.insert("ticket_id".to_string(), request.ticket_id.clone());
     response_data.insert("response_content".to_string(), request.response.clone());
 
-    match email_service.send_support_response(
-        request.user_email.clone(),
-        response_data,
-    ).await {
+    match email_service
+        .send_support_response(request.user_email.clone(), response_data)
+        .await
+    {
         Ok(_) => {
-            info!("Support response email sent to: {} for ticket: {}", request.user_email, request.ticket_id);
+            info!(
+                "Support response email sent to: {} for ticket: {}",
+                request.user_email, request.ticket_id
+            );
             Ok(HttpResponse::Ok().json(SupportResponseEmailResponse {
                 success: true,
                 message: "Support response sent successfully".to_string(),
@@ -640,10 +710,12 @@ pub async fn send_support_response(
         }
         Err(e) => {
             error!("Failed to send support response email: {}", e);
-            Ok(HttpResponse::InternalServerError().json(SupportResponseEmailResponse {
-                success: false,
-                message: "Failed to send support response email".to_string(),
-            }))
+            Ok(
+                HttpResponse::InternalServerError().json(SupportResponseEmailResponse {
+                    success: false,
+                    message: "Failed to send support response email".to_string(),
+                }),
+            )
         }
     }
 }
