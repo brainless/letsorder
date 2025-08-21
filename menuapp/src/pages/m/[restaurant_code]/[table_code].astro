@@ -81,4 +81,64 @@ import('/src/scripts/performance-monitor.ts').catch(() => {
 
   <!-- Load menu display script with restaurant and table codes -->
   <script type="module" set:html={scriptContent}></script>
+  
+  <!-- Additional styles for AddToCartButton animations -->
+  <style>
+    .add-to-cart-container {
+      display: inline-block;
+      min-height: 32px;
+    }
+
+    .quantity-selector {
+      display: none;
+      align-items: center;
+      height: 32px;
+    }
+
+    .quantity-selector.flex {
+      display: flex;
+    }
+
+    .add-btn {
+      height: 32px;
+      min-width: 60px;
+    }
+
+    .quantity-btn:disabled {
+      cursor: not-allowed;
+    }
+
+    /* Smooth transitions */
+    .quantity-display {
+      transition: all 0.2s ease;
+    }
+
+    /* Animation classes */
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .animate-pulse {
+      animation: pulse 0.3s ease-in-out;
+    }
+
+    /* Toast notification styles */
+    .toast {
+      transform: translateY(-100%);
+      opacity: 0;
+      animation: slideDown 0.3s ease-out forwards;
+    }
+
+    @keyframes slideDown {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
 </Layout>
