@@ -15,6 +15,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  DATABASE_URL: sqlite::memory:
 
 jobs:
   test:
@@ -49,32 +50,25 @@ jobs:
 
       - name: Setup database and prepare SQLx cache
         run: |
-          cargo install sqlx-cli
-          sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
-          sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
-          sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
-          sqlite3 temp.db < migrations/20250813000004_add_contact_submissions.sql
+          cargo install sqlx-cli || true
+          mkdir -p db
+          sqlite3 db/test.db < migrations/20250131000001_initial_schema.sql
+          sqlite3 db/test.db < migrations/20250131000002_manager_invites.sql
+          sqlite3 db/test.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          sqlite3 db/test.db < migrations/20250813000004_add_contact_submissions.sql
+          sqlite3 db/test.db < migrations/20250820000005_add_email_verification.sql
           cargo sqlx prepare -- --all-targets
         env:
-          DATABASE_URL: sqlite:./temp.db
+          DATABASE_URL: sqlite:./db/test.db
 
       - name: Run clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
-        env:
-          DATABASE_URL: "sqlite::memory:"
-          SQLX_OFFLINE: true
 
       - name: Build
         run: cargo build --verbose
-        env:
-          DATABASE_URL: "sqlite::memory:"
-          SQLX_OFFLINE: true
 
       - name: Run tests
         run: cargo test --verbose
-        env:
-          DATABASE_URL: "sqlite::memory:"
-          SQLX_OFFLINE: true
 
       - name: Install cargo-audit
         run: cargo install cargo-audit
@@ -108,19 +102,21 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Install sqlx-cli
-        run: cargo install sqlx-cli
+        run: cargo install sqlx-cli || true
 
       - name: Setup test database
         run: |
-          sqlite3 test.db < migrations/20250131000001_initial_schema.sql
-          sqlite3 test.db < migrations/20250131000002_manager_invites.sql
-          sqlite3 test.db < migrations/20250131000003_add_customer_name_to_orders.sql
-          sqlite3 test.db < migrations/20250813000004_add_contact_submissions.sql
+          mkdir -p db
+          sqlite3 db/test.db < migrations/20250131000001_initial_schema.sql
+          sqlite3 db/test.db < migrations/20250131000002_manager_invites.sql
+          sqlite3 db/test.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          sqlite3 db/test.db < migrations/20250813000004_add_contact_submissions.sql
+          sqlite3 db/test.db < migrations/20250820000005_add_email_verification.sql
 
       - name: Verify SQLx queries
         run: cargo sqlx prepare --check
         env:
-          DATABASE_URL: sqlite:./test.db
+          DATABASE_URL: sqlite:./db/test.db
 
   matrix-test:
     name: Matrix Testing
@@ -154,23 +150,19 @@ jobs:
 
       - name: Setup database and prepare SQLx cache
         run: |
-          cargo install sqlx-cli
-          sqlite3 temp.db < migrations/20250131000001_initial_schema.sql
-          sqlite3 temp.db < migrations/20250131000002_manager_invites.sql
-          sqlite3 temp.db < migrations/20250131000003_add_customer_name_to_orders.sql
-          sqlite3 temp.db < migrations/20250813000004_add_contact_submissions.sql
+          cargo install sqlx-cli || true
+          mkdir -p db
+          sqlite3 db/test.db < migrations/20250131000001_initial_schema.sql
+          sqlite3 db/test.db < migrations/20250131000002_manager_invites.sql
+          sqlite3 db/test.db < migrations/20250131000003_add_customer_name_to_orders.sql
+          sqlite3 db/test.db < migrations/20250813000004_add_contact_submissions.sql
+          sqlite3 db/test.db < migrations/20250820000005_add_email_verification.sql
           cargo sqlx prepare -- --all-targets
         env:
-          DATABASE_URL: sqlite:./temp.db
+          DATABASE_URL: sqlite:./db/test.db
 
       - name: Build
         run: cargo build --verbose
-        env:
-          DATABASE_URL: "sqlite::memory:"
-          SQLX_OFFLINE: true
 
       - name: Run tests
         run: cargo test --verbose
-        env:
-          DATABASE_URL: "sqlite::memory:"
-          SQLX_OFFLINE: true
